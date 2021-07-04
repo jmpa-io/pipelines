@@ -9,12 +9,6 @@ die() { echo "$1" >&2; exit "${2:-1}"; }
 [[ ! -d .git ]] \
   && die "must be run from repository root directory"
 
-# check remote has been setup already.
-[[ $(git remote show template 2>/dev/null) ]] || {
-  git remote add template "https://github.com/jmpa-oss/root-template.git" \
-    || die "failed to add remote template"
-}
-
 # fetch template changes.
 git fetch template \
   || die "failed to fetch template changes"
