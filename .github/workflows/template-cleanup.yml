@@ -7,7 +7,7 @@ jobs:
   run:
     name: Cleans up the repository when a child is first created; triggers from the first commit to the repository.
     runs-on: ubuntu-20.04
-    if: github.event.repository.name != 'template'
+    if: github.event.repository.name != 'root-template'
     steps:
       - name: Checkout
         uses: actions/checkout@v2
