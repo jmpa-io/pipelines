@@ -56,6 +56,7 @@ fi
 
 # retrieve workflows.
 workflows=$(find .github/workflows -type f -name '*.yml')
+workflows=$(<<< "$workflows" sort) # sort alphabetically.
 
 # add workflow badges.
 pattern="%BADGES%"
