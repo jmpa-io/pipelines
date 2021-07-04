@@ -23,6 +23,8 @@ jobs:
 
       - name: Cleanup
         run: ./bin/template-cleanup.sh
+        env:
+          PARENT_TEMPLATE: root-template
 
       - name: Commit?
         run: |
