@@ -3,6 +3,11 @@
 [![template-cleanup](https://github.com/jmpa-oss/root-template/actions/workflows/template-cleanup.yml/badge.svg)](https://github.com/jmpa-oss/root-template/actions/workflows/template-cleanup.yml)
 [![update](https://github.com/jmpa-oss/root-template/actions/workflows/update.yml/badge.svg)](https://github.com/jmpa-oss/root-template/actions/workflows/update.yml)
 
+<p align="center">
+	<img src="docs/logo.png">
+</p>
+
+
 # root-template
 
 ```diff
