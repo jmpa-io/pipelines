@@ -46,7 +46,7 @@ if [[ $isTemplate == true ]]; then
   )
 fi
 for thing in "${files[@]}"; do
-  echo "##[group]Removing $thing"
+  echo "~~~ removing $thing"
   found=false
   [[ -d "$thing" ]] && { found=true; }
   [[ -f "$thing" ]] && { found=true; }
@@ -54,7 +54,6 @@ for thing in "${files[@]}"; do
     && die "failed to find $thing; does it exist?"
   rm -rf "$thing" \
     || die "failed to remove $thing"
-  echo "##[endgroup]"
 done
 
 # exit early, since the rest if child template specific.
@@ -70,8 +69,7 @@ files=$(find . -type f \
   -not -path "./.editorconfig")
 # shellcheck disable=SC2128
 for file in $files; do
-  echo "##[group]Updating $file"
+  echo "~~~ updating $file"
   sed -i '' -e "s/$parentRepo/$repo/g" "$file" \
       || die "failed to sed update $file"
-  echo "##[endgroup]"
 done
