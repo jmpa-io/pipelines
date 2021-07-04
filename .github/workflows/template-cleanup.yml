@@ -21,17 +21,17 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET }}
           aws-region: ap-southeast-2
 
-      - name: Update
-        run: |
-          # auth early, since the update script does a `git merge`.
-          git config user.name 'GitHub Actions'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          ./bin/update.sh
+      # - name: Update
+      #   run: |
+      #     # auth early, since the update script does a `git merge`.
+      #     git config user.name 'GitHub Actions'
+      #     git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+      #     ./bin/update.sh
 
-      - name: Cleanup
-        run: ./bin/template-cleanup.sh
-        env:
-          PARENT_TEMPLATE: root-template
+      # - name: Cleanup
+      #   run: ./bin/template-cleanup.sh
+      #   env:
+      #     PARENT_TEMPLATE: root-template
 
       - name: Commit?
         run: |
