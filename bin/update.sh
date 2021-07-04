@@ -15,19 +15,27 @@ remoteBranch="$branch/main"
 
 # add template as parent, if not found.
 if [[ $(git remote show $branch 2>/dev/null) ]]; then
+  echo "##[group]Adding remote $branch"
   git remote add "$branch" "https://github.com/jmpa-oss/root-template.git" \
     || die "failed to add remote $branch"
+  echo "##[endgroup]"
 fi
 
 # fetch changes from parent.
+echo "##[group]Fetching $branch changes"
 git fetch "$branch" \
   || die "failed to fetch changes from "
+echo "##[endgroup]"
 
 # check for any changes.
+echo "##[group]Checking for any changes"
 [[ -z $(git status --porcelain) ]] && \
   die "no changes found from $remoteBranch; skipping merge"
+echo "##[endgroup]"
 
 # merge.
+echo "##[group]Updating $branch with changes from $remoteBranch"
 git merge "$remoteBranch" --allow-unrelated-histories \
   -m "update $branch with latest changes from $remoteBranch" \
   || die "failed to merge $remoteBranch changes to $branch"
+echo "##[endgroup]"
