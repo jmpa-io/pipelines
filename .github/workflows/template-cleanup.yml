@@ -21,11 +21,10 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET }}
           aws-region: ap-southeast-2
 
-      - name: Setup template
+      - name: Update
         run: |
           git config user.name 'GitHub Actions'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          ./bin/setup-update.sh
           ./bin/update.sh
 
       - name: Cleanup
