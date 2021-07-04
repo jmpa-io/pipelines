@@ -16,13 +16,15 @@ jobs:
           token: ${{ secrets.GH_ORG_TOKEN }}
 
       - name: Update
-        run: ./bin/update.sh
+        run: |
+          # auth early, since the update script does a `git merge`.
+          git config user.name 'GitHub Actions'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          ./bin/update.sh
 
       - name: Commit?
         run: |
           [[ -z $(git status --porcelain) ]] && { echo "no changes to commit; skipping"; exit 0; }
-          git config user.name 'GitHub Actions'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git commit -am "[skip-ci] Update from parent template"
           git push origin HEAD:main
 
