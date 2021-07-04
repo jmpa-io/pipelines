@@ -36,9 +36,10 @@ if [[ $template == *"%NAME%"* ]]; then
   template="${template/\%NAME\%/$repo}"
 fi
 
-# retrieve token.
-token="${GITHUB_TOKEN}" # retrieved via GitHub Actions.
-[[ -z "$token" ]] && die "missing GITHUB_TOKEN"
+# retrieve GitHub token.
+token=$(aws ssm get-parameter --name "/tokens/github" \
+  --query "Parameter.Value" --output text --with-decryption) \
+  || die "failed to retrieve GitHub token from paramstore"
 
 # retrieve GitHub repository description.
 resp=$(curl -s "https://api.github.com/repos/jmpa-oss/$repo" \
