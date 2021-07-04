@@ -43,6 +43,15 @@ git merge "$remoteBranch" --allow-unrelated-histories \
   -m "Update $currentBranch with latest changes from $remoteBranch"
 echo "##[endgroup]"
 
+# run template-cleanup.sh, if found.
+file="bin/template-cleanup.sh"
+if [[ -f "$file" ]]; then
+  echo "##[group]Running $file, again"
+  source "$file" \
+    || die "failed to run $file"
+  echo "##[endgroup]"
+fi
+
 # reset unique files, since they'll be unique to each repository.
 echo "##[group]Resetting files"
 files=(
