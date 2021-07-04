@@ -1,1 +1,35 @@
 name: README.md
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/README.md.template
+      - '.github/workflows/*'
+      - bin/README.md.sh
+
+jobs:
+  run:
+    name: Updates the README.md with new changes.
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Update
+        run: bin/README.md.sh
+
+      - name: Commit?
+        run: |
+          [[ -z $(git status --porcelain) ]] && { echo "no changes to commit; skipping"; exit 0; }
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -am "[skip-ci] Updated README.md"
+          git push origin HEAD:main
+
+      - name: Notify Slack
+        if: always()
+        uses: jmpa-oss/job-to-slack@v0.0.1
+        with:
+          webhook: ${{ secrets.SLACK_GITHUB_WEBHOOK_URL }}
+          status: ${{ job.status }}

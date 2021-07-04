@@ -15,7 +15,7 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GH_ORG_TOKEN }}
 
-      - name: Update repository
+      - name: Update
         run: ./bin/update.sh
 
       - name: Commit?
