@@ -30,7 +30,7 @@ echo "##[endgroup]"
 # check for any changes.
 echo "##[group]Checking for any changes"
 [[ -z $(git status --porcelain) ]] && \
-  die "no changes found from $remoteBranch; skipping merge"
+  die "no changes found from $remoteBranch; skipping merge" 0
 echo "##[endgroup]"
 
 # merge.
