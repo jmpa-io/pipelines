@@ -6,7 +6,7 @@
 # template
 
 ```diff
-+ TODO
++ The root template, used for other projects / other templates.
 ```
 
 ## workflows
