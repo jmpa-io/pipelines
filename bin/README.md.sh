@@ -118,7 +118,7 @@ if [[ $template == *"$pattern"* ]]; then
   if [[ -z "$logo" ]]; then
     template=$(<<< "$template" sed "/$pattern/,+1 d")
   else
-    out="<p align="center">\n\t<img src="$logo">\n</p>\n"
+    out="<p align=\"center\">\n\t<img src=\"$logo\">\n</p>\n"
     template="${template/\%LOGO\%/$out}"
   fi
 fi
