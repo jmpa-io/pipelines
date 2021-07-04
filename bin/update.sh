@@ -59,13 +59,12 @@ if [[ -f "$file" ]]; then
   echo "##[group]Running $file, again"
   # shellcheck disable=SC1090
   source "$file" \
-    && die "failed to source $file"
+    || die "failed to source $file"
   echo "##[endgroup]"
 fi
 
 # commit.
-echo "##[group]Commit changes"
+echo "##[group]Commit any extra changes"
 git add -A
-git commit -m "Update $currentBranch with latest changes from $remoteBranch" \
-  || die "failed to merge $remoteBranch changes to $currentBranch"
+git commit -m "Update $currentBranch with latest changes from $remoteBranch"
 echo "##[endgroup]"
