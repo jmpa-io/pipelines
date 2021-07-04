@@ -114,7 +114,7 @@ fi
 # add logo.
 pattern="%LOGO%"
 if [[ $template == *"$pattern"* ]]; then
-  logo=$(find docs/ -name 'logdo.*')
+  logo=$(find docs/ -name 'logo.*')
   if [[ -z "$logo" ]]; then
     template=$(<<< "$template" sed "/$pattern/,+1 d")
   else
