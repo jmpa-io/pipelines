@@ -1,0 +1,34 @@
+name: update
+on:
+  repository_dispatch:
+    types: [update]
+
+jobs:
+  run:
+    name: Updates repository with changes from parent template.
+    runs-on: ubuntu-20.04
+    if: github.event.repository.name != 'template'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GH_ORG_TOKEN }}
+
+      - name: Update repository
+        run: ./bin/update.sh
+
+      - name: Commit?
+        run: |
+          [[ -z $(git status --porcelain) ]] && { echo "no changes to commit; skipping"; exit 0; }
+          git config user.name 'GitHub Actions'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -am "[skip-ci] Update from parent template"
+          git push origin HEAD:main
+
+      - name: Notify Slack
+        if: always()
+        uses: jmpa-oss/job-to-slack@v0.0.1
+        with:
+            webhook: ${{ secrets.SLACK_GITHUB_WEBHOOK_URL }}
+            status: ${{ job.status }}
