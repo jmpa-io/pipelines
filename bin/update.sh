@@ -34,7 +34,7 @@ echo "##[group]Checking for any changes"
 mapfile -t files < <(git diff --name-only "$currentBranch" "$remoteBranch") \
   || die "failed to get remote changed files list for $remoteBranch"
 [[ ${#files[@]} -eq 0 ]] \
-  || die "no changes found from $remoteBranch; skipping merge" 0
+  && die "no changes found from $remoteBranch; skipping merge" 0
 echo "##[endgroup]"
 
 # merge.
