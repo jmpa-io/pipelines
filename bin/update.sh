@@ -14,12 +14,12 @@ branch="template"
 remoteBranch="$branch/main"
 
 # add template as parent, if not found.
-if [[ $(git remote show $branch 2>/dev/null) ]]; then
+[[ $(git remote show $branch 2>/dev/null) ]] || {
   echo "##[group]Adding remote $branch"
   git remote add "$branch" "https://github.com/jmpa-oss/root-template.git" \
     || die "failed to add remote $branch"
   echo "##[endgroup]"
-fi
+}
 
 # fetch changes from parent.
 echo "##[group]Fetching $branch changes"
