@@ -58,10 +58,8 @@ file="bin/template-cleanup.sh"
 if [[ -f "$file" ]]; then
   echo "##[group]Running $file, again"
   # shellcheck disable=SC1090
-  out=$(source "$file")
-  [[ $? -ne 0 ]] \
+  source "$file" \
     && die "failed to source $file"
-  echo "$out"
   echo "##[endgroup]"
 fi
 
