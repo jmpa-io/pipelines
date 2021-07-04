@@ -39,7 +39,8 @@ echo "##[endgroup]"
 
 # merge.
 echo "##[group]Merging changes from $remoteBranch to $currentBranch"
-git merge "$remoteBranch" --allow-unrelated-histories
+git merge "$remoteBranch" --allow-unrelated-histories \
+  -m "Update $currentBranch with latest changes from $remoteBranch"
 echo "##[endgroup]"
 
 # reset unique files, since they'll be unique to each repository.
