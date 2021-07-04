@@ -59,6 +59,7 @@ done
 [[ $isTemplate == false ]] && { exit 0; }
 
 # find files to update with new child template name.
+# shellcheck disable=SC2128,SC2178
 files=$(find . -type f \
   -not -path "$0" \
   -not -path "./.git/*" \
