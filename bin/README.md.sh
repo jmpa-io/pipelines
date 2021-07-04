@@ -41,7 +41,7 @@ token="${GITHUB_TOKEN}" # retrieved via GitHub Actions.
 [[ -z "$token" ]] && die "missing GITHUB_TOKEN"
 
 # retrieve GitHub repository description.
-resp=$(curl -s "https://api.github.com/repos/myob-ops/$repo" \
+resp=$(curl -s "https://api.github.com/repos/jmpa-oss/$repo" \
   -H "Accept: application/vnd.github.v3+json" \
   -H "Authorization: bearer $token") \
   || die "failed to retrieve $repo repository info"
