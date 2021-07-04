@@ -7,7 +7,6 @@
 	<img src="docs/logo.png">
 </p>
 
-
 # root-template
 
 ```diff
