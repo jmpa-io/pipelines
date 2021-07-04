@@ -1,9 +1,9 @@
-[![README.md](https://github.com/jmpa-oss/template/actions/workflows/README.md.yml/badge.svg)](https://github.com/jmpa-oss/template/actions/workflows/README.md.yml)
-[![dispatch](https://github.com/jmpa-oss/template/actions/workflows/dispatch.yml/badge.svg)](https://github.com/jmpa-oss/template/actions/workflows/dispatch.yml)
-[![template-cleanup](https://github.com/jmpa-oss/template/actions/workflows/template-cleanup.yml/badge.svg)](https://github.com/jmpa-oss/template/actions/workflows/template-cleanup.yml)
-[![update](https://github.com/jmpa-oss/template/actions/workflows/update.yml/badge.svg)](https://github.com/jmpa-oss/template/actions/workflows/update.yml)
+[![README.md](https://github.com/jmpa-oss/root-template/actions/workflows/README.md.yml/badge.svg)](https://github.com/jmpa-oss/root-template/actions/workflows/README.md.yml)
+[![dispatch](https://github.com/jmpa-oss/root-template/actions/workflows/dispatch.yml/badge.svg)](https://github.com/jmpa-oss/root-template/actions/workflows/dispatch.yml)
+[![template-cleanup](https://github.com/jmpa-oss/root-template/actions/workflows/template-cleanup.yml/badge.svg)](https://github.com/jmpa-oss/root-template/actions/workflows/template-cleanup.yml)
+[![update](https://github.com/jmpa-oss/root-template/actions/workflows/update.yml/badge.svg)](https://github.com/jmpa-oss/root-template/actions/workflows/update.yml)
 
-# template
+# root-template
 
 ```diff
 + The root template, used for other projects / other templates.
