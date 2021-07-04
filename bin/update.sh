@@ -58,8 +58,8 @@ file="bin/template-cleanup.sh"
 if [[ -f "$file" ]]; then
   echo "##[group]Running $file, again"
   # shellcheck disable=SC1090
-  source "$file" \
-    || die "failed to source $file"
+  out=$(source "$file")
+  echo "$out" # this is a hack; not sure how to get past this part without it atm.
   echo "##[endgroup]"
 fi
 
@@ -67,5 +67,4 @@ fi
 echo "##[group]Commit any extra changes"
 git add -A
 git commit -m "Update $currentBranch with latest changes from $remoteBranch"
-git push origin HEAD:main
 echo "##[endgroup]"
