@@ -63,8 +63,9 @@ if [[ -f "$file" ]]; then
   echo "##[endgroup]"
 fi
 
-# commit.
+# commit + push changes.
 echo "##[group]Commit any extra changes"
 git add -A
 git commit -m "Update $currentBranch with latest changes from $remoteBranch"
+git push origin HEAD:main
 echo "##[endgroup]"

@@ -24,12 +24,6 @@ jobs:
         env:
           PARENT_TEMPLATE: root-template
 
-      - name: Commit?
-        run: |
-          [[ -z $(git status --porcelain) ]] && { echo "no changes to commit; skipping"; exit 0; }
-          git commit -am "[skip-ci] Update from parent template"
-          git push origin HEAD:main
-
       - name: Notify Slack
         if: always()
         uses: jmpa-oss/job-to-slack@v0.0.1
