@@ -34,6 +34,8 @@ isTemplate=false
 
 # remove "things".
 files=(
+  ".github/workflows/dispatch.yml"
+  ".github/workflows/template-cleanup.yml"
   "bin/dispatch.sh"
   "bin/template-cleanup.sh"
   "docs"

@@ -31,7 +31,7 @@ jobs:
           [[ -z $(git status --porcelain) ]] && { echo "no changes to commit; skipping"; exit 0; }
           git config user.name 'GitHub Actions'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -am "Template Cleanup" # no 'skip ci' here, so the README.md is updated.
+          git commit -am "Template cleanup" # no 'skip ci' here, so the README.md is updated.
           git push origin HEAD:main
 
       - name: Notify Slack
