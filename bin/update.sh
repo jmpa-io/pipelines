@@ -12,6 +12,8 @@ die() { echo "$1" >&2; exit "${2:-1}"; }
 # vars.
 branch="template"
 remoteBranch="$branch/main"
+currentBranch=$(git branch --show-current) \
+  || die "failed to get current branch"
 
 # add template as parent, if not found.
 [[ $(git remote show $branch 2>/dev/null) ]] || {
@@ -29,13 +31,30 @@ echo "##[endgroup]"
 
 # check for any changes.
 echo "##[group]Checking for any changes"
-[[ -z $(git status --porcelain) ]] && \
-  die "no changes found from $remoteBranch; skipping merge" 0
+mapfile -t files < <(git diff --name-only "$currentBranch" "$remotebranch") \
+  || die "failed to get remote changed files list for $remotebranch"
+[[ ${#files[@]} -eq 0 ]] \
+  || die "no changes found from $remoteBranch; skipping merge" 0
 echo "##[endgroup]"
 
 # merge.
-echo "##[group]Updating $branch with changes from $remoteBranch"
-git merge "$remoteBranch" --allow-unrelated-histories \
-  -m "update $branch with latest changes from $remoteBranch" \
-  || die "failed to merge $remoteBranch changes to $branch"
+echo "##[group]Merging changes from $remoteBranch to $currentBranch"
+git merge "$remoteBranch" --allow-unrelated-histories
+echo "##[endgroup]"
+
+# reset unique files, since they'll be unique to each repository.
+echo "##[group]Resetting files"
+files=(
+  "README.md"
+)
+for file in "${files[@]}"; do
+  git checkout HEAD -- "$file" \
+    || die "failed to reset $file"
+done
+echo "##[endgroup]"
+
+# commit.
+echo "##[group]Commit changes"
+git commit -m "Update $currentBranch with latest changes from $remoteBranch" \
+  || die "failed to merge $remoteBranch changes to $currentBranch"
 echo "##[endgroup]"
