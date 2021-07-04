@@ -36,4 +36,4 @@ echo "##[group]Merging $remotebranch changes to $branch"
 git merge "$remotebranch" --allow-unrelated-histories \
   -m "update $branch with latest changes from $remotebranch" \
   || die "failed to merge $remotebranch changes to $branch"
-echo "##[endgroup]
+echo "##[endgroup]"
