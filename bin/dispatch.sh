@@ -110,5 +110,5 @@ for repo in "${repos[@]}"; do
     -H "Authorization: bearer $token" \
     -d "{\"event_type\": \"update\"}" \
     || die "failed curl to post repository_dispatch event to $repo"
-  echo "##
+  echo "##[endgroup]"
 done
