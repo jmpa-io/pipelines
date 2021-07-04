@@ -39,19 +39,8 @@ echo "##[endgroup]"
 
 # merge.
 echo "##[group]Merging changes from $remoteBranch to $currentBranch"
-git merge "$remoteBranch" --allow-unrelated-histories \
-  -m "Update $currentBranch with latest changes from $remoteBranch"
+git merge "$remoteBranch" --allow-unrelated-histories
 echo "##[endgroup]"
-
-# run template-cleanup.sh, if found.
-file="bin/template-cleanup.sh"
-if [[ -f "$file" ]]; then
-  echo "##[group]Running $file, again"
-  # shellcheck disable=SC1090
-  source "$file" \
-    || die "failed to run $file"
-  echo "##[endgroup]"
-fi
 
 # reset unique files, since they'll be unique to each repository.
 echo "##[group]Resetting files"
@@ -64,8 +53,21 @@ for file in "${files[@]}"; do
 done
 echo "##[endgroup]"
 
+# run template-cleanup.sh, if found.
+file="bin/template-cleanup.sh"
+if [[ -f "$file" ]]; then
+  echo "##[group]Running $file, again"
+  # shellcheck disable=SC1090
+  out=$(source "$file")
+  [[ $? -ne 0 ]] \
+    && die "failed to source $file"
+  echo "$out"
+  echo "##[endgroup]"
+fi
+
 # commit.
 echo "##[group]Commit changes"
+git add -A
 git commit -m "Update $currentBranch with latest changes from $remoteBranch" \
   || die "failed to merge $remoteBranch changes to $currentBranch"
 echo "##[endgroup]"
