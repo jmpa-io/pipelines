@@ -18,6 +18,8 @@ jobs:
 
       - name: Update
         run: bin/README.md.sh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_ORG_TOKEN }}
 
       - name: Commit?
         run: |
