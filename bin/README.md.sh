@@ -75,7 +75,6 @@ if [[ $template == *"$pattern"* ]]; then
         [[ -z "$out" ]] || { out+="\n"; }
         out+="[![$name](https://github.com/jmpa-oss/$repo/actions/workflows/$workflow/badge.svg)](https://github.com/jmpa-oss/$repo/actions/workflows/$workflow)"
       done
-      # update template.
       template="${template/\%BADGES\%/$out}"
   fi
 fi
@@ -108,8 +107,19 @@ if [[ $template == *$pattern* ]]; then
       # generate row.
       out+="[$name]($workflow)|$desc\n"
     done
-    # update template.
     template="${template/\%WORKFLOWS_TABLE\%/$out}"
+  fi
+fi
+
+# add logo.
+pattern="%LOGO%"
+if [[ $template == *"$pattern"* ]]; then
+  logo=$(find docs/ -name 'logdo.*')
+  if [[ -z "$logo" ]]; then
+    template=$(<<< "$template" sed "/$pattern/,+1 d")
+  else
+    out="<p align="center">\n\t<img src="$logo">\n</p>\n"
+    template="${template/\%LOGO\%/$out}"
   fi
 fi
 
