@@ -70,6 +70,8 @@ files=$(find . -type f \
 # shellcheck disable=SC2128
 for file in $files; do
   echo "~~~ updating $file"
-  sed -i '' -e "s/$parentRepo/$repo/g" "$file" \
-      || die "failed to sed update $file"
+  i="-i ''"
+  [[ -z "$GITHUB_ACTIONS" ]] || { i="-i''"; }
+  sed "$i" -e "s/$parentRepo/$repo/g" "$file" \
+    || die "failed to sed update $file"
 done
