@@ -56,5 +56,5 @@ echo "##[endgroup]"
 # commit + push changes.
 echo "##[group]Commit any extra changes"
 git add -A
-git commit -m "Update $currentBranch with latest changes from $remoteBranch"
+git commit -m "Update '$currentBranch' with latest changes from '$remoteBranch'"
 echo "##[endgroup]"
