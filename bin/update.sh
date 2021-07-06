@@ -53,16 +53,6 @@ for file in "${files[@]}"; do
 done
 echo "##[endgroup]"
 
-# run template-cleanup.sh, if found.
-file="./bin/template-cleanup.sh"
-if [[ -f "$file" ]]; then
-  echo "##[group]Running $file, again"
-  # shellcheck disable=SC1090
-  out=$(source "$file")
-  echo "$out" # this is a hack; not sure how to get past this part without it at the moment.
-  echo "##[endgroup]"
-fi
-
 # commit + push changes.
 echo "##[group]Commit any extra changes"
 git add -A

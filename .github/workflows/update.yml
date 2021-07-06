@@ -17,7 +17,6 @@ jobs:
 
       - name: Update
         run: |
-          # auth early, since the update script does a `git merge`.
           git config user.name 'GitHub Actions'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           ./bin/update.sh # commit occurs in the file.
