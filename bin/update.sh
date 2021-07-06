@@ -54,12 +54,12 @@ done
 echo "##[endgroup]"
 
 # run template-cleanup.sh, if found.
-file="bin/template-cleanup.sh"
+file="./bin/template-cleanup.sh"
 if [[ -f "$file" ]]; then
   echo "##[group]Running $file, again"
   # shellcheck disable=SC1090
   out=$(source "$file")
-  echo "$out" # this is a hack; not sure how to get past this part without it atm.
+  echo "$out" # this is a hack; not sure how to get past this part without it at the moment.
   echo "##[endgroup]"
 fi
 

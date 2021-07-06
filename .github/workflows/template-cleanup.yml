@@ -21,10 +21,11 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET }}
           aws-region: ap-southeast-2
 
+      - name: Rename repo?
+        run: ./bin/rename-repo.sh
+
       - name: Cleanup
         run: ./bin/template-cleanup.sh
-        env:
-          PARENT_TEMPLATE: root-template
 
       - name: Commit?
         run: |
@@ -38,5 +39,5 @@ jobs:
         if: always()
         uses: jmpa-oss/job-to-slack@v0.0.1
         with:
-            webhook: ${{ secrets.SLACK_GITHUB_WEBHOOK_URL }}
-            status: ${{ job.status }}
+          webhook: ${{ secrets.SLACK_GITHUB_WEBHOOK_URL }}
+          status: ${{ job.status }}
