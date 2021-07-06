@@ -19,15 +19,19 @@ if [[ ${#missing[@]} -ne 0 ]]; then
   die "missing dep${s}: ${missing[*]}"
 fi
 
+# vars.
+repo="$(basename "$PWD")" \
+    || die "failed to get repository name"
+
+# check if this is a template repository.
+[[ "$repo" == *"-template"* ]] \
+  || die "'$repo' is not a template repository; skipping" 0
+
 # read PARENT_TEMPLATE.
 # NOTE: doing this, since it's not safe to modify
 #       a bash script while it's running.
 parentRepo="${PARENT_TEMPLATE}"
 [[ -z $parentRepo ]] && die "missing PARENT_TEMPLATE"
-
-# vars.
-repo="$(basename "$PWD")" \
-    || die "failed to get repository name"
 
 # shellcheck disable=SC2178
 files=$(find . -type f \
