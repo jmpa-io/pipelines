@@ -23,6 +23,8 @@ jobs:
 
       - name: Rename repo?
         run: ./bin/rename-repo.sh
+        env:
+          PARENT_TEMPLATE: root-template
 
       - name: Cleanup
         run: ./bin/template-cleanup.sh
