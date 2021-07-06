@@ -18,60 +18,28 @@ if [[ ${#missing[@]} -ne 0 ]]; then
   die "missing dep${s}: ${missing[*]}"
 fi
 
-# read parent repo.
-# NOTE: doing this, since it's not safe to modify
-#       a running bash script.
-parentRepo="${PARENT_TEMPLATE}"
-[[ -z $parentRepo ]] && die "missing PARENT_TEMPLATE"
-
 # vars.
 repo="$(basename "$PWD")" \
     || die "failed to get repository name"
-
-# check if child is a new template.
-isTemplate=false
-[[ "$repo" == *"-template"* ]] && { isTemplate=true; }
 
 # remove "things".
 files=(
   ".github/workflows/dispatch.yml"
   ".github/workflows/template-cleanup.yml"
   "bin/dispatch.sh"
+  "bin/rename-repo.sh"
   "bin/template-cleanup.sh"
   "docs"
 )
-if [[ $isTemplate == true ]]; then
-  files=(
-    "docs"
-  )
-fi
+[[ "$repo" == *"-template"* ]] && { files=("docs"); }
 for thing in "${files[@]}"; do
-  echo "~~~ removing $thing"
+  echo "##[group]Removing $thing"
   found=false
   [[ -d "$thing" ]] && { found=true; }
   [[ -f "$thing" ]] && { found=true; }
   [[ $found == false ]] \
-    && die "failed to find $thing; does it exist?"
+    && { echo "failed to find $thing; does it exist?"; continue; }
   rm -rf "$thing" \
     || die "failed to remove $thing"
-done
-
-# exit early, since the rest if child template specific.
-[[ $isTemplate == false ]] && { exit 0; }
-
-# find files to update with new child template name.
-# shellcheck disable=SC2178
-files=$(find . -type f \
-  -not -path "$0" \
-  -not -path "./.git/*" \
-  -not -path "./docs/*" \
-  -not -path "*README.md*" \
-  -not -path "./.editorconfig")
-# shellcheck disable=SC2128
-for file in $files; do
-  echo "~~~ updating $file"
-  i="-i ''"
-  [[ -z "$GITHUB_ACTIONS" ]] || { i="-i''"; }
-  sed "$i" -e "s/$parentRepo/$repo/g" "$file" \
-    || die "failed to sed update $file"
+  echo "##[endgroup]"
 done
