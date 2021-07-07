@@ -39,6 +39,7 @@ files=$(find . -type f \
   -not -path "./.git/*" \
   -not -path "./docs/*" \
   -not -path "*README.md*" \
+  -not -path "./.github/workflows/update.yml" \
   -not -path "./.editorconfig")
 # shellcheck disable=SC2128
 for file in $files; do
