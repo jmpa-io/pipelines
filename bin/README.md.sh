@@ -51,8 +51,10 @@ desc=$(<<< "$resp" jq -r '.description') \
 [[ $desc == "null" ]] && { desc="TODO"; }
 
 # add GitHub description.
-if [[ $template == *"%DESCRIPTION%"* ]]; then
-  template="${template/\%DESCRIPTION\%/$desc}"
+pattern="%DESCRIPTION%"
+if [[ $template == *"$pattern"* ]]; then
+  pattern="${pattern//\%/\\\%}"
+  template="${template//$pattern/$desc}"
 fi
 
 # retrieve workflows.
@@ -65,17 +67,22 @@ if [[ $template == *"$pattern"* ]]; then
   # retrieve workflows.
   if [[ -z $workflows ]]; then
       # hide pattern in template; nothing to do.
-      template=$(<<< "$template" sed "/${pattern}/,+1 d")
+      template=$(<<< "$template" sed "/${pattern}/,+1 d" 2>/dev/null)
   else
       # generate badge urls.
       out=""
       for workflow in $workflows; do
         workflow="${workflow/\.github\/workflows\//}"
         name="${workflow/\.yml/}"
+        if [[ "$repo" == *-template* ]]; then
+          [[ $name == "template-cleanup" || $name == "update" ]] \
+            && { echo "skipping $name, since this is a template repository"; continue; }
+        fi
         [[ -z "$out" ]] || { out+="\n"; }
         out+="[![$name](https://github.com/jmpa-oss/$repo/actions/workflows/$workflow/badge.svg)](https://github.com/jmpa-oss/$repo/actions/workflows/$workflow)"
       done
-      template="${template/\%BADGES\%/$out}"
+      pattern="${pattern//\%/\\\%}"
+      template="${template//$pattern/$out}"
   fi
 fi
 
@@ -83,10 +90,10 @@ fi
 pattern="%WORKFLOWS_TABLE%"
 if [[ $template == *$pattern* ]]; then
   if [[ -z $workflows ]]; then
-    template=$(<<< "$template" sed "/$pattern/,+1 d")
+    template=$(<<< "$template" sed "/$pattern/,+1 d" 2>/dev/null)
   else
     # generate table.
-    out="## workflows\n\n"
+    out="## Workflows\n\n"
     out+="workflow|description\n"
     out+="---|---\n"
     for workflow in $workflows; do
@@ -102,12 +109,14 @@ if [[ $template == *$pattern* ]]; then
       desc=${desc/run\:/}
       desc=${desc/name\:/}
       desc=$(<<< "$desc" awk '{$1=$1};1')
-      desc=$(<<< "$desc" tr -d '\n')
+      desc=$(<<< "$desc" tr -d '\n') # remove last /n
+      [[ $desc == "" ]] && { desc="TODO"; }
 
       # generate row.
       out+="[$name]($workflow)|$desc\n"
     done
-    template="${template/\%WORKFLOWS_TABLE\%/$out}"
+    pattern="${pattern//\%/\\\%}"
+    template="${template//$pattern/$out}"
   fi
 fi
 
@@ -119,7 +128,8 @@ if [[ $template == *"$pattern"* ]]; then
     template=$(<<< "$template" sed "/$pattern/,+1 d")
   else
     out="<p align=\"center\">\n\t<img src=\"$logo\">\n</p>"
-    template="${template/\%LOGO\%/$out}"
+    pattern="${pattern//\%/\\\%}"
+    template="${template//$pattern/$out}"
   fi
 fi
 

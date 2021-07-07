@@ -9,7 +9,7 @@ die() { echo "$1" >&2; exit "${2:-1}"; }
   && die "must be run from repository root directory"
 
 # check deps.
-deps=(rm)
+deps=(rm mv)
 for dep in "${deps[@]}"; do
   hash "$dep" 2>/dev/null || missing+=("$dep")
 done
@@ -22,16 +22,21 @@ fi
 repo="$(basename "$PWD")" \
     || die "failed to get repository name"
 
-# remove "things".
-files=(
+# decide what to do, based on repository type.
+if [[ "$repo" == *"-template"* ]]; then
+  files=("docs")
+else
+  files=(
   ".github/workflows/dispatch.yml"
   ".github/workflows/template-cleanup.yml"
   "bin/dispatch.sh"
-  "bin/rename-repo.sh"
+  "bin/rename-template.sh"
   "bin/template-cleanup.sh"
   "docs"
-)
-[[ "$repo" == *"-template"* ]] && { files=("docs"); }
+  )
+fi
+
+# remove files.
 for thing in "${files[@]}"; do
   echo "##[group]Removing $thing"
   found=false

@@ -18,7 +18,7 @@ currentBranch=$(git branch --show-current) \
 # add template as parent, if not found.
 [[ $(git remote show $branch 2>/dev/null) ]] || {
   echo "##[group]Adding remote $branch"
-  git remote add "$branch" "https://github.com/jmpa-oss/root-template.git" \
+  git remote add "$branch" "https://github.com/myob-ops/kepler-template-v2.git" \
     || die "failed to add remote $branch"
   echo "##[endgroup]"
 }
@@ -26,7 +26,7 @@ currentBranch=$(git branch --show-current) \
 # fetch changes from parent.
 echo "##[group]Fetching $branch changes"
 git fetch "$branch" \
-  || die "failed to fetch changes from "
+  || die "failed to fetch changes from $branch"
 echo "##[endgroup]"
 
 # check for any changes.
