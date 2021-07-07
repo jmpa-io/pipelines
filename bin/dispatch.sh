@@ -110,5 +110,7 @@ for repo in "${repos[@]}"; do
     -H "Authorization: bearer $token" \
     -d "{\"event_type\": \"update\"}" \
     || die "failed curl to post repository_dispatch event to $repo"
+  [[ $(<<< "$resp" jq -r '.message') == "Not Found" ]] && \
+    diejq "error returned when sending out repository_dispatch to $repo:" "$resp"
   echo "##[endgroup]"
 done
