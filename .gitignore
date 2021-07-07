@@ -3,3 +3,4 @@
 
 # ignore test files.
 out
+test.sh
