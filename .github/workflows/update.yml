@@ -13,7 +13,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-          token: ${{ secrets.GH_ORG_TOKEN }}
+          token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
 
       - name: Update
         run: |
