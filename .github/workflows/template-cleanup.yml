@@ -12,7 +12,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          token: ${{ secrets.GH_ORG_TOKEN }}
+          token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
 
       - name: Configure AWS
         uses: aws-actions/configure-aws-credentials@v1
