@@ -46,6 +46,7 @@ echo "##[endgroup]"
 echo "##[group]Resetting files"
 files=(
   "README.md"
+  "docs/logo.png"
 )
 for file in "${files[@]}"; do
   git checkout HEAD -- "$file" \
