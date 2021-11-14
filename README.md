@@ -2,7 +2,7 @@
 [![README.md](https://github.com/jmpa-oss/root-template/actions/workflows/README.md.yml/badge.svg)](https://github.com/jmpa-oss/root-template/actions/workflows/README.md.yml)
 
 <p align="center">
-	<img src="docs/logo.png">
+	<img src="img/logo.png">
 </p>
 
 # root-template
