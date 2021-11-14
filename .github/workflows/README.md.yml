@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths:
       - .github/README.md.template
-      - '.github/workflows/*'
+      - '.github/workflows/README.md.yml'
       - bin/README.md.sh
       - 'docs/*'
 
