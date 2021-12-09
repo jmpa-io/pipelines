@@ -10,15 +10,14 @@
 
 %WORKFLOWS_TABLE%
 
-## How do I use this template.
+## How do I use this template?
 
-1. Using a <kdb>terminal</kdb>, `cd` to a repository locally you want to add this template to.
+1. Using a <kbd>terminal</kbd>, download the child repository locally.
 
-2. Run:
+2. From the root of that child repository, run:
 ```bash
 git remote add template https://github.com/jmpa-oss/repo-template.git
 git fetch main
 git merge template/main
-# then fix any merge conflicts as required.
-git push
+# then fix any merge conflicts as required & 'git push' when ready.
 ```

@@ -36,26 +36,26 @@ if [[ $template == *"%NAME%"* ]]; then
   template="${template/\%NAME\%/$repo}"
 fi
 
-# # retrieve GitHub token.
-# token=$(aws ssm get-parameter --name "/tokens/github" \
-#   --query "Parameter.Value" --output text --with-decryption) \
-#   || die "failed to retrieve GitHub token from paramstore"
+# retrieve GitHub token.
+token=$(aws ssm get-parameter --name "/tokens/github" \
+  --query "Parameter.Value" --output text --with-decryption) \
+  || die "failed to retrieve GitHub token from paramstore"
 
-# # retrieve GitHub repository description.
-# resp=$(curl -s "https://api.github.com/repos/jmpa-oss/$repo" \
-#   -H "Accept: application/vnd.github.v3+json" \
-#   -H "Authorization: bearer $token") \
-#   || die "failed to retrieve $repo repository info"
-# desc=$(<<< "$resp" jq -r '.description') \
-#   || die "failed to parse $repo repository info"
-# [[ $desc == "null" ]] && { desc="TODO"; }
+# retrieve GitHub repository description.
+resp=$(curl -s "https://api.github.com/repos/jmpa-oss/$repo" \
+  -H "Accept: application/vnd.github.v3+json" \
+  -H "Authorization: bearer $token") \
+  || die "failed to retrieve $repo repository info"
+desc=$(<<< "$resp" jq -r '.description') \
+  || die "failed to parse $repo repository info"
+[[ $desc == "null" ]] && { desc="TODO"; }
 
-# # add GitHub description.
-# pattern="%DESCRIPTION%"
-# if [[ $template == *"$pattern"* ]]; then
-#   pattern="${pattern//\%/\\\%}"
-#   template="${template//$pattern/$desc}"
-# fi
+# add GitHub description.
+pattern="%DESCRIPTION%"
+if [[ $template == *"$pattern"* ]]; then
+  pattern="${pattern//\%/\\\%}"
+  template="${template//$pattern/$desc}"
+fi
 
 # retrieve workflows.
 workflows=$(find .github/workflows -type f -name '*.yml')
