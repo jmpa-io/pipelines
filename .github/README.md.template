@@ -9,3 +9,16 @@
 ```
 
 %WORKFLOWS_TABLE%
+
+## How do I use this template.
+
+1. Using a <kdb>terminal</kdb>, `cd` to a repository locally you want to add this template to.
+
+2. Run:
+```bash
+git remote add template https://github.com/jmpa-oss/repo-template.git
+git fetch main
+git merge template/main
+# then fix any merge conflicts as required.
+git push
+```

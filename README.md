@@ -1,22 +1,31 @@
-[![dispatch](https://github.com/jmpa-oss/root-template/actions/workflows/dispatch.yml/badge.svg)](https://github.com/jmpa-oss/root-template/actions/workflows/dispatch.yml)
 [![README.md](https://github.com/jmpa-oss/root-template/actions/workflows/README.md.yml/badge.svg)](https://github.com/jmpa-oss/root-template/actions/workflows/README.md.yml)
 
 <p align="center">
-	<img src="img/logo.png">
+	<img src="img//logo.png">
 </p>
 
 # root-template
 
 ```diff
-+ The root template, used for other projects / other templates.
++ %DESCRIPTION%
 ```
 
 ## Workflows
 
 workflow|description
 ---|---
-[dispatch](.github/workflows/dispatch.yml)|Pushes repository_dispatch events out to repositories built from this template.
 [README.md](.github/workflows/README.md.yml)|Updates the README.md with new changes.
-[template-cleanup](.github/workflows/template-cleanup.yml)|Cleans up the repository when a child is first created; triggers from the first commit to the repository.
-[update](.github/workflows/update.yml)|Updates repository with changes from parent template.
 
+
+## How do I use this template.
+
+1. Using a <kdb>terminal</kdb>, `cd` to a repository locally you want to add this template to.
+
+2. Run:
+```bash
+git remote add template https://github.com/jmpa-oss/repo-template.git
+git fetch main
+git merge template/main
+# then fix any merge conflicts as required.
+git push
+```
