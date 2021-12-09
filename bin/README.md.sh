@@ -33,7 +33,7 @@ template=$(cat "$file") \
 
 # add repository name.
 if [[ $template == *"%NAME%"* ]]; then
-  out="# \`$repo\`\n"
+  out="# \`$repo\`"
   template="${template/\%NAME\%/$out}"
 fi
 
