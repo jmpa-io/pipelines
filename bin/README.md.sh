@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# generates a README.md, from the found template.
+# generates a README.md, from the found template under .github/README.md.template
 
 # funcs.
 die() { echo "$1" >&2; exit "${2:-1}"; }
@@ -20,7 +20,7 @@ fi
 
 # vars.
 repo="$(basename "$PWD")" \
-    || die "failed to get repository name"
+  || die "failed to get repository name"
 repo="${repo^^}" # uppercase
 repo="${repo,,}" # lowercase
 
@@ -36,26 +36,26 @@ if [[ $template == *"%NAME%"* ]]; then
   template="${template/\%NAME\%/$repo}"
 fi
 
-# retrieve GitHub token.
-token=$(aws ssm get-parameter --name "/tokens/github" \
-  --query "Parameter.Value" --output text --with-decryption) \
-  || die "failed to retrieve GitHub token from paramstore"
+# # retrieve GitHub token.
+# token=$(aws ssm get-parameter --name "/tokens/github" \
+#   --query "Parameter.Value" --output text --with-decryption) \
+#   || die "failed to retrieve GitHub token from paramstore"
 
-# retrieve GitHub repository description.
-resp=$(curl -s "https://api.github.com/repos/jmpa-oss/$repo" \
-  -H "Accept: application/vnd.github.v3+json" \
-  -H "Authorization: bearer $token") \
-  || die "failed to retrieve $repo repository info"
-desc=$(<<< "$resp" jq -r '.description') \
-  || die "failed to parse $repo repository info"
-[[ $desc == "null" ]] && { desc="TODO"; }
+# # retrieve GitHub repository description.
+# resp=$(curl -s "https://api.github.com/repos/jmpa-oss/$repo" \
+#   -H "Accept: application/vnd.github.v3+json" \
+#   -H "Authorization: bearer $token") \
+#   || die "failed to retrieve $repo repository info"
+# desc=$(<<< "$resp" jq -r '.description') \
+#   || die "failed to parse $repo repository info"
+# [[ $desc == "null" ]] && { desc="TODO"; }
 
-# add GitHub description.
-pattern="%DESCRIPTION%"
-if [[ $template == *"$pattern"* ]]; then
-  pattern="${pattern//\%/\\\%}"
-  template="${template//$pattern/$desc}"
-fi
+# # add GitHub description.
+# pattern="%DESCRIPTION%"
+# if [[ $template == *"$pattern"* ]]; then
+#   pattern="${pattern//\%/\\\%}"
+#   template="${template//$pattern/$desc}"
+# fi
 
 # retrieve workflows.
 workflows=$(find .github/workflows -type f -name '*.yml')
@@ -64,25 +64,22 @@ workflows=$(<<< "$workflows" sort --ignore-case) # sort alphabetically.
 # add workflow badges.
 pattern="%BADGES%"
 if [[ $template == *"$pattern"* ]]; then
-  # retrieve workflows.
   if [[ -z $workflows ]]; then
-      # hide pattern in template; nothing to do.
-      template=$(<<< "$template" sed "/${pattern}/,+1 d" 2>/dev/null)
+    template=$(<<< "$template" sed "/${pattern}/,+1 d" 2>/dev/null)
   else
-      # generate badge urls.
-      out=""
-      for workflow in $workflows; do
-        workflow="${workflow/\.github\/workflows\//}"
-        name="${workflow/\.yml/}"
-        if [[ "$repo" == *-template* ]]; then
-          [[ $name == "template-cleanup" || $name == "update" ]] \
-            && { echo "skipping $name, since this is a template repository"; continue; }
-        fi
-        [[ -z "$out" ]] || { out+="\n"; }
-        out+="[![$name](https://github.com/jmpa-oss/$repo/actions/workflows/$workflow/badge.svg)](https://github.com/jmpa-oss/$repo/actions/workflows/$workflow)"
-      done
-      pattern="${pattern//\%/\\\%}"
-      template="${template//$pattern/$out}"
+    out=""
+    for workflow in $workflows; do
+      workflow="${workflow/\.github\/workflows\//}"
+      name="${workflow/\.yml/}"
+      if [[ "$repo" == *-template* ]]; then
+        [[ $name == "template-cleanup" || $name == "update" ]] \
+          && { echo "skipping $name, since this is a template repository"; continue; }
+      fi
+      [[ -z "$out" ]] || { out+="\n"; }
+      out+="[![$name](https://github.com/jmpa-oss/$repo/actions/workflows/$workflow/badge.svg)](https://github.com/jmpa-oss/$repo/actions/workflows/$workflow)"
+    done
+    pattern="${pattern//\%/\\\%}"
+    template="${template//$pattern/$out}"
   fi
 fi
 
@@ -92,27 +89,20 @@ if [[ $template == *$pattern* ]]; then
   if [[ -z $workflows ]]; then
     template=$(<<< "$template" sed "/$pattern/,+1 d" 2>/dev/null)
   else
-    # generate table.
     out="## Workflows\n\n"
     out+="workflow|description\n"
     out+="---|---\n"
     for workflow in $workflows; do
       name="${workflow/\.github\/workflows\//}"
       name="${name/\.yml/}"
-
-      # read workflow.
       data=$(cat "$workflow") \
         || die "failed to read $workflow"
-
-      # extract workflow description.
       desc=$(<<< "$data" sed -n '/run\:$/,/runs-on\:/{/runs-on\:/!p;}')
       desc=${desc/run\:/}
       desc=${desc/name\:/}
       desc=$(<<< "$desc" awk '{$1=$1};1')
       desc=$(<<< "$desc" tr -d '\n') # remove last /n
       [[ $desc == "" ]] && { desc="TODO"; }
-
-      # generate row.
       out+="[$name]($workflow)|$desc\n"
     done
     pattern="${pattern//\%/\\\%}"
