@@ -4,7 +4,12 @@
 	<img src="img/logo.png">
 </p>
 
-# root-template
+<div align="center">
+
+# `root-template`
+
+
+</div
 
 ```diff
 + The root template, used for other projects / other templates.
