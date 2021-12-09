@@ -33,7 +33,8 @@ template=$(cat "$file") \
 
 # add repository name.
 if [[ $template == *"%NAME%"* ]]; then
-  template="${template/\%NAME\%/$repo}"
+  out="# \`$repo\`\n"
+  template="${template/\%NAME\%/$out}"
 fi
 
 # retrieve GitHub token.
