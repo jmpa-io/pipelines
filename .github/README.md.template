@@ -2,7 +2,11 @@
 
 %LOGO%
 
-# %NAME%
+<div align="center">
+
+%NAME%
+
+</div
 
 ```diff
 + %DESCRIPTION%
