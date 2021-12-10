@@ -124,6 +124,26 @@ if [[ $template == *"$pattern"* ]]; then
   fi
 fi
 
+# add 'how to use template'.
+pattern="%HOW_TO_USE_TEMPLATE%"
+if [[ $template == *"$pattern"* ]]; then
+  read -r -d '' out <<@
+ ## How do I use this template?
+
+1. Using a <kbd>terminal</kbd>, download the child repository locally.
+
+2. From the root of that child repository, run:
+\`\`\`bash
+git remote add template https://github.com/jmpa-oss/$repo.git
+git fetch template
+git merge template/main --allow-unrelated-histories
+# then fix any merge conflicts as required & 'git push' when ready.
+\`\`\`
+@
+  pattern="${pattern//\%/\\\%}"
+  template="${template//$pattern/$out}"
+fi
+
 # update README.md with changes.
 echo "##[group]Updating README.md"
 echo -e "$template" > README.md \
