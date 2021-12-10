@@ -2,7 +2,7 @@ name: README.md
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, master]
     paths:
       - .github/README.md.template
       - '.github/workflows/'
