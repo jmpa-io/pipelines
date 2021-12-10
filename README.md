@@ -27,7 +27,7 @@ workflow|description
 
 2. From the root of that child repository, run:
 ```bash
-git remote add template https://github.com/jmpa-oss/repo-template.git
+git remote add template https://github.com/jmpa-oss/root-template.git
 git fetch main
 git merge template/main
 # then fix any merge conflicts as required & 'git push' when ready.
