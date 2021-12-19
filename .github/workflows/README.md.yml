@@ -5,7 +5,7 @@ on:
     branches: [main, master]
     paths:
       - .github/README.md.template
-      - '.github/workflows/'
+      - '.github/workflows/*'
       - bin/README.md.sh
       - 'img/*'
 
@@ -13,9 +13,13 @@ jobs:
   run:
     name: Updates the README.md with new changes.
     runs-on: ubuntu-20.04
+    if: |
+      !contains(github.event.head_commit.message, 'Initial commit')
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
 
       - name: Configure AWS
         uses: aws-actions/configure-aws-credentials@v1
@@ -37,7 +41,7 @@ jobs:
 
       - name: Notify Slack
         if: always()
-        uses: jmpa-oss/job-to-slack@v0.0.1
+        uses: jmpa-oss/notify-slack@v0.0.1
         with:
           webhook: ${{ secrets.SLACK_GITHUB_WEBHOOK_URL }}
           status: ${{ job.status }}

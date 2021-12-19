@@ -118,17 +118,17 @@ if [[ $template == *"$pattern"* ]]; then
   if [[ -z "$logo" ]]; then
     template=$(<<< "$template" sed "/$pattern/,+1 d")
   else
-    out="<p align=\"center\">\n\t<img src=\"$logo\">\n</p>"
+    out="<p align=\"center\">\n  <img src=\"$logo\">\n</p>"
     pattern="${pattern//\%/\\\%}"
     template="${template//$pattern/$out}"
   fi
 fi
 
-# add 'how to use template'.
+# add 'how to use template', if repo is a template repo.
 pattern="%HOW_TO_USE_TEMPLATE%"
 if [[ $template == *"$pattern"* ]]; then
   read -r -d '' out <<@
- ## How do I use this template?
+## How do I use this template?
 
 1. Using a <kbd>terminal</kbd>, download the child repository locally.
 
@@ -141,7 +141,11 @@ git merge template/main --allow-unrelated-histories
 \`\`\`
 @
   pattern="${pattern//\%/\\\%}"
-  template="${template//$pattern/$out}"
+  if [[ $repo != *"-template"* ]]; then
+    template=$(<<< "$template" sed "/$pattern/,+1 d")
+  else
+    template="${template//$pattern/$out}"
+  fi
 fi
 
 # update README.md with changes.
