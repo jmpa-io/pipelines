@@ -26,6 +26,7 @@ repo="${repo,,}" # lowercase
 
 # retrieve template.
 file=".github/README.md.template"
+[[ -z "$GITHUB_ACTION" ]] && file="depot/.github/README.md.template"
 [[ -f "$file" ]] \
   || die "missing $file"
 template=$(cat "$file") \
