@@ -18,7 +18,7 @@ jobs:
       - name: Retrieve repository topics.
         run: |
           topics=$(bin/list-repo-topics.sh $GITHUB_REPOSITORY)
-          [[ -z "$topics" ]] && { topics="empty"; }
+          [[ -z "$topics" ]] || { topics="empty"; }
           echo "TOPICS=$topics" >> $GITHUB_ENV
         env:
           GITHUB_TOKEN: ${{ secrets.github-token }}
