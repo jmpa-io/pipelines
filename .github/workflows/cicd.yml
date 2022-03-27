@@ -31,5 +31,3 @@ jobs:
 
       - if: contains(env.TOPICS, 'empty')
         uses: ./.github/workflows/cicd-default.yml
-        secrets:
-          github-token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
