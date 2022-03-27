@@ -17,8 +17,8 @@
 
 workflow|description
 ---|---
-[cicd-local](.github/workflows/cicd-local.yml)|TODO
+[cicd-local](.github/workflows/cicd-local.yml)|Name: Run CI/CD.uses: ./.github/workflows/cicd.ymlsecrets:github-token: ${{ secrets.ADMIN_GITHUB_TOKEN }}slack-webhook: ${{ secrets.SLACK_GITHUB_WEBHOOK_URL }}
 [cicd](.github/workflows/cicd.yml)|Run CI/CD.
-[README-local](.github/workflows/README-local.yml)|TODO
+[README-local](.github/workflows/README-local.yml)|Updating README.md, if there are any changes.uses: ./.github/workflows/README.ymlsecrets:github-token: ${{ secrets.ADMIN_GITHUB_TOKEN }}slack-webhook: ${{ secrets.SLACK_GITHUB_WEBHOOK_URL }}
 [README](.github/workflows/README.yml)|Updating README.md, if there are any changes.
 
