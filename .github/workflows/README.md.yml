@@ -30,7 +30,7 @@ jobs:
         run: bin/download-scripts.sh
 
       - name: Update README?
-        run: bin/README.md.sh && bin/commit.sh
+        run: scripts/README.md.sh && scripts/commit.sh
 
       - name: Notify Slack
         if: always()
