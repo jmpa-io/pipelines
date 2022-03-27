@@ -7,5 +7,5 @@ on:
 jobs:
   call-workflow:
     uses: jmpa-io/depo/.github/workflows/README.yml@main
-    # secrets:
-    #   github-token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
+    secrets:
+      github-token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
