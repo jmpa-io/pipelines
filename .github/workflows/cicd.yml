@@ -7,8 +7,8 @@ on:
         required: true
 
 jobs:
-  determine-what-to-run:
-    name: Determine which CI/CD to run.
+  run:
+    name: Run CI/CD.
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
