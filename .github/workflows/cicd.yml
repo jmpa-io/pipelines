@@ -1,0 +1,22 @@
+on:
+  workflow_call:
+    secrets:
+      github-token:
+        required: true
+
+jobs:
+  determine-what-to-run:
+    name: Determining which CI/CD to run.
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          repository: jmpa-io/depo
+          token: ${{ secrets.github-token }}
+
+      - run: ls -la
+
+      # TODO determine tags on the reposository, to determine which generic workflow to run.
+
+  # TODO add the generic jobs here.
