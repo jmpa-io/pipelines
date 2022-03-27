@@ -6,4 +6,4 @@ on:
 
 jobs:
   call-workflow:
-    uses: jmpa-io/bin/.github/workflows/README.md.yml@main
+    uses: jmpa-io/depo/.github/workflows/README.yml@main
