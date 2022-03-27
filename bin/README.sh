@@ -59,7 +59,12 @@ desc=$(<<< "$resp" jq -r '.description') \
 pattern="%DESCRIPTION%"
 if [[ $template == *"$pattern"* ]]; then
   pattern="${pattern//\%/\\\%}"
-  template="${template//$pattern/$desc}"
+  d=$(<<<"$desc" fold -sw 70) \
+    || die "failed to fold description"
+  #shellcheck disable=2001
+  d=$(<<< "$d" sed 's/^/+ /') \
+    || die "failed to add pluses to description"
+	template="${template//$pattern/$d}"
 fi
 
 # retrieve workflows.
