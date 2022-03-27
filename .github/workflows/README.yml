@@ -9,7 +9,7 @@ jobs:
   run:
     name: Updating README.md with new changes.
     runs-on: ubuntu-20.04
-    if: github.event.repository.name != "depo"
+    if: github.repository != "jmpa-io/depo"
     steps:
       - name: Checkout
         uses: actions/checkout@v2
