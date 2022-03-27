@@ -14,7 +14,7 @@ for dep in "${deps[@]}"; do
   hash "$dep" 2>/dev/null || missing+=("$dep")
 done
 if [[ ${#missing[@]} -ne 0 ]]; then
-  [[ ${#missing[@]} -gt 1 ]] && { s="s"; }
+  s=""; [[ ${#missing[@]} -gt 1 ]] && { s="s"; }
   die "missing dep${s}: ${missing[*]}"
 fi
 
@@ -43,7 +43,7 @@ token=$(aws ssm get-parameter --name "/tokens/github" \
   || die "failed to retrieve GitHub token from paramstore"
 
 # retrieve GitHub repository description.
-resp=$(curl -s "https://api.github.com/repos/jmpa-oss/$repo" \
+resp=$(curl -s "https://api.github.com/repos/jmpa-io/$repo" \
   -H "Accept: application/vnd.github.v3+json" \
   -H "Authorization: bearer $token") \
   || die "failed to retrieve $repo repository info"
@@ -77,7 +77,7 @@ if [[ $template == *"$pattern"* ]]; then
           && { echo "skipping $name, since this is a template repository"; continue; }
       fi
       [[ -z "$out" ]] || { out+="\n"; }
-      out+="[![$name](https://github.com/jmpa-oss/$repo/actions/workflows/$workflow/badge.svg)](https://github.com/jmpa-oss/$repo/actions/workflows/$workflow)"
+      out+="[![$name](https://github.com/jmpa-io/$repo/actions/workflows/$workflow/badge.svg)](https://github.com/jmpa-io/$repo/actions/workflows/$workflow)"
     done
     pattern="${pattern//\%/\\\%}"
     template="${template//$pattern/$out}"
@@ -134,7 +134,7 @@ if [[ $template == *"$pattern"* ]]; then
 
 2. From the root of that child repository, run:
 \`\`\`bash
-git remote add template https://github.com/jmpa-oss/$repo.git
+git remote add template https://github.com/jmpa-io/$repo.git
 git fetch template
 git merge template/main --allow-unrelated-histories
 # then fix any merge conflicts as required & 'git push' when ready.
