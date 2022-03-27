@@ -9,7 +9,7 @@ jobs:
   run:
     name: Updating README.md with new changes.
     runs-on: ubuntu-20.04
-    if: github.event.repository.name != "bin"
+    if: github.event.repository.name != "depo"
     steps:
       - name: Checkout
         uses: actions/checkout@v2
