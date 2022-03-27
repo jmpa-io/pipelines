@@ -1,0 +1,17 @@
+%BADGES%
+
+%LOGO%
+
+<div align="center">
+
+%NAME%
+
+</div>
+
+```diff
++ %DESCRIPTION%
+```
+
+%WORKFLOWS_TABLE%
+
+%HOW_TO_USE_TEMPLATE%
