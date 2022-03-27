@@ -23,6 +23,7 @@ fi
 # check args.
 repo="$1"
 [[ -z "$repo" ]] && die "missing arg: repo"
+echo "$repo"
 
 # get token.
 token="$GITHUB_TOKEN"
