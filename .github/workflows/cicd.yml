@@ -6,7 +6,7 @@ on:
 
 jobs:
   run:
-    name: Determining which CI/CD to run.
+    name: Run CI/CD.
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
@@ -26,3 +26,5 @@ jobs:
       - run: echo "${{ env.TOPICS }}"
         if: contains(env.TOPICS, 'template')  
 
+      - run: echo "${{ env.TOPICS }}"
+        if: contains(env.TOPICS, 'actions')  
