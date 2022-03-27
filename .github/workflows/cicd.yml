@@ -15,11 +15,14 @@ jobs:
           repository: jmpa-io/depo
           token: ${{ secrets.github-token }}
 
-      - name: Listing repository topics.
-        id: list-topics
-        run: echo "topics=$(bin/list-repo-topics.sh $GITHUB_REPOSITORY)" >> $GITHUB_ENV
+      - name: Retrieve repository topics.
+        run: |
+          topics=$(bin/list-repo-topics.sh $GITHUB_REPOSITORY)
+          [[ -z "$topics" ]] && { exit 1; }
+          echo "TOPICS=$topics" >> $GITHUB_ENV
         env:
           GITHUB_TOKEN: ${{ secrets.github-token }}
 
-      - run: echo "$topics"  
+      - run: echo "$topics"
+        if: contains(env.TOPICS, "template")  
 
