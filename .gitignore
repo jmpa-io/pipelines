@@ -1,9 +1,6 @@
 # ignore general files.
 .DS_store
 
-# ignore files generated from templates.
-/README.md
-
 # ignore test files.
 out
 test.sh
@@ -11,5 +8,5 @@ test.sh
 # ignore log files.
 super-linter.log
 
-# ignore any scripts downloaded from scripts repository.
-scripts/
+# ignore folders generated via CI/CD.
+/depot
