@@ -27,7 +27,7 @@ jobs:
           path: depot
 
       - name: Run. 
-        run: depot/bin/README.md.sh
+        run: depot/bin/README.sh
         
       - name: Notify Slack.
         if: always()
