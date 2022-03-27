@@ -18,13 +18,18 @@ jobs:
       - name: Retrieve repository topics.
         run: |
           topics=$(bin/list-repo-topics.sh $GITHUB_REPOSITORY)
-          [[ -z "$topics" ]] && { exit 1; }
+          [[ -z "$topics" ]] && { topics="empty"; }
           echo "TOPICS=$topics" >> $GITHUB_ENV
         env:
           GITHUB_TOKEN: ${{ secrets.github-token }}
 
-      - run: echo "${{ env.TOPICS }}"
-        if: contains(env.TOPICS, 'template')  
+      - if: contains(env.TOPICS, 'template')
+        run: echo "${{ env.TOPICS }}"
 
-      - run: echo "${{ env.TOPICS }}"
-        if: contains(env.TOPICS, 'actions')  
+      - if: contains(env.TOPICS, 'actions')
+        run: echo "${{ env.TOPICS }}"
+
+      - if: contains(env.TOPICS, 'empty')
+        uses: ./.github/workflows/cicd-default.yml
+        secrets:
+          github-token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
