@@ -4,17 +4,15 @@ on:
   push:
     branches: [main, master]
     paths:
-      - .github/README.md.template
-      - '.github/workflows/*'
-      - bin/README.md.sh
-      - 'img/*'
+      - README.md
+      - img/*
+      - .github/workflows/*
 
 jobs:
   run:
-    name: Updates the README.md with new changes.
+    name: Update README.md with new changes.
     runs-on: ubuntu-20.04
-    if: |
-      !contains(github.event.head_commit.message, 'Initial commit')
+    if: github.event.repository.name != 'root-template'
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -28,16 +26,11 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET }}
           aws-region: ap-southeast-2
 
-      - name: Update
-        run: bin/README.md.sh
+      - name: Download scripts
+        run: bin/download-scripts.sh
 
-      - name: Commit?
-        run: |
-          [[ -z $(git status --porcelain) ]] && { echo "no changes to commit; skipping"; exit 0; }
-          git config --global user.name 'GitHub Actions'
-          git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -am "[skip-ci] Updated README.md"
-          git push origin HEAD:main
+      - name: Update README?
+        run: bin/README.md.sh && bin/commit.sh
 
       - name: Notify Slack
         if: always()
