@@ -1,5 +1,6 @@
 name: Call a reusable workflow
 on:
+  workflow_dispatch:
   push:
     branches: [main, master]
 
@@ -8,5 +9,3 @@ jobs:
     uses: jmpa-io/bin/.github/workflows/README.md.yml@main
     secrets:
       token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
-
-      
