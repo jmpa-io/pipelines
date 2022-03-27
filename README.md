@@ -8,7 +8,9 @@
 </div>
 
 ```diff
-+ 📦 A repository to store anything used across all projects in this org (eg. generic scripts, cloudformation templates, github action workflows). Used in conjuntion with the root-template!
++ + 📦 A repository to store anything used across all projects in this 
++ org (eg. generic scripts, cloudformation templates, github action 
++ workflows). Used in conjuntion with the root-template!
 ```
 
 ## Workflows
