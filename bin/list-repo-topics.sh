@@ -38,7 +38,7 @@ resp=$(curl -s "https://api.github.com/repos/$repo/topics" \
   -H "Accept: application/vnd.github.v3+json" \
   -H "Authorization: bearer $token") \
   || die "failed curl to retrieve repository topics for $repo"
-[[ $(<<< $resp jq '.message') != null ]] \
+[[ $(<<< "$resp" jq '.message') != null ]] \
   && diejq "failed to retrieve repository topics for $repo" "$resp"
 
 # parse topics.
