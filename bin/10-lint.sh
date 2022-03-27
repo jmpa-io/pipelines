@@ -19,8 +19,11 @@ if [[ ${#missing[@]} -ne 0 ]]; then
 fi
 
 # lint.
+# FIXME adding the $PWD/depo hack to hide this folder when running in CI/CD
+# (until superlinter supports hiding files).
 docker run \
   -v "$PWD:/tmp/lint" \
+  -v "$PWD/depo" \
   -e RUN_LOCAL=true \
   -e LINTER_RULES_PATH="/" \
   -e VALIDATE_GITHUB_ACTIONS=false \
