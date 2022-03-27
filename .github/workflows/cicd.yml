@@ -1,22 +1,13 @@
-name: Determines which CI/CD to run for the repository, and runs it
+name: CI/CD
 on:
+  push:
   workflow_dispatch:
     # TODO add inputs here for logLevel, environment: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#providing-inputs
   repository_dispatch:
-    types: 
+    types:
       - trigger # automated process to randomly run this pipeline.
-
 jobs:
-  determine-what-to-run:
-    name: Determine which CICD to run
-    runs-on: ubuntu-20.04
-    if: github.event.repository.name != "root-template"
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
-      
-      # TODO determine tags on the reposository, to determine which generic workflow to run.
-  
-  # TODO add the generic jobs here.
+  call-workflow:
+    uses: jmpa-io/depo/.github/workflows/cicd.yml@main
+    secrets:
+      github-token: ${{ secrets.ADMIN_GITHUB_TOKEN }}

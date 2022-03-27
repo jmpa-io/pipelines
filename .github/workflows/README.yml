@@ -1,8 +1,8 @@
-name: Updates README.md
+name: Update README.md?
 on:
-  workflow_dispatch:
   push:
     branches: [main, master]
+  workflow_dispatch:
 
 jobs:
   call-workflow:
