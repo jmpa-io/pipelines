@@ -1,0 +1,7 @@
+name: %ACTION%
+description: |
+  %DESCRIPTION%
+author: jcleal
+runs:
+  using: docker
+  image: Dockerfile

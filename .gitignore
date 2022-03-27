@@ -10,8 +10,3 @@ test.sh
 
 # ignore log files.
 super-linter.log
-
-# ignore any scripts downloaded from scripts repository.
-bin/[0-9]-*.sh
-bin/[0-9][0-9]-*.sh
-bin/[0-9][0-9][0-9]-*.sh
