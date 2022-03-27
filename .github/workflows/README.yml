@@ -15,4 +15,7 @@ jobs:
       #     token: ${{ secrets.github-token }}
   
       - name: test
-        run: ls
+        run: ls -la
+
+      - name: hello world?
+        run: pwd
