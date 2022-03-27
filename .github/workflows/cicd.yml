@@ -29,5 +29,7 @@ jobs:
       - if: contains(env.TOPICS, 'actions')
         run: echo "${{ env.TOPICS }}"
 
+      - run: ls -la 
+      
       - if: contains(env.TOPICS, 'empty')
         uses: ./.github/workflows/cicd-default.yml
