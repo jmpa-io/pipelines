@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# lints everything!
+# tests everything!
 
 # funcs.
 die() { echo "$1" >&2; exit "${2:-1}"; }
@@ -9,7 +9,7 @@ die() { echo "$1" >&2; exit "${2:-1}"; }
   && die "must be run from repository root directory"
 
 # check deps.
-deps=(docker)
+deps=(go)
 for dep in "${deps[@]}"; do
   hash "$dep" 2>/dev/null || missing+=("$dep")
 done
@@ -18,14 +18,8 @@ if [[ ${#missing[@]} -ne 0 ]]; then
   die "missing dep${s}: ${missing[*]}"
 fi
 
-# lint.
-# FIXME adding the $PWD/depot hack to hide this folder when running in CI/CD
-# (until superlinter supports hiding files).
-docker run \
-  -v "$PWD:/tmp/lint" \
-  -v "$PWD/depot" \
-  -e RUN_LOCAL=true \
-  -e LINTER_RULES_PATH="/" \
-  -e VALIDATE_GITHUB_ACTIONS=false \
-  -e VALIDATE_SHELL_SHFMT=false \
-  github/super-linter
+# test.
+echo "##[group]Testing Go."
+go test -short -coverprofile=coverage.txt -covermode=atomic ./... \
+  && go tool cover -func=coverage.txt
+echo "##[endgroup]"

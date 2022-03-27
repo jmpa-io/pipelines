@@ -25,7 +25,7 @@ jobs:
 
       - name: Retrieve repository topics.
         run: |
-          topics=$(depot/bin/list-repo-topics.sh $GITHUB_REPOSITORY)
+          topics=$(depot/bin/repo-topics.sh $GITHUB_REPOSITORY)
           [[ -z "$topics" ]] && { topics="default"; }
           echo "topics found: $topics"
           echo "TOPICS=$topics" >> $GITHUB_ENV
