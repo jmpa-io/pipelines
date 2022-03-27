@@ -19,6 +19,7 @@ if [[ ${#missing[@]} -ne 0 ]]; then
 fi
 
 # test.
+# TODO how to ignore depot "things" here?
 echo "##[group]Testing Go."
 go test -short -coverprofile=coverage.txt -covermode=atomic ./... \
   && go tool cover -func=coverage.txt

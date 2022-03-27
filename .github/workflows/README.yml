@@ -26,9 +26,9 @@ jobs:
           token: ${{ secrets.github-token }}
           path: depot
 
-      - name: Run. 
+      - name: Run.
         run: depot/bin/README.sh
-        
+
       - name: Notify Slack.
         if: always()
         uses: jmpa-oss/notify-slack@v0.0.1

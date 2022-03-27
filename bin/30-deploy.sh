@@ -7,7 +7,7 @@ usage() { echo "usage: $0 <template-name>"; exit 64; }
 
 # check pwd.
 [[ ! -d .git ]] \
-	&& die "must be run from repository root directory"
+  && die "must be run from repository root directory"
 
 # check deps.
 deps=(aws)
@@ -31,17 +31,17 @@ template="cf/$name.yml"
 
 # vars.
 project=$(basename "$PWD") \
-	|| die "failed to get project name"
+  || die "failed to get project name"
 stack="$project-$name"
 
 # deploy stack.
 echo "##[group]Deploying $template"
 aws cloudformation deploy \
-	--region "$AWS_DEFAULT_REGION" \
-	--template-file "$template" \
-	--stack-name "$stack" \
-	--tags project="$project" \
-	--capabilities CAPABILITY_NAMED_IAM \
-	--no-fail-on-empty-changeset \
-		|| die "failed to deploy $stack"
+  --region "$AWS_DEFAULT_REGION" \
+  --template-file "$template" \
+  --stack-name "$stack" \
+  --tags project="$project" \
+  --capabilities CAPABILITY_NAMED_IAM \
+  --no-fail-on-empty-changeset \
+    || die "failed to deploy $stack"
 echo "##[endgroup]"
