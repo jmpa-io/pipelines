@@ -12,11 +12,8 @@ jobs:
     name: Updating README.md, if there are any changes.
     runs-on: ubuntu-20.04
     steps:
-      - name: Checkout
+      - name: Checkout.
         uses: actions/checkout@v2
-        with:
-          repository: jmpa-io/depot
-          token: ${{ secrets.github-token }}
 
       - name: Checkout depot.
         uses: actions/checkout@v2
