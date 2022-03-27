@@ -104,7 +104,11 @@ if [[ $template == *$pattern* ]]; then
       name="${name/\.yml/}"
       data=$(cat "$workflow") \
         || die "failed to read $workflow"
-      desc=$(<<< "$data" sed -n '/run\:$/,/runs-on\:/{/runs-on\:/!p;}')
+      if [[ $workflow == *"local"* ]]; then
+        desc=$(<<< "$data" sed -n '/run\:$/,/uses\:/{/uses\:/!p;}')
+      else
+        desc=$(<<< "$data" sed -n '/run\:$/,/runs-on\:/{/runs-on\:/!p;}')
+      fi
       desc=${desc/run\:/}
       desc=${desc/name\:/}
       desc=$(<<< "$desc" awk '{$1=$1};1')
