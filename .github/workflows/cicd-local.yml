@@ -5,12 +5,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  run:
-    name: Run CI/CD.
-    runs-on: ubuntu-20.04
-    steps:
-      call-workflow:
-        uses: ./.github/workflows/cicd.yml@main
-        secrets:
-          github-token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
-          slack-webhook: ${{ secrets.SLACK_GITHUB_WEBHOOK_URL }}
+  call-workflow:
+    uses: ./.github/workflows/cicd.yml@main
+    secrets:
+      github-token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
+      slack-webhook: ${{ secrets.SLACK_GITHUB_WEBHOOK_URL }}
