@@ -30,6 +30,8 @@ jobs:
         run: echo "${{ env.TOPICS }}"
 
       - run: ls -la 
-      
+
+      - run: pwd
+
       - if: contains(env.TOPICS, 'empty')
-        uses: ./.github/workflows/cicd-default.yml
+        uses: .github/workflows/cicd-default.yml
