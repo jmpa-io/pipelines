@@ -17,5 +17,7 @@ jobs:
 
       - name: Listing repository tags.
         run: bin/list-repo-topics.sh $GITHUB_REPOSITORY
+        env:
+          GITHUB_TOKEN: ${{ secrets.github-token }}
 
   # TODO add the generic jobs here.
