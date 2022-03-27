@@ -1,9 +1,0 @@
-on:
-  workflow_call:
-
-jobs:
-  run:
-    name: Run default CI/CD.
-    runs-on: ubuntu-20.04
-    steps:
-      run: ls -la
