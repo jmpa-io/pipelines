@@ -4,6 +4,8 @@ on:
     secrets:
       github-token:
         required: true
+      slack-webhook:
+        required: true
 
 jobs:
   run:
@@ -17,3 +19,10 @@ jobs:
           token: ${{ secrets.github-token }}
   
       - run: ls -la
+
+      - name: Notify Slack.
+        if: always()
+        uses: jmpa-oss/notify-slack@v0.0.1
+        with:
+          webhook: ${{ secrets.slack-webhook }}
+          status: ${{ job.status }}
