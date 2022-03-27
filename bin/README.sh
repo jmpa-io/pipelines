@@ -74,6 +74,7 @@ if [[ $template == *"$pattern"* ]]; then
   else
     out=""
     for workflow in $workflows; do
+      [[ "$repo" == "depot" && $workflow != *"local"* ]] && { continue; }
       workflow="${workflow/\.github\/workflows\//}"
       name="${workflow/\.yml/}"
       if [[ "$repo" == *-template* ]]; then
@@ -98,6 +99,7 @@ if [[ $template == *$pattern* ]]; then
     out+="workflow|description\n"
     out+="---|---\n"
     for workflow in $workflows; do
+      [[ "$repo" == "depot" && $workflow != *"local"* ]] && { continue; }
       name="${workflow/\.github\/workflows\//}"
       name="${name/\.yml/}"
       data=$(cat "$workflow") \

@@ -7,6 +7,7 @@ on:
 jobs:
   run:
     name: Updating README.md, if there are any changes.
+    runs-on: ubuntu-20.04
     uses: ./.github/workflows/README.yml
     secrets:
       github-token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
