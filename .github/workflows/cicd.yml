@@ -23,6 +23,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.github-token }}
 
-      - run: echo "$topics"
+      - run: echo "${{ env.TOPICS }}"
         if: contains(env.TOPICS, 'template')  
 
