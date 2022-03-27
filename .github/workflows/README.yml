@@ -1,22 +1,18 @@
 on:
   workflow_call:
-    secrets:
-      github-token:
-        required: true
+    # secrets:
+    #   github-token:
+    #     required: true
 
 jobs:
   run:
-    name: Updating README.md with new changes.
+    name: Updating README.md, if there are any changes.
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
         uses: actions/checkout@v2
         with:
           repository: jmpa-io/depo
-          token: ${{ secrets.github-token }}
+          token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
   
-      - name: test
-        run: ls -la
-
-      - name: hello world?
-        run: pwd
+      - run: ls -la
