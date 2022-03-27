@@ -13,19 +13,20 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout.
+        if: github.repository != "jmpa-io/depot"
         uses: actions/checkout@v2
 
-      - name: Checkout depo.
+      - name: Checkout depot.
         uses: actions/checkout@v2
         with:
-          repository: jmpa-io/depo
+          repository: jmpa-io/depot
           ref: main
           token: ${{ secrets.github-token }}
-          path: depo
+          path: depot
 
       - name: Retrieve repository topics.
         run: |
-          topics=$(depo/bin/list-repo-topics.sh $GITHUB_REPOSITORY)
+          topics=$(depot/bin/list-repo-topics.sh $GITHUB_REPOSITORY)
           [[ -z "$topics" ]] && { topics="default"; }\
           echo "topics found: $topics"
           echo "TOPICS=$topics" >> $GITHUB_ENV
@@ -43,7 +44,7 @@ jobs:
       - name: CI/CD | default.
         if: contains(env.TOPICS, 'default')
         run: |
-          depo/bin/10-lint.sh
+          depot/bin/10-lint.sh
 
       - name: Notify Slack.
         if: always()

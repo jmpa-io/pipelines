@@ -13,7 +13,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          repository: jmpa-io/depo
+          repository: jmpa-io/depot
           token: ${{ secrets.github-token }}
   
       - run: ls -la
