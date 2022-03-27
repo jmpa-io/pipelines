@@ -1,4 +1,4 @@
-name: Call a reusable workflow
+name: Updates README.md
 on:
   workflow_dispatch:
   push:
