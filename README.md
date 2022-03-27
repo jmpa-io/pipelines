@@ -13,11 +13,3 @@
 + org (eg. generic scripts, cloudformation templates, github action
 + workflows). Used in conjuntion with the root-template!
 ```
-
-## Workflows
-
-workflow|description
----|---
-[cicd-local](.github/workflows/cicd-local.yml)|Run CI/CD.
-[README-local](.github/workflows/README-local.yml)|Updating README.md, if there are any changes.
-

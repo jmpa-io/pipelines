@@ -97,38 +97,6 @@ if [[ $template == *"$pattern"* ]]; then
   fi
 fi
 
-# add workflows table.
-pattern="%WORKFLOWS_TABLE%"
-if [[ $template == *$pattern* ]]; then
-  if [[ -z $workflows ]]; then
-    template=$(<<< "$template" sed "/$pattern/,+1 d" 2>/dev/null)
-  else
-    out="## Workflows\n\n"
-    out+="workflow|description\n"
-    out+="---|---\n"
-    for workflow in $workflows; do
-      [[ "$repo" == "depot" && $workflow != *"local"* ]] && { continue; }
-      name="${workflow/\.github\/workflows\//}"
-      name="${name/\.yml/}"
-      data=$(cat "$workflow") \
-        || die "failed to read $workflow"
-      if [[ $workflow == *"local"* ]]; then
-        desc=$(<<< "$data" sed -n '/run\:$/,/uses\:/{/uses\:/!p;}')
-      else
-        desc=$(<<< "$data" sed -n '/run\:$/,/runs-on\:/{/runs-on\:/!p;}')
-      fi
-      desc=${desc/run\:/}
-      desc=${desc/name\:/}
-      desc=$(<<< "$desc" awk '{$1=$1};1')
-      desc=$(<<< "$desc" tr -d '\n') # remove last /n
-      [[ $desc == "" ]] && { desc="TODO"; }
-      out+="[$name]($workflow)|$desc\n"
-    done
-    pattern="${pattern//\%/\\\%}"
-    template="${template//$pattern/$out}"
-  fi
-fi
-
 # add logo.
 pattern="%LOGO%"
 if [[ $template == *"$pattern"* ]]; then
