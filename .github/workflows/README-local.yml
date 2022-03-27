@@ -6,7 +6,6 @@ on:
 
 jobs:
   run:
-    name: Updating README.md, if there are any changes.
     uses: ./.github/workflows/README.yml
     secrets:
       github-token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
