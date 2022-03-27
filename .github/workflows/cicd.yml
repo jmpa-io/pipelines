@@ -15,8 +15,7 @@ jobs:
           repository: jmpa-io/depo
           token: ${{ secrets.github-token }}
 
-      - run: ls -la
-
-      # TODO determine tags on the reposository, to determine which generic workflow to run.
+      - name: Listing repository tags.
+        run: bin/list-repo-topics.sh $GITHUB_REPOSITORY
 
   # TODO add the generic jobs here.
