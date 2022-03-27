@@ -7,7 +7,6 @@ on:
 jobs:
   run:
     name: Run CI/CD.
-    runs-on: ubuntu-20.04
     uses: ./.github/workflows/cicd.yml
     secrets:
       github-token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
