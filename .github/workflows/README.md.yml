@@ -12,7 +12,7 @@ jobs:
   run:
     name: Update README.md with new changes.
     runs-on: ubuntu-20.04
-    if: github.event.repository.name != 'root-template'
+    if: github.event.repository.name != 'bin'
     steps:
       - name: Checkout
         uses: actions/checkout@v2
