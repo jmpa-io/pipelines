@@ -7,5 +7,5 @@ on:
 jobs:
   call-workflow:
     uses: jmpa-io/depo/.github/workflows/README.yml@main
-    with:
+    secrets:
       github-token: xxxxx
