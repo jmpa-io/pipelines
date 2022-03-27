@@ -9,7 +9,7 @@ die() { echo "$1" >&2; exit "${2:-1}"; }
   && die "must be run from repository root directory"
 
 # check deps.
-deps=(sed find)
+deps=(sed find awk)
 for dep in "${deps[@]}"; do
   hash "$dep" 2>/dev/null || missing+=("$dep")
 done
@@ -64,7 +64,10 @@ if [[ $template == *"$pattern"* ]]; then
   #shellcheck disable=2001
   d=$(<<< "$d" sed 's/^/+ /') \
     || die "failed to add pluses to description"
-	template="${template//$pattern/$d}"
+  # remove trailing whitespace.
+  d=$(<<< "$d" awk '{$1=$1};1') \
+    || die "failed to remove trailing whitespace from description"
+  template="${template//$pattern/$d}"
 fi
 
 # retrieve workflows.
