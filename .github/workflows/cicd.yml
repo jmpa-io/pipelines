@@ -5,7 +5,7 @@ on:
         required: true
 
 jobs:
-  determine-what-to-run:
+  run:
     name: Determining which CI/CD to run.
     runs-on: ubuntu-20.04
     steps:
@@ -15,9 +15,11 @@ jobs:
           repository: jmpa-io/depo
           token: ${{ secrets.github-token }}
 
-      - name: Listing repository tags.
-        run: bin/list-repo-topics.sh $GITHUB_REPOSITORY
+      - name: Listing repository topics.
+        id: list-topics
+        run: echo "topics=$(bin/list-repo-topics.sh $GITHUB_REPOSITORY)"
         env:
           GITHUB_TOKEN: ${{ secrets.github-token }}
 
-  # TODO add the generic jobs here.
+      - run: echo "$topics"  
+
