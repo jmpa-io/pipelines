@@ -1,8 +1,8 @@
 on:
   workflow_call:
-    # secrets:
-    #   github-token:
-    #     required: true
+    secrets:
+      github-token:
+        required: true
 
 jobs:
   run:
@@ -13,6 +13,6 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: jmpa-io/depo
-          token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
+          token: ${{ secrets.github-token }}
   
       - run: ls -la
