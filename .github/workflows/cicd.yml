@@ -17,7 +17,7 @@ jobs:
 
       - name: Listing repository topics.
         id: list-topics
-        run: echo "topics=$(bin/list-repo-topics.sh $GITHUB_REPOSITORY)"
+        run: echo "topics=$(bin/list-repo-topics.sh $GITHUB_REPOSITORY)" >> $GITHUB_ENV
         env:
           GITHUB_TOKEN: ${{ secrets.github-token }}
 
