@@ -1,0 +1,18 @@
+on:
+  workflow_call:
+    secrets:
+      github-token:
+        required: true
+
+jobs:
+  run:
+    name: Updating README.md with new changes.
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
+  
+      - name: test
+        run: ls
