@@ -35,7 +35,8 @@ jobs:
 
       - name: CI/CD | default
         if: contains(env.TOPICS, 'default')
-        run: echo "${{ env.TOPICS }}"
+        run: |
+          bin/10-lint.sh
 
       - name: Notify Slack
         if: always()
