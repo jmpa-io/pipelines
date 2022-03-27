@@ -25,6 +25,6 @@ echo "##[group]Commiting changes."
 git config --global user.name "$name"
 git config --global user.email "$email"
 git add -A
-git commit -m "[skip-ci] Updated README.md"
+git commit -m "[skip ci] Updated README.md"
 git push origin HEAD:"$GITHUB_REF"
 echo "##[endgroup]"
