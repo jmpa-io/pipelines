@@ -48,6 +48,11 @@ jobs:
         if: contains(env.TOPICS, 'actions')
         run: |
           bin/10-lint.sh
+    
+      - name: CI/CD | website.
+        if: contains(env.TOPICS, 'website')
+        run: |
+          bin/10-lint.sh
 
       - name: CI/CD | default.
         if: contains(env.TOPICS, 'default')
