@@ -1,19 +1,28 @@
 ---
 on:
   workflow_call:
-    inputs:
-      workflow-conclusion:
-        required: true
-        type: string
     secrets:
+      github-token:
+        required: true
       slack-webhook:
         required: true
 
 jobs:
-  run:
+  determine-conclusion:
+    runs-on: ubuntu-20.04
+    outputs:
+      conclusion: ${{ steps.determine.outputs.conclusion }}
+    steps:
+      - id: determine
+        uses: jmpa-io/determine-workflow-conclusion@v0.0.1
+        with:
+          token: ${{ secrets.github-token }}
+
+  notify:
+    needs: [determine-conclusion]
     runs-on: ubuntu-20.04
     steps:
       - uses: jmpa-oss/notify-slack@v0.0.1
         with:
           webhook: ${{ secrets.slack-webhook }}
-          status: ${{ inputs.workflow-conclusion }}
+          status: ${{ needs.determine-conclusion.outputs.conclusion }}

@@ -17,18 +17,10 @@ jobs:
     steps:
       - run: exit 1
 
-  determine-conclusion:
+  post-to-slack:
     needs: [test2]
     if: always()
-    uses: ./.github/workflows/conclusion.yml
+    uses: ./.github/workflows/notify.yml
     secrets:
       github-token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
-
-  post-to-slack:
-    needs: [determine-conclusion]
-    if: always()
-    uses: ./.github/workflows/notify.yml
-    with:
-      workflow-conclusion: ${{ needs.determine-conclusion.outputs.conclusion }}
-    secrets:
       slack-webhook: ${{ secrets.SLACK_GITHUB_WEBHOOK_URL }}
