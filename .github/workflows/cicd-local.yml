@@ -26,6 +26,7 @@ jobs:
     steps:
       - id: determine
         run: |
+          echo "${{ toJSON(needs) }}"
           data=$(<<< "${{ toJSON(needs) }}" jq -r '. | keys[] as $k | [($k), (.[$k] | .result)] | @csv' | tr -d '"')
           success=true
           for d in $data; do
