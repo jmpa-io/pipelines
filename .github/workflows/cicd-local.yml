@@ -14,6 +14,7 @@ jobs:
 
   determine-run-status:
     needs: [lint]
+    if: always()
     runs-on: ubuntu-20.04
     steps:
       - run: |
