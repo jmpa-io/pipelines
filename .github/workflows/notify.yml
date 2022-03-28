@@ -1,0 +1,20 @@
+---
+on:
+  workflow_call:
+    inputs:
+      job-status:
+        required: true
+        type: string
+    secrets:
+      slack-webhook:
+        required: true
+
+jobs:
+  run:
+    name: Notify Slack
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: jmpa-oss/notify-slack@v0.0.1
+        with:
+          webhook: ${{ secrets.slack-webhook }}
+          status: ${{ inputs.job-status }}

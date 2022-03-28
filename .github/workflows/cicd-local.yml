@@ -3,10 +3,20 @@ name: CI/CD
 on:
   push:
   workflow_dispatch:
+  repository_dispatch:
+    types: [trigger]
 
 jobs:
-  run:
-    uses: ./.github/workflows/cicd.yml
+  lint:
+    uses: ./.github/workflows/lint.yml
     secrets:
       github-token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
+
+  notify-slack:
+    needs: [lint]
+    uses: ./.github/workflows/notify.yml
+    if: always()
+    inputs:
+      job-status: ${{ job.status }}
+    secrets:
       slack-webhook: ${{ secrets.SLACK_GITHUB_WEBHOOK_URL }}
