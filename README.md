@@ -11,7 +11,7 @@
 ```diff
 + 📦 A repository to store anything used across all projects in this org (eg.
 + generic scripts, cloudformation templates, github action workflows). Used in
-+ conjunction with the root-template!
++ conjunction with the https://github.com/jmpa-io/root-template.
 ```
 
 ## Scripts
