@@ -6,7 +6,6 @@ on:
         required: true
 jobs:
   run:
-    name: Run Lint.
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
