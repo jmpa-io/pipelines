@@ -10,7 +10,7 @@ usage() { echo "usage: $0 <org>"; exit 64; }
   && die "must be run from repository root directory"
 
 # check deps.
-deps=(curl sed find awk)
+deps=(curl sed find awk sort)
 for dep in "${deps[@]}"; do
   hash "$dep" 2>/dev/null || missing+=("$dep")
 done
@@ -45,6 +45,15 @@ workflows=$(<<< "$workflows" sort --ignore-case)
 # retrieve scripts.
 scripts=$(find ./bin -mindepth 1 -maxdepth 1 -type f -name '*.sh') \
   || die "failed to retrieve scripts"
+if [[ "$name" == "depot" ]]; then
+  out=""
+  for script in $scripts; do
+    [[ $script == *[0-9][0-9]-*.sh ]] && { continue; }
+    [[ -z "$out" ]] || { out+="\n"; }
+    out+="$script"
+  done
+  scripts=$(echo -e "$out") # TODO is there a better way to do this?
+fi
 scripts=$(<<< "$scripts" sort --ignore-case)
 
 # retrieve GitHub token.
