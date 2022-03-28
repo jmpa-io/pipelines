@@ -30,10 +30,13 @@ name="${name^^}" # uppercase
 name="${name,,}" # lowercase
 repo="$org/$name"
 
-# retrieve template.
-file=".github/templates/README.md"
+# retrieve template, but allow it to be overwritten by a local file if needed.
+file=".github/templates/00-README.md"
 [[ -f "$file" ]] \
   || die "missing $file"
+altFile=".github/templates/README.md"
+[[ -f "$altFile" ]] \
+  && { file="$altFile"; }
 template=$(cat "$file") \
   || die "failed to read $file"
 
