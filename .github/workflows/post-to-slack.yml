@@ -18,7 +18,7 @@ jobs:
         with:
           token: ${{ secrets.github-token }}
 
-  notify:
+  post:
     needs: [determine-conclusion]
     runs-on: ubuntu-20.04
     steps:
