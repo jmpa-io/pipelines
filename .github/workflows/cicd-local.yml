@@ -7,16 +7,17 @@ on:
     types: [trigger]
 
 jobs:
-  # lint:
-  #   uses: ./.github/workflows/lint.yml
-  #   secrets:
-  #     github-token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
+  lint:
+    uses: ./.github/workflows/lint.yml
+    secrets:
+      github-token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
 
   determine-run-status:
+    needs: [lint]
     runs-on: ubuntu-20.04
     steps:
       - run: |
-          echo "${{ github.event.workflow_run.conclusion }}"
+          echo "${{ needs.lint.result }}"
 
   # post-to-slack:
   #   needs: [lint]
