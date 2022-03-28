@@ -17,12 +17,12 @@ jobs:
     steps:
       - run: exit 1
 
-  determine-workflow-conclusion:
+  determine-conclusion:
     needs: [test2]
     if: always()
     runs-on: ubuntu-20.04
     outputs:
-      workflow-conclusion: ${{ steps.determine.outputs.conclusion }}
+      conclusion: ${{ steps.determine.outputs.conclusion }}
     steps:
       - id: determine
         run: |
@@ -35,6 +35,6 @@ jobs:
     uses: ./.github/workflows/notify.yml
     if: always()
     with:
-      workflow-conclusion: ${{ needs.determine-workflow-conclusion.outputs.conclusion }}
+      workflow-conclusion: ${{ needs.determine-conclusion.outputs.conclusion }}
     secrets:
       slack-webhook: ${{ secrets.SLACK_GITHUB_WEBHOOK_URL }}
