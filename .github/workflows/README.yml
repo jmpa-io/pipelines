@@ -2,6 +2,9 @@ name: Update README.md?
 on:
   push:
     branches: [main, master]
+    paths:
+      - '.github/workflows/*'
+      - 'img/*'
   workflow_dispatch:
 
 jobs:
