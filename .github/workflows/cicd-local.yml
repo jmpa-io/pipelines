@@ -28,8 +28,10 @@ jobs:
         run: |
           echo "${{ toJSON(needs) }}"
           data=$(<<< "${{ toJSON(needs) }}" jq -r '. | keys[] as $k | [($k), (.[$k] | .result)] | @csv' | tr -d '"')
+          echo "$data"
           success=true
           for d in $data; do
+            echo "--- $d"
             job=$(<<< "$d" cut -d',' -f1)
             status=$(<<< "$d" cut -d',' -f2)
             [[ $status != "success" ]] && { success=false; }
