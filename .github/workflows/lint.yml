@@ -4,6 +4,7 @@ on:
     secrets:
       github-token:
         required: true
+
 jobs:
   run:
     runs-on: ubuntu-20.04
