@@ -25,7 +25,8 @@ jobs:
       - run: |
           echo "${{ needs.lint.result }}"
           echo "${{ needs.test2.result }}"
-
+          echo "${{ needs }}"
+          
   # post-to-slack:
   #   needs: [lint]
   #   uses: ./.github/workflows/notify.yml
