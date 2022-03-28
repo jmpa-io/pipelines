@@ -7,10 +7,10 @@ on:
     types: [trigger]
 
 jobs:
-  lint:
-    uses: ./.github/workflows/lint.yml
-    secrets:
-      github-token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
+  # lint:
+  #   uses: ./.github/workflows/lint.yml
+  #   secrets:
+  #     github-token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
 
   test2:
     runs-on: ubuntu-20.04
@@ -18,7 +18,7 @@ jobs:
       - run: exit 1
 
   determine-workflow-conclusion:
-    needs: [lint, test2]
+    needs: [test2]
     if: always()
     runs-on: ubuntu-20.04
     outputs:
@@ -26,11 +26,13 @@ jobs:
     steps:
       - id: determine
         run: |
-          echo '${{ toJSON(needs) }}'
-          success=false
-          if [[ "${{ needs.lint.result }}" == "success" && "${{ needs.test2.result}}" == "success" ]]; then
-            success=true
-          fi
+          data=$(<<< "${{ toJSON(needs) }}" jq -r '. | keys[] as $k | [($k), (.[$k] | .result)] | @csv' | tr -d '"')
+          success=true
+          for d in $data; do
+            job=$(<<< "$d" cut -d',' -f1)
+            status=$(<<< "$d" cut -d',' -f2)
+            [[ $status != "success" ]] && { success=false; }
+          done
           echo "::set-output name=conclusion::$success"
 
   post-to-slack:
