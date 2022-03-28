@@ -1,14 +1,21 @@
+---
 name: CI/CD
 on:
   push:
   workflow_dispatch:
-    # TODO add inputs here for logLevel, environment: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#providing-inputs
   repository_dispatch:
     types: [trigger]
 
 jobs:
-  call-workflow:
-    uses: jmpa-io/depot/.github/workflows/cicd.yml@main
+  lint:
+    uses: jmpa-io/depot/.github/workflows/lint.yml
+    secrets:
+      github-token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
+
+  post-to-slack:
+    needs: [lint]
+    if: always()
+    uses: jmpa-io/depot/.github/workflows/post-to-slack.yml
     secrets:
       github-token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
       slack-webhook: ${{ secrets.SLACK_GITHUB_WEBHOOK_URL }}
