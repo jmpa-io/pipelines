@@ -44,7 +44,7 @@ jobs:
         run: |
           bin/10-lint.sh
 
-      - name: Test latest version of action.
+      - name: CI/CD | action | Test latest version of action.
         if: contains(env.TOPICS, 'actions')
         uses: ./
         with:
