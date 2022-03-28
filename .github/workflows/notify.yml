@@ -2,7 +2,7 @@
 on:
   workflow_call:
     inputs:
-      job-status:
+      workflow-conclusion:
         required: true
         type: string
     secrets:
@@ -17,4 +17,4 @@ jobs:
       - uses: jmpa-oss/notify-slack@v0.0.1
         with:
           webhook: ${{ secrets.slack-webhook }}
-          status: ${{ inputs.job-status }}
+          status: ${{ inputs.workflow-conclusion }}

@@ -17,21 +17,24 @@ jobs:
     steps:
       - run: exit 1
 
-  determine-run-status:
+  determine-workflow-conclusion:
     needs: [lint, test2]
     if: always()
     runs-on: ubuntu-20.04
     steps:
       - run: |
-          echo "${{ needs.lint.result }}"
-          echo "${{ needs.test2.result }}"
-          echo "${{ needs }}"
-          
-  # post-to-slack:
-  #   needs: [lint]
-  #   uses: ./.github/workflows/notify.yml
-  #   if: always()
-  #   with:
-  #     workflow-status: ${{ github.event.workflow_run.conclusion }}
-  #   secrets:
-  #     slack-webhook: ${{ secrets.SLACK_GITHUB_WEBHOOK_URL }}
+          echo '${{ toJSON(needs) }}'
+          success=false
+          if [[ "${{ needs.lint.result }}" == "success" && "${{ needs.test2.result}}" == "success" ]]; then
+            success=true
+          fi
+          echo "WORKFLOW_CONCLUSION=$success" >> $GITHUB_ENV
+
+  post-to-slack:
+    needs: [determine-workflow-conclusion]
+    uses: ./.github/workflows/notify.yml
+    if: always()
+    with:
+      workflow-conclusion: ${{ env.WORKFLOW_CONCLUSION }}
+    secrets:
+      slack-webhook: ${{ secrets.SLACK_GITHUB_WEBHOOK_URL }}
