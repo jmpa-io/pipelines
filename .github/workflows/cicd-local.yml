@@ -20,21 +20,14 @@ jobs:
   determine-conclusion:
     needs: [test2]
     if: always()
-    runs-on: ubuntu-20.04
-    outputs:
-      conclusion: ${{ steps.determine.outputs.conclusion }}
-    steps:
-      - id: determine
-        run: |
-          out=success
-          [[ ${{ needs.test2.result }} == "failure" ]] \
-            && out=failure
-          echo "::set-output name=conclusion::$out"
+    uses: ./.github/workflows/conclusion.yml
+    secrets:
+      token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
 
   post-to-slack:
     needs: [determine-conclusion]
-    uses: ./.github/workflows/notify.yml
     if: always()
+    uses: ./.github/workflows/notify.yml
     with:
       workflow-conclusion: ${{ needs.determine-conclusion.outputs.conclusion }}
     secrets:
