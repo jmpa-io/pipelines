@@ -27,10 +27,8 @@ jobs:
         run: |
           [[ -d bin ]] || { mkdir -p bin; }
           [[ -d .github/templates ]] || { mkdir -p .github/templates; }
-          [[ -d cf ]] || { mkdir -p cf; }
           mv depot/bin/* bin
           mv depot/.github/templates/* .github/templates
-          mv depot/cf/* cf
 
       - name: Retrieve repository topics.
         run: |
