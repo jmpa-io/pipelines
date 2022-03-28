@@ -31,7 +31,7 @@ jobs:
           echo "::set-output name=conclusion::$success"
 
   post-to-slack:
-    needs: [determine-workflow-conclusion]
+    needs: [determine-conclusion]
     uses: ./.github/workflows/notify.yml
     if: always()
     with:
