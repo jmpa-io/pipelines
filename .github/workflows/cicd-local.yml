@@ -16,7 +16,7 @@ jobs:
     needs: [lint]
     uses: ./.github/workflows/notify.yml
     if: always()
-    inputs:
+    with:
       job-status: ${{ job.status }}
     secrets:
       slack-webhook: ${{ secrets.SLACK_GITHUB_WEBHOOK_URL }}
