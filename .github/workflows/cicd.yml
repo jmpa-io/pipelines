@@ -8,14 +8,14 @@ on:
 
 jobs:
   lint:
-    uses: jmpa-io/depot/.github/workflows/lint.yml
+    uses: jmpa-io/depot/.github/workflows/lint.yml@main
     secrets:
       github-token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
 
   post-to-slack:
     needs: [lint]
     if: always()
-    uses: jmpa-io/depot/.github/workflows/post-to-slack.yml
+    uses: jmpa-io/depot/.github/workflows/post-to-slack.yml@main
     secrets:
       github-token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
       slack-webhook: ${{ secrets.SLACK_GITHUB_WEBHOOK_URL }}
