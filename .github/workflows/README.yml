@@ -27,8 +27,8 @@ jobs:
         run: |
           [[ -d bin ]] || { mkdir -p bin; }
           [[ -d .github/templates ]] || { mkdir -p .github/templates; }
-          mv depot/bin/* bin
-          mv depot/.github/templates/* .github/templates
+          mv -n depot/bin/* bin
+          mv -n depot/.github/templates/* .github/templates
 
       - name: Run.
         run: bin/00-README.sh jmpa-io
