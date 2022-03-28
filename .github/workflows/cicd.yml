@@ -12,9 +12,3 @@ jobs:
     secrets:
       github-token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
       slack-webhook: ${{ secrets.SLACK_GITHUB_WEBHOOK_URL }}
-
-  call-workflow-2:
-    uses: jmpa-io/depot/.github/workflows/cicd.yml@main
-    secrets:
-      github-token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
-      slack-webhook: ${{ secrets.SLACK_GITHUB_WEBHOOK_URL }}
