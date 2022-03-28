@@ -53,7 +53,7 @@ for id in $ids; do
 done
 
 # # clear ALL workflows runs extra.
-# for a in $(curl -s "https://api.github.com/repos/$repo/actions/runs"|jq -r .workflow_runs[].id); do 
+# for a in $(curl -s "https://api.github.com/repos/$repo/actions/runs"|jq -r .workflow_runs[].id); do
 #   curl   -X DELETE   -H "Accept: application/vnd.github.v3+json"  \
 #   -H "Authorization: token TOKEN " \
 #   "https://api.github.com/repos/OWNER/REPO/actions/runs/$a";
