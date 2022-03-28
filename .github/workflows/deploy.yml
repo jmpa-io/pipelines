@@ -1,0 +1,30 @@
+---
+on:
+  workflow_call:
+  # TODO
+
+jobs:
+  run:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Checkout depot.
+        uses: actions/checkout@v2
+        with:
+          repository: jmpa-io/depot
+          ref: main
+          token: ${{ secrets.github-token }}
+          path: depot
+
+      - name: Setup depot.
+        run: |
+          [[ -d bin ]] || { mkdir -p bin; }
+          [[ -d .github/templates ]] || { mkdir -p .github/templates; }
+          mv -n depot/bin/* bin
+          mv -n depot/.github/templates/* .github/templates
+
+      - name: Deploy.
+        run: echo bin/30-deploy.sh
+        # TODO
