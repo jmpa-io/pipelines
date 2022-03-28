@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - run: |
-        echo ${{ github.event.workflow_run.conclusion }}
+          echo "${{ github.event.workflow_run.conclusion }}"
 
   # post-to-slack:
   #   needs: [lint]
