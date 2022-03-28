@@ -45,7 +45,7 @@ workflows=$(<<< "$workflows" sort --ignore-case)
 # retrieve scripts.
 scripts=$(find ./bin -mindepth 1 -maxdepth 1 -type f -name '*.sh') \
   || die "failed to retrieve scripts"
-if [[ "$name" == "depot" ]]; then
+if [[ "$name" != "depot" ]]; then
   out=""
   for script in $scripts; do
     [[ $script == *[0-9][0-9]-*.sh ]] && { continue; }
