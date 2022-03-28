@@ -41,11 +41,13 @@ jobs:
 
       - name: CI/CD | template.
         if: contains(env.TOPICS, 'template')
-        run: echo "${{ env.TOPICS }}"
+        run: |
+          bin/10-lint.sh
 
       - name: CI/CD | actions.
         if: contains(env.TOPICS, 'actions')
-        run: echo "${{ env.TOPICS }}"
+        run: |
+          bin/10-lint.sh
 
       - name: CI/CD | default.
         if: contains(env.TOPICS, 'default')
