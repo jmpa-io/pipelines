@@ -9,7 +9,6 @@ on:
 
 jobs:
   run:
-    name: Updating README.md, if there are any changes.
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout.
@@ -30,17 +29,10 @@ jobs:
           mv -n depot/bin/* bin
           mv -n depot/.github/templates/* .github/templates
 
-      - name: Run.
+      - name: Generate README.md.
         run: bin/00-README.sh jmpa-io
         env:
           GITHUB_TOKEN: ${{ secrets.github-token }}
 
       - name: Commit?
         run: bin/00-commit.sh
-
-      - name: Notify Slack.
-        if: always()
-        uses: jmpa-oss/notify-slack@v0.0.1
-        with:
-          webhook: ${{ secrets.slack-webhook }}
-          status: ${{ job.status }}

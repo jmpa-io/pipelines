@@ -36,7 +36,7 @@ fi
 [[ -z "$token" ]] \
   && die "missing \$GITHUB_TOKEN"
 
-# retrieve ALL action runs..
+# retrieve ALL action runs.
 resp=$(curl -s "https://api.github.com/repos/$repo/actions/runs" \
   -H "Accept: application/vnd.github.v3+json" \
   -H "Authorization: bearer $token") \
