@@ -23,13 +23,22 @@ jobs:
           token: ${{ secrets.github-token }}
           path: depot
 
+      - name: Setup depot.
+        run: |
+          [[ -d bin ]] || { mkdir -p bin; }
+          [[ -d .github/templates ]] || { mkdir -p .github/templates; }
+          [[ -d cf ]] || { mkdir -p cf; }
+          mv depot/bin/* bin
+          mv depot/.github/templates/* .github/templates/*
+          mv depot/cf/* cf
+
       - name: Run.
-        run: depot/bin/README.sh
+        run: bin/00-README.sh jmpa-io
         env:
           GITHUB_TOKEN: ${{ secrets.github-token }}
 
       - name: Commit?
-        run: depot/bin/commit.sh
+        run: bin/00-commit.sh
 
       - name: Notify Slack.
         if: always()

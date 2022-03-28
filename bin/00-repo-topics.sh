@@ -24,14 +24,18 @@ fi
 repo="$1"
 [[ -z "$repo" ]] && usage
 
-# get token.
+# retrieve GitHub token.
 token="$GITHUB_TOKEN"
-[[ -z "$GITHUB_ACTION" ]] && {
+if [[ -z "$token" && -z "$GITHUB_ACTION" ]]; then
+  aws sts get-caller-identity &>/dev/null \
+    || die "unable to connect to AWS; are you authed?"
   token=$(aws ssm get-parameter --name "/tokens/github" \
-  --query "Parameter.Value" --output text \
-  --with-decryption 2>/dev/null)
-}
-[[ -z "$token" ]] && die "missing token"
+    --query "Parameter.Value" --output text \
+    --with-decryption 2>/dev/null) \
+    || die "failed to get GitHub token from paramstore"
+fi
+[[ -z "$token" ]] \
+  && die "missing \$GITHUB_TOKEN"
 
 # retrieve topics.
 resp=$(curl -s "https://api.github.com/repos/$repo/topics" \
