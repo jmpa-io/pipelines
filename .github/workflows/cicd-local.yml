@@ -26,9 +26,10 @@ jobs:
     steps:
       - id: determine
         run: |
-          echo ${{ github.action_status }}
-          success=true
-          echo "::set-output name=conclusion::$success"
+          out=success
+          [[ ${{ needs.test2.result }} == "failure" ]] \
+            && out=failure
+          echo "::set-output name=conclusion::$out"
 
   post-to-slack:
     needs: [determine-conclusion]
