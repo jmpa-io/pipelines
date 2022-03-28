@@ -12,13 +12,19 @@ jobs:
     secrets:
       github-token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
 
+  test2:
+    runs-on: ubuntu-20.04
+    steps:
+      - run: exit 1
+
   determine-run-status:
-    needs: [lint]
+    needs: [lint, test2]
     if: always()
     runs-on: ubuntu-20.04
     steps:
       - run: |
           echo "${{ needs.lint.result }}"
+          echo "${{ needs.test2.result }}"
 
   # post-to-slack:
   #   needs: [lint]
