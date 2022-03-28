@@ -12,7 +12,7 @@ jobs:
     secrets:
       github-token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
 
-  notify-slack:
+  post-to-slack:
     needs: [lint]
     uses: ./.github/workflows/notify.yml
     if: always()
