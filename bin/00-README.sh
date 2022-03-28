@@ -3,7 +3,7 @@
 
 # funcs.
 die() { echo "$1" >&2; exit "${2:-1}"; }
-usage() { echo "$0 <org>"; exit 64; }
+usage() { echo "usage: $0 <org>"; exit 64; }
 
 # check pwd.
 [[ ! -d .git ]] \
@@ -19,7 +19,7 @@ if [[ ${#missing[@]} -ne 0 ]]; then
   die "missing dep${s}: ${missing[*]}"
 fi
 
-# args.
+# check args.
 org="$1"
 [[ -z "$org" ]] && usage
 
@@ -94,9 +94,9 @@ fi
 pattern="%BADGES%"; out="";
 if [[ $template == *"$pattern"* ]]; then
   if [[ -z $workflows ]]; then
-		template=$(<<< "$template" sed "/$pattern/,+1 d" 2>/dev/null)
+    template=$(<<< "$template" sed "/$pattern/,+1 d" 2>/dev/null)
   else
-    for workflow in $workflows; do    
+    for workflow in $workflows; do
       [[ "$name" == "depot" && $workflow != *"-local"* ]] && { continue; }
       workflow="${workflow/\.github\/workflows\//}"
       [[ -n "$out" ]] && { out+="\n"; }
@@ -112,7 +112,7 @@ pattern="%LOGO%"; out="";
 if [[ $template == *"$pattern"* ]]; then
   logo=$(find img/ -name 'logo.*' 2>/dev/null)
   if [[ -z "$logo" ]]; then
-		template=$(<<< "$template" sed "/$pattern/,+1 d" 2>/dev/null)
+    template=$(<<< "$template" sed "/$pattern/,+1 d" 2>/dev/null)
   else
     out="<p align=\"center\">\n  <img src=\"$logo\"/>\n</p>"
     pattern="${pattern//\%/\\\%}"
@@ -148,11 +148,11 @@ fi
 pattern="%SCRIPTS_TABLE%"; out="";
 if [[ $template == *"$pattern"* ]]; then
   if [[ -z "$scripts" ]]; then
-		template=$(<<< "$template" sed "/$pattern/,+1 d" 2>/dev/null)
+    template=$(<<< "$template" sed "/$pattern/,+1 d" 2>/dev/null)
   else
     out="## Scripts\n\n"
-		out+="script|description\n"
-		out+="---|---\n"
+    out+="script|description\n"
+    out+="---|---\n"
     for script in $scripts; do
         comments=$(head -n4 "$script") \
           || die "failed to read description for $script"
@@ -173,7 +173,7 @@ if [[ $template == *"$pattern"* ]]; then
         out+="[$script]($script) | ${desc^}\n"
     done
     pattern="${pattern//\%/\\\%}"
-		template="${template//$pattern/$out}"
+    template="${template//$pattern/$out}"
   fi
 fi
 

@@ -5,7 +5,7 @@
 # funcs.
 die() { echo "$1" >&2; exit "${2:-1}"; }
 
-# check project root.
+# check pwd.
 [[ ! -d .git ]] \
   && die "must be run from repository root directory"
 
