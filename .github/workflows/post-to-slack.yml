@@ -22,7 +22,7 @@ jobs:
     needs: [determine-conclusion]
     runs-on: ubuntu-20.04
     steps:
-      - uses: jmpa-oss/notify-slack@v0.0.1
+      - uses: jmpa-io/notify-slack@v0.0.1
         with:
           webhook: ${{ secrets.slack-webhook }}
           status: ${{ needs.determine-conclusion.outputs.conclusion }}
