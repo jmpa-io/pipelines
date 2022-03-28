@@ -8,6 +8,13 @@
 + 🌱 The root template used by all other repositories in this org.
 ```
 
+## Scripts
+
+script|description
+---|---
+[bin/hello.sh](bin/hello.sh) | This does something.
+
+
 ## How do I use this template?
 
 1. Using a <kbd>terminal</kbd>, download the child repository locally.
