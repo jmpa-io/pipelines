@@ -7,20 +7,15 @@ on:
     types: [trigger]
 
 jobs:
-  # lint:
-  #   uses: ./.github/workflows/lint.yml
-  #   secrets:
-  #     github-token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
-
-  test2:
-    runs-on: ubuntu-20.04
-    steps:
-      - run: exit 1
+  lint:
+    uses: ./.github/workflows/lint.yml
+    secrets:
+      github-token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
 
   post-to-slack:
-    needs: [test2]
+    needs: [lint]
     if: always()
-    uses: ./.github/workflows/notify.yml
+    uses: ./.github/workflows/post-to-slack.yml
     secrets:
       github-token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
       slack-webhook: ${{ secrets.SLACK_GITHUB_WEBHOOK_URL }}
