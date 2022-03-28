@@ -1,16 +1,24 @@
-name: Update README.md?
+---
+name: README.md
 on:
   push:
-    branches: [main, master]
     paths:
-      - '.github/templates/*'
-      - '.github/workflows/*'
-      - 'img/*'
+    - '.github/templates/*'
+    - '.github/workflows/*'
+    - 'img/*'
   workflow_dispatch:
 
 jobs:
-  call-workflow:
-    uses: jmpa-io/depot/.github/workflows/README.yml@main
+  generate-readme:
+    uses: jmpa-io/depot/.github/workflows/README.yml
+    secrets:
+      github-token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
+      slack-webhook: ${{ secrets.SLACK_GITHUB_WEBHOOK_URL }}
+
+  post-to-slack:
+    needs: [generate-readme]
+    if: always()
+    uses: jmpa-io/depot/.github/workflows/post-to-slack.yml
     secrets:
       github-token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
       slack-webhook: ${{ secrets.SLACK_GITHUB_WEBHOOK_URL }}
