@@ -39,20 +39,23 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.github-token }}
 
-      - name: CI/CD | template.
-        if: contains(env.TOPICS, 'template')
-        run: |
-          bin/10-lint.sh
-
-      - name: CI/CD | actions.
+      - name: CI/CD | action.
         if: contains(env.TOPICS, 'actions')
         run: |
           bin/10-lint.sh
-    
+
+      - name: Test latest version of action.
+        if: contains(env.TOPICS, 'actions')
+        uses: ./
+        with:
+          webhook: ${{ secrets.SLACK_GITHUB_WEBHOOK_URL }}
+          status: ${{ job.status }}
+
       - name: CI/CD | website.
         if: contains(env.TOPICS, 'website')
         run: |
           bin/10-lint.sh
+          # TODO deploy.
 
       - name: CI/CD | default.
         if: contains(env.TOPICS, 'default')
