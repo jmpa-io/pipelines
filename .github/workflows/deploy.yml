@@ -2,7 +2,7 @@
 on:
   workflow_call:
     inputs:
-      templates:
+      template:
         required: true
         type: string
     secrets:
