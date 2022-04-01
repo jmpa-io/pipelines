@@ -33,9 +33,9 @@ template="cf/$name.yml"
   die "missing $template"
 
 # vars.
-project=$(basename "$PWD") \
-  || die "failed to get project name"
-stack="$project-$name"
+repo=$(basename "$PWD") \
+  || die "failed to get repo name"
+stack="$repo-$name"
 
 # check auth.
 aws sts get-caller-identity &>/dev/null \
@@ -45,17 +45,59 @@ aws sts get-caller-identity &>/dev/null \
 topics=$(bin/00-list-repository-topics.sh "$GITHUB_REPOSITORY") \
   || die "failed to list repository topics"
 
-echo "$topics"
-exit 0
+# setup parameter overrides.
+overrides=("Repository=$repo")
+
+# add website parameters.
+if [[ $topics == *website* ]]; then
+
+  # list all domains.
+  data=$(aws route53domains list-domains --region us-east-1) \
+    || die "failed to list route53 domains"
+  domains=$(<<< "$data" jq -r '.Domains[].DomainName') \
+    || die "failed to parse response from listing route53 domains"
+
+  # determine which domain.
+  domain=""
+  for d in $domains; do
+    [[ $repo == *$d ]] && { domain=$d; break; }
+  done
+  [[ -z "$domain" ]] \
+    && die "failed to determine which domain $repo belongs to"
+
+  # determine hosted zone id from domain.
+  hostedZoneId=$(aws route53 list-hosted-zones-by-name \
+    --query "HostedZones[?Name=='$domain.'].Id" \
+    --output text) \
+    || die "failed to get hosted zone id for $domain"
+  hostedZoneId=${hostedZoneId/\/hostedzone\//} # remove prefix.
+  [[ -z "$hostedZoneId" ]] \
+    && die "failed to determine a hostedZoneId that belongs to $domain"
+
+  # determine certificate arn from domain.
+  certs=$(aws acm list-certificates --region us-east-1) \
+    || die "failed to list acm certificates"
+  cert=$(<<<"$certs" jq -r --arg domain "$domain" \
+    '.CertificateSummaryList[] | select(.DomainName==$domain) | .CertificateArn') \
+    || die "failed to parse acm certificates response"
+  [[ -z "$cert" ]] \
+    && die "failed to determine a cert that belongs to $domain"
+
+  # add overrides.
+  overrides+=("Domain=$domain")
+  overrides+=("HostedZoneId=$hostedZoneId")
+  overrides+=("AcmCertificateArn=$cert")
+fi
 
 # deploy stack.
 echo "##[group]Deploying $template"
-aws cloudformation deploy \
+echo aws cloudformation deploy \
   --region "$AWS_DEFAULT_REGION" \
   --template-file "$template" \
   --stack-name "$stack" \
-  --tags project="$project" \
+  --tags repository="$repo" \
   --capabilities CAPABILITY_NAMED_IAM \
   --no-fail-on-empty-changeset \
+  --parameter-overrides "${overrides[*]}" \
     || die "failed to deploy $stack"
 echo "##[endgroup]"
