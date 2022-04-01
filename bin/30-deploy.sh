@@ -91,7 +91,7 @@ fi
 
 # deploy stack.
 echo "##[group]Deploying $template"
-echo aws cloudformation deploy \
+aws cloudformation deploy \
   --region "$AWS_DEFAULT_REGION" \
   --template-file "$template" \
   --stack-name "$stack" \
