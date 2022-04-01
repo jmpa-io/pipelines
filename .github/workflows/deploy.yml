@@ -1,6 +1,10 @@
 ---
 on:
   workflow_call:
+    inputs:
+      templates:
+        required: true
+        type: string
     secrets:
       github-token:
         required: true
@@ -28,5 +32,4 @@ jobs:
           mv -n depot/.github/templates/* .github/templates
 
       - name: Deploy.
-        run: echo bin/30-deploy.sh
-        # TODO
+        run: bin/30-deploy.sh ${{ inputs.template }}
