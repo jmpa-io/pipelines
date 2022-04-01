@@ -1,0 +1,47 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: A collection of resources used to manage the aws.jcleal.me redirect.
+
+Parameters:
+  Repository:
+    Description: The repository this stack is deployed from.
+    Type: String
+
+  HostedZoneId:
+    Description: The id for the domain registered via AWS Route53.
+    Type: String
+
+  Domain:
+    Description: The domain registered.
+    Type: String
+
+Conditions:
+  CreateResources: !Equals [ !Ref "AWS::Region" , "ap-southeast-2" ]
+
+Resources:
+  Website:
+    Type: AWS::S3::Bucket
+    Condition: CreateResources
+    Properties:
+      BucketName:
+        Fn::Join:
+          - ''
+          - - aws.
+            - Ref: Domain
+      WebsiteConfiguration:
+        RedirectAllRequestsTo:
+          HostName: jmpa.awsapps.com/start
+          Protocol: https
+      Tags:
+        - Key: repository
+          Value: !Ref Repository
+
+  WebsiteRecordSet:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      Name: !Ref Website
+      HostedZoneId: !Ref HostedZoneId
+      Type: CNAME
+      TTL: 900
+      ResourceRecords:
+        - !Sub "https://${Website}.s3-website-${AWS::Region}.amazonaws.com"
