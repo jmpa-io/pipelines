@@ -32,8 +32,10 @@ jobs:
       - name: Setup depot.
         run: |
           [[ -d bin ]] || { mkdir -p bin; }
+          [[ -d cf ]] || { mkdir -p cf; }
           [[ -d .github/templates ]] || { mkdir -p .github/templates; }
           mv -n depot/bin/* bin
+          mv -n depot/cf/* cf
           mv -n depot/.github/templates/* .github/templates
 
       - name: Configure AWS.
