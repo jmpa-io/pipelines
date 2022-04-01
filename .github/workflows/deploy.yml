@@ -44,3 +44,5 @@ jobs:
 
       - name: Deploy.
         run: bin/30-deploy.sh ${{ inputs.template }}
+        with:
+          GITHUB_TOKEN: ${{ secrets.github-token }}
