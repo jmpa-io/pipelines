@@ -1,0 +1,20 @@
+---
+on:
+  workflow_call:
+    secrets:
+      github-token:
+        required: true
+      aws-access-key-id:
+        required: true
+      aws-secret-access-key:
+        required: true
+
+jobs:
+  deploy:
+    uses: ./.github/worflows/deploy.yml
+    with:
+      templates: cf/00-website.yml
+    secrets:
+      github-token: ${{ secrets.github-token }}
+      aws-access-key-id: ${{ secrets.aws-access-key-id }}
+      aws-secret-access-key: ${{ secrets.aws-secret-access-key }}
