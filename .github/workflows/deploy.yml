@@ -2,7 +2,8 @@
 on:
   workflow_call:
     inputs:
-      template:
+      templates:
+        description: A comma seperated list of templates to deploy.
         required: true
         type: string
     secrets:
@@ -43,6 +44,6 @@ jobs:
           aws-region: ap-southeast-2
 
       - name: Deploy.
-        run: bin/30-deploy.sh ${{ inputs.template }}
+        run: bin/30-deploy.sh ${{ inputs.templates }}
         env:
           GITHUB_TOKEN: ${{ secrets.github-token }}
