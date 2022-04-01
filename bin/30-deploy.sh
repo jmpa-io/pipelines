@@ -36,6 +36,9 @@ template="cf/$name.yml"
 repo=$(basename "$PWD") \
   || die "failed to get repo name"
 stack="$repo-$name"
+[[ $template == "template" ]] \
+  && { stack="$name"; }
+stack="${stack//\./-}"
 
 # check auth.
 aws sts get-caller-identity &>/dev/null \
