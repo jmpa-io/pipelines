@@ -11,7 +11,7 @@ on:
 
 jobs:
   deploy:
-    uses: ./.github/worflows/deploy.yml
+    uses: ./.github/workflows/deploy.yml
     with:
       templates: cf/00-website.yml
     secrets:
