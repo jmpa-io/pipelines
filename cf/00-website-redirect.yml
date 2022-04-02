@@ -1,19 +1,29 @@
 ---
 AWSTemplateFormatVersion: 2010-09-09
-Description: A collection of resources used to manage the aws.jcleal.me redirect.
+Description: A collection of resources for creating a website redirect.
 
 Parameters:
   Repository:
     Description: The repository this stack is deployed from.
     Type: String
 
-  HostedZoneId:
-    Description: The id for the domain registered via AWS Route53.
-    Type: String
-
   Domain:
     Description: The domain registered.
     Type: String
+
+  HostedZoneId:
+    Description: The id of the domain registered via AWS Route53.
+    Type: String
+
+  RedirectUrl:
+    Description: The url to redirect requests to.
+    Type: String
+
+  RedirectProtocol:
+    Description: The protocol to use when redirecting requests.
+    Type: string
+    AllowedValues: [ http, https ]
+    Default: https
 
 Conditions:
   CreateResources: !Equals [ !Ref "AWS::Region" , "ap-southeast-2" ]
@@ -23,21 +33,18 @@ Resources:
     Type: AWS::S3::Bucket
     Condition: CreateResources
     Properties:
-      BucketName:
-        Fn::Join:
-          - ''
-          - - aws.
-            - Ref: Domain
+      BucketName: !Join ['', [ "aws.", !Ref Domain ] ]
       WebsiteConfiguration:
         RedirectAllRequestsTo:
-          HostName: jmpa.awsapps.com/start
-          Protocol: https
+          HostName: !Ref RedirectUrl
+          Protocol: !Ref RedirectProtocol
       Tags:
         - Key: repository
           Value: !Ref Repository
 
   WebsiteRecordSet:
     Type: AWS::Route53::RecordSet
+    Condition: CreateResources
     Properties:
       Name: !Ref Website
       HostedZoneId: !Ref HostedZoneId
