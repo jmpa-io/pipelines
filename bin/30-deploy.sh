@@ -75,7 +75,7 @@ for t in "${templatesToDeploy[@]}"; do
   if [[ "$topics" == *website* && "$stack" == *website* ]]; then
     stack="$repo"
   fi
-  stack="${stack//\./\-/}"
+  stack="${stack//\./\-}"
 
   # setup parameter overrides.
   overrides=("Repository=$repo")
