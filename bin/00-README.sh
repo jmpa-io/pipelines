@@ -109,7 +109,7 @@ if [[ $template == *"$pattern"* ]]; then
     template=$(<<< "$template" sed "/$pattern/,+1 d" 2>/dev/null)
   else
     for workflow in $workflows; do
-      [[ "$name" == "depot" && $workflow != *"-local"* ]] && { continue; }
+      [[ "$name" == "depot" && "$workflow" != *"local-"* ]] && { continue; }
       workflow="${workflow/\.github\/workflows\//}"
       [[ -n "$out" ]] && { out+="\n"; }
       out+="[![$name](https://github.com/$repo/actions/workflows/$workflow/badge.svg)](https://github.com/$repo/actions/workflows/$workflow)"
