@@ -52,6 +52,6 @@ jobs:
           path: dist
 
       - name: Upload website.
-        run: echo bin/40-sync.sh dist
+        run: bin/40-sync.sh ./dist
         env:
           GITHUB_TOKEN: ${{ secrets.github-token }}

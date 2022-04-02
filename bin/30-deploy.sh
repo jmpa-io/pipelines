@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# for each given cloudformation template, deploy them to the authed AWS account.
+# for each given cloudformation template, deploy it to the authed AWS account.
 
 # funcs.
 die() { echo "$1" >&2; exit "${2:-1}"; }
@@ -23,16 +23,16 @@ fi
 templates=$*
 [[ -z "$templates" ]] && usage
 
-# check auth.
-aws sts get-caller-identity &>/dev/null \
-  || die "unable to connect to AWS; are you authed?"
-
 # vars.
 repo=$(basename "$PWD") \
   || die "failed to get repository name"
 fullRepo="$GITHUB_REPOSITORY"
 [[ -z "$fullRepo" ]] \
   && die "missing \$GITHUB_REPOSITORY"
+
+# check auth.
+aws sts get-caller-identity &>/dev/null \
+  || die "unable to connect to AWS; are you authed?"
 
 # retrieve repository topics.
 topics=$(bin/00-list-repository-topics.sh "$fullRepo") \
