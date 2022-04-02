@@ -32,4 +32,5 @@ docker run \
   -e VALIDATE_HTML=false \
   -e VALIDATE_MARKDOWN=false \
   -e VALIDATE_NATURAL_LANGUAGE=false \
+  -e DISABLE_ERRORS=true \
   github/super-linter

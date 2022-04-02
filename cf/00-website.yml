@@ -47,7 +47,7 @@ Resources:
             Effect: Allow
             Principal: '*'
             Action: s3:GetObject
-            Resource: !Sub arn:aws:s3:::${Website}/*
+            Resource: !Sub "arn:aws:s3:::${Website}/*"
 
   DistributionLogBucket:
     Type: AWS::S3::Bucket
@@ -93,7 +93,7 @@ Resources:
         Comment: !Ref Website
         Origins:
           - Id: S3Origin
-            DomainName: !Join [ '', [ !Ref Website, !Sub ".s3-website-${AWS::Region}.amazonaws.com" ] ]
+            DomainName: !Sub "${Website}.s3-website-${AWS::Region}.amazonaws.com"
             CustomOriginConfig:
               HTTPPort: 80
               HTTPSPort: 443
