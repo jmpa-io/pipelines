@@ -54,4 +54,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.github-token }}
           REDIRECT_URL: ${{ inputs.redirect-url }}
-          REDIRECT_PROCOTOL: ${{ inputs.redirect-protocol }}
+          REDIRECT_PROTOCOL: ${{ inputs.redirect-protocol }}
