@@ -115,6 +115,10 @@ for t in "${templatesToDeploy[@]}"; do
     [[ -z "$cert" ]] \
       && die "failed to determine a cert that belongs to $domain"
 
+    # update domain to be sub-domain, only after determining everything.
+    [[ $repo == *$domain && $domain != "$repo" ]] \
+      && { domain="$repo"; }
+
     # add overrides.
     overrides+=("Domain=$domain")
     overrides+=("HostedZoneId=$hostedZoneId")

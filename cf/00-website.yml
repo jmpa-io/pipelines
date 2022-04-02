@@ -1,5 +1,6 @@
 ---
 AWSTemplateFormatVersion: 2010-09-09
+
 Parameters:
   Repository:
     Description: The repository this stack is deployed from.
@@ -92,7 +93,7 @@ Resources:
         Comment: !Ref Website
         Origins:
           - Id: S3Origin
-            DomainName: !Join [ '', [ !Ref Website, !Sub ".s3-website-${AWS::Region}.amazonaws.com" ]]
+            DomainName: !Join [ '', [ !Ref Website, !Sub ".s3-website-${AWS::Region}.amazonaws.com" ] ]
             CustomOriginConfig:
               HTTPPort: 80
               HTTPSPort: 443
@@ -135,7 +136,7 @@ Resources:
     Properties:
       HostedZoneId: !Ref HostedZoneId
       RecordSets:
-        - Name: !Ref Domain
+        - Name: !Ref Website
           Type: A
           AliasTarget:
             HostedZoneId: Z2FDTNDATAQYW2 # https://docs.aws.amazon.com/general/latest/gr/s3.html#s3_website_region_endpoints
