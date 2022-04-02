@@ -121,8 +121,8 @@ for t in "${templatesToDeploy[@]}"; do
   fi
 
   # deploy stack.
-  echo "##[group]Deploying $template"
-  echo aws cloudformation deploy \
+  echo "##[group]Deploying $name"
+  aws cloudformation deploy \
     --region "$AWS_DEFAULT_REGION" \
     --template-file "$template" \
     --stack-name "$stack" \
