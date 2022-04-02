@@ -46,6 +46,6 @@ jobs:
           aws-region: ap-southeast-2
 
       - name: Deploy.
-        run: bin/30-deploy.sh ${{ inputs.templates }}
+        run: echo bin/30-deploy.sh ${{ inputs.templates }}
         env:
           GITHUB_TOKEN: ${{ secrets.github-token }}
