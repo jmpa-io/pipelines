@@ -30,4 +30,5 @@ docker run \
   -e VALIDATE_SHELL_SHFMT=false \
   -e VALIDATE_CSS=false \
   -e VALIDATE_HTML=false \
+  -e VALIDATE_MARKDOWN=false \
   github/super-linter
