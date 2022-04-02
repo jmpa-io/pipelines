@@ -131,14 +131,14 @@ for t in "${templatesToDeploy[@]}"; do
 
   # deploy stack.
   echo "##[group]Deploying $name"
-  echo aws cloudformation deploy \
+  aws cloudformation deploy \
     --region "$AWS_DEFAULT_REGION" \
     --template-file "$template" \
     --stack-name "$stack" \
-    --tags repository="$repo" \
     --capabilities CAPABILITY_NAMED_IAM \
     --no-fail-on-empty-changeset \
-    --parameter-overrides "${overrides[*]}" \
+    --parameter-overrides "${overrides[@]}" \
+    --tags repository="$repo" \
       || die "failed to deploy $stack"
   echo "##[endgroup]"
 done
