@@ -51,10 +51,7 @@ jobs:
           name: ${{ inputs.artifact }}
           path: dist
 
-      - name: Upload to S3.
-        run: |
-          ls -la
-          ls -la ./dist
-          echo bin/40-sync.sh dist
+      - name: Upload website.
+        run: echo bin/40-sync.sh dist
         env:
           GITHUB_TOKEN: ${{ secrets.github-token }}
