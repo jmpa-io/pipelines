@@ -129,6 +129,22 @@ for t in "${templatesToDeploy[@]}"; do
     overrides+=("AcmCertificateArn=$cert")
   fi
 
+  # add redirect parameters.
+  if [[ $topics == *redirect* ]]; then
+
+    # read vars.
+    redirectUrl="$REDIRECT_URL"
+    redirectProtocol="$REDIRECT_PROTOCOL"
+    [[ -z "$redirectUrl" ]] \
+      || die "missing \$REDIRECT_URL"
+    [[ -z "$redirectProtocol" ]] \
+      || die "missing \$REDIRECT_PROTOCOL"
+
+    # add overrides.
+    overrides+=("RedirectUrl=$redirectUrl")
+    overrides+=("RedirectProtocol=$redirectProtocol")
+  fi
+
   # deploy stack.
   echo "##[group]Deploying $name"
   aws cloudformation deploy \

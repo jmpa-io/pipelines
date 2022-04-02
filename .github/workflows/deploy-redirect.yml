@@ -1,0 +1,57 @@
+---
+on:
+  workflow_call:
+    inputs:
+      redirect-url:
+        description: The url to redirect to.
+        required: true
+        type: string
+      redirect-protocol:
+        description: The protocol to use when redirecting requests.
+        required: true
+        type: string
+    secrets:
+      github-token:
+        required: true
+      aws-access-key-id:
+        required: true
+      aws-secret-access-key:
+        required: true
+
+jobs:
+  run:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Checkout depot.
+        uses: actions/checkout@v2
+        with:
+          repository: jmpa-io/depot
+          ref: main
+          token: ${{ secrets.github-token }}
+          path: depot
+
+      - name: Setup depot.
+        run: |
+          [[ -d bin ]] || { mkdir -p bin; }
+          [[ -d cf ]] || { mkdir -p cf; }
+          [[ -d .github/templates ]] || { mkdir -p .github/templates; }
+          mv -n depot/bin/* bin
+          mv -n depot/cf/* cf
+          mv -n depot/.github/templates/* .github/templates
+
+      - name: Configure AWS.
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.aws-access-key-id }}
+          aws-secret-access-key: ${{ secrets.aws-secret-access-key }}
+          aws-region: ap-southeast-2
+
+      - name: Deploy.
+        run: bin/30-deploy.sh 00-website-redirect
+        env:
+          GITHUB_TOKEN: ${{ secrets.github-token }}
+          REDIRECT_URL: ${{ inputs.redirect-url }}
+          REDIRECT_PROCOTOL: ${{ inputs.redirect-protocol }}

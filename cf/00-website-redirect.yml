@@ -1,6 +1,5 @@
 ---
 AWSTemplateFormatVersion: 2010-09-09
-Description: A collection of resources for creating a website redirect.
 
 Parameters:
   Repository:
@@ -33,7 +32,7 @@ Resources:
     Type: AWS::S3::Bucket
     Condition: CreateResources
     Properties:
-      BucketName: !Join ['', [ "aws.", !Ref Domain ] ]
+      BucketName: !Ref Domain
       WebsiteConfiguration:
         RedirectAllRequestsTo:
           HostName: !Ref RedirectUrl
