@@ -75,6 +75,7 @@ for t in "${templatesToDeploy[@]}"; do
   if [[ "$topics" == *website* && "$stack" == *website* ]]; then
     stack="$repo"
   fi
+  stack="${stack//\./\-/}"
 
   # setup parameter overrides.
   overrides=("Repository=$repo")
@@ -122,7 +123,7 @@ for t in "${templatesToDeploy[@]}"; do
 
   # deploy stack.
   echo "##[group]Deploying $name"
-  aws cloudformation deploy \
+  echo aws cloudformation deploy \
     --region "$AWS_DEFAULT_REGION" \
     --template-file "$template" \
     --stack-name "$stack" \
