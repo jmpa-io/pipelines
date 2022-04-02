@@ -132,9 +132,9 @@ for t in "${templatesToDeploy[@]}"; do
     redirectUrl="$REDIRECT_URL"
     redirectProtocol="$REDIRECT_PROTOCOL"
     [[ -z "$redirectUrl" ]] \
-      || die "missing \$REDIRECT_URL"
+      && die "missing \$REDIRECT_URL"
     [[ -z "$redirectProtocol" ]] \
-      || die "missing \$REDIRECT_PROTOCOL"
+      && die "missing \$REDIRECT_PROTOCOL"
 
     # add overrides.
     overrides+=("RedirectUrl=$redirectUrl")
