@@ -28,4 +28,6 @@ docker run \
   -e LINTER_RULES_PATH="/" \
   -e VALIDATE_GITHUB_ACTIONS=false \
   -e VALIDATE_SHELL_SHFMT=false \
+  -e VALIDATE_CSS=false \
+  -e VALIDATE_HTML=false \
   github/super-linter
