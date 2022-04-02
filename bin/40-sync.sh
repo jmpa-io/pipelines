@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
-# uploades given directories to a given s3 bucket.
+# uploads the dist directory to S3 for the desired website.
+#
+# PLEASE NOTE: this script is designed to run in the pipeline and is expecting
+# a dist folder to be downloaded via GitHub Actions.
 
 # funcs.
 die() { echo "$1" >&2; exit "${2:-1}"; }
@@ -22,17 +25,10 @@ fi
 aws sts get-caller-identity &>/dev/null \
   || die "unable to connect to AWS; are you authed?"
 
-# is there any content to upload?
-path="./public"
+# does the dist directory exist?
+path="dist"
 [[ -d "$path" ]] \
   || die "missing $path"
-
-# copy over resume, if it exists.
-resumePath="./Resume.pdf"
-if [[ -f "$resumePath" ]]; then
-  cp "$resumePath" "$path" \
-    || die "failed to copy $resumePath to $path"
-fi
 
 # retrieve stack name.
 stack="$(basename "$PWD")" \
@@ -45,7 +41,7 @@ bucket=$(aws cloudformation describe-stacks --stack-name "$stack" \
   || die "failed to get bucket name for $stack"
 
 # upload to s3.
-echo "##[group]Syncing to s3"
-aws s3 sync --delete --exact-timestamps "$path" "s3://$bucket" \
+echo "##[group]Uploading to S3"
+echo aws s3 sync --delete --exact-timestamps "$path" "s3://$bucket" \
   || die "failed to sync $path to $bucket"
 echo "##[endgroup]"
