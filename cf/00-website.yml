@@ -1,7 +1,5 @@
 ---
 AWSTemplateFormatVersion: 2010-09-09
-Description: A collection of resources used to manage the jcleal.me website.
-
 Parameters:
   Repository:
     Description: The repository this stack is deployed from.
@@ -44,7 +42,7 @@ Resources:
       Bucket: !Ref Website
       PolicyDocument:
         Statement:
-          - Sid: PublicReadForGetBucketObjects
+          - Sid: allow-public-read
             Effect: Allow
             Principal: '*'
             Action: s3:GetObject
@@ -57,7 +55,7 @@ Resources:
       LifecycleConfiguration:
         Rules:
           - Status: Enabled
-            ExpirationInDays: 90
+            ExpirationInDays: 30
       Tags:
         - Key: repository
           Value: !Ref Repository
@@ -94,11 +92,7 @@ Resources:
         Comment: !Ref Website
         Origins:
           - Id: S3Origin
-            DomainName:
-              Fn::Join:
-                - ''
-                - - !Ref Website
-                  - !Sub .s3-website-${AWS::Region}.amazonaws.com
+            DomainName: !Join [ '', [ !Ref Website, !Sub ".s3-website-${AWS::Region}.amazonaws.com" ]]
             CustomOriginConfig:
               HTTPPort: 80
               HTTPSPort: 443
@@ -149,5 +143,5 @@ Resources:
 
 Outputs:
   Bucket:
-    Description: The S3 bucket used to host the website.
+    Description: The name of the S3 bucket used to host the website.
     Value: !Ref Website
