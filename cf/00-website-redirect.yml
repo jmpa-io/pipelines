@@ -20,7 +20,7 @@ Parameters:
 
   RedirectProtocol:
     Description: The protocol to use when redirecting requests.
-    Type: string
+    Type: String
     AllowedValues: [ http, https ]
     Default: https
 
