@@ -24,6 +24,6 @@ script|description
 [bin/00-README.sh](bin/00-README.sh) | Generates a README.md, using a found README.md template.
 [bin/10-lint.sh](bin/10-lint.sh) | Lints everything!
 [bin/20-test.sh](bin/20-test.sh) | Tests everything!
-[bin/30-deploy.sh](bin/30-deploy.sh) | Deploys a cloudformation stack, based on the given template.
+[bin/30-deploy.sh](bin/30-deploy.sh) | For each given cloudformation template, deploy them to the authed AWS account.
 [bin/40-sync.sh](bin/40-sync.sh) | Uploades given directories to a given s3 bucket.
 
