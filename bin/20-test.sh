@@ -9,7 +9,7 @@ die() { echo "$1" >&2; exit "${2:-1}"; }
   && die "must be run from repository root directory"
 
 # check deps.
-deps=(go)
+deps=(go grep)
 for dep in "${deps[@]}"; do
   hash "$dep" 2>/dev/null || missing+=("$dep")
 done
@@ -19,8 +19,8 @@ if [[ ${#missing[@]} -ne 0 ]]; then
 fi
 
 # test.
-# TODO how to ignore depot "things" here?
 echo "##[group]Testing Go."
-go test -short -coverprofile=coverage.txt -covermode=atomic ./... \
+go test -short -coverprofile=coverage.txt -covermode=atomic \
+  "$(go list ./... | grep "/depot/")" \
   && go tool cover -func=coverage.txt
 echo "##[endgroup]"
