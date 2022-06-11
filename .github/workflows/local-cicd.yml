@@ -13,6 +13,7 @@ jobs:
       github-token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
 
   dispatch:
+    needs: [lint]
     uses: ./.github/workflows/dispatch.yml
     with:
       aws-region: ap-southeast-2
@@ -22,7 +23,7 @@ jobs:
       aws-secret-access-key: ${{ secrets.AWS_SECRET }}
 
   post-to-slack:
-    needs: [lint, dispatch]
+    needs: [dispatch]
     if: always()
     uses: ./.github/workflows/post-to-slack.yml
     secrets:
