@@ -47,7 +47,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.aws-access-key-id }}
           aws-secret-access-key: ${{ secrets.aws-secret-access-key }}
-          aws-region: $$ {{ inputs.aws-region }}
+          aws-region: ${{ inputs.aws-region }}
 
       - name: Deploy.
         run: bin/30-deploy.sh ${{ inputs.templates }}
