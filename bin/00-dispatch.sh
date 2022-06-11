@@ -111,11 +111,11 @@ email=${GITHUB_PUSHER_EMAIL:-$(git config user.email)}
 
 # create a repository_dispatch event for each child repository.
 # https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#create-a-repository-dispatch-event
-count=0
 for repo in "${repos[@]}"; do
 
   # skip depot repo, since it will be running this code.
   [[ $repo == "depot" ]] && { continue; }
+  [[ $repo != "aws" ]] && { continue; }
 
   echo "~~~ posting dispatch event to $repo"
   # https://github.community/t/triggering-actions-by-other-repository-webhooks/16295/3
@@ -123,21 +123,8 @@ for repo in "${repos[@]}"; do
   resp=$(curl -s "https://api.github.com/repos/jmpa-io/$repo/dispatches" \
     -H 'Accept: application/vnd.github.everest-preview+json' \
     -H "Authorization: bearer $token" \
-    -d "{\"event_type\": \"update\", \"client_payload\": {\"user\": \"$user\", \"email\": \"$email\"} }") \
+    -d "{\"event_type\": \"trigger\", \"client_payload\": {\"user\": \"$user\", \"email\": \"$email\"} }") \
     || die "failed curl to post repository_dispatch event to $repo"
   [[ $(<<< "$resp" jq -r '.message') == "Not Found" ]] && \
     diejq "error returned when sending out repository_dispatch to $repo:" "$resp"
-
-  # # Annotate the triggered pipelines.
-  # if [[ $BUILDKITE == true ]]; then
-  #   if [[ $count -eq 0 ]]; then
-  #     buildkite-agent annotate "<h3>Dispatched update events to:</h3>" \
-  #       --style "info" --context "updated" \
-  #       || die "failed to annotate initial message on the first successful dispatch"
-  #   fi
-  #   buildkite-agent annotate "• <a href=\"https://github.com/jmpa-io/$repo\">https://github.com/jmpa-io/$repo</a>" \
-  #     --style "info" --context "updated" --append \
-  #     || die "failed to annotate $repo url on successful dispatch"
-  # fi
-  (( count++ ))
 done
