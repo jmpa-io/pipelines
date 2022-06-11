@@ -47,3 +47,6 @@ jobs:
 
       - name: Dispatch.
         run: bin/00-dispatch.sh
+        with:
+          GITHUB_PUSHER_NAME: ${{ github.event.pusher.name }}
+          GITHUB_PUSHER_EMAIL: ${{ github.event.pusher.email }}

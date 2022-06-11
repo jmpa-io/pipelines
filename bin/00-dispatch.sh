@@ -106,8 +106,8 @@ done
   && die "no repositories found using '$name' template" 0
 
 # setup vars.
-# user=${BUILDKITE_BUILD_AUTHOR:-$(git config user.name)}
-# email=${BUILDKITE_BUILD_AUTHOR_EMAIL:-$(git config user.email)}
+user=${GITHUB_PUSHER_NAME:-$(git config user.name)}
+email=${GITHUB_PUSHER_EMAIL:-$(git config user.email)}
 
 # create a repository_dispatch event for each child repository.
 # https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#create-a-repository-dispatch-event
@@ -117,16 +117,16 @@ for repo in "${repos[@]}"; do
   # skip depot repo, since it will be running this code.
   [[ $repo == "depot" ]] && { continue; }
 
-  echo "~~~ :github: posting dispatch event to $repo"
+  echo "~~~ posting dispatch event to $repo"
   # https://github.community/t/triggering-actions-by-other-repository-webhooks/16295/3
   # https://gist.github.com/ciiqr/31af63601a4b52a05133cf2c87e022e3
-  # resp=$(curl -s "https://api.github.com/repos/jmpa-io/$repo/dispatches" \
-  #   -H 'Accept: application/vnd.github.everest-preview+json' \
-  #   -H "Authorization: bearer $token" \
-  #   -d "{\"event_type\": \"update\", \"client_payload\": {\"user\": \"$user\", \"email\": \"$email\"} }") \
-  #   || die "failed curl to post repository_dispatch event to $repo"
-  # [[ $(<<< "$resp" jq -r '.message') == "Not Found" ]] && \
-  #   diejq "error returned when sending out repository_dispatch to $repo:" "$resp"
+  resp=$(curl -s "https://api.github.com/repos/jmpa-io/$repo/dispatches" \
+    -H 'Accept: application/vnd.github.everest-preview+json' \
+    -H "Authorization: bearer $token" \
+    -d "{\"event_type\": \"update\", \"client_payload\": {\"user\": \"$user\", \"email\": \"$email\"} }") \
+    || die "failed curl to post repository_dispatch event to $repo"
+  [[ $(<<< "$resp" jq -r '.message') == "Not Found" ]] && \
+    diejq "error returned when sending out repository_dispatch to $repo:" "$resp"
 
   # # Annotate the triggered pipelines.
   # if [[ $BUILDKITE == true ]]; then
@@ -141,4 +141,3 @@ for repo in "${repos[@]}"; do
   # fi
   (( count++ ))
 done
-echo "dispatched events to $count repositories"
