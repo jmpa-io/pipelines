@@ -43,13 +43,13 @@ templatesToDeploy=(); missing=()
 for t in $templates; do
 
   # extract template name, if given in a path format.
-  if [[ $t == cf/*.yml ]]; then
-    t=${t/cf\//}
-    t=${t/\.yml/}
+  if [[ $t == cf/*/template.yml ]]; then
+    t=${t//cf\//}              # remove cf prefix.
+    t=${t//\/template\.yml/}   # remove /template.yml suffix.
   fi
 
   # does the template file actually exist?
-  template="cf/$t.yml"
+  template="cf/$t/template.yml"
   [[ -f "$template" ]] \
     || { missing+=("$template"); continue; }
 
@@ -143,7 +143,7 @@ for t in "${templatesToDeploy[@]}"; do
 
   # deploy stack.
   echo "##[group]Deploying $name"
-  aws cloudformation deploy \
+  echo aws cloudformation deploy \
     --region "$AWS_DEFAULT_REGION" \
     --template-file "$template" \
     --stack-name "$stack" \
