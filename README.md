@@ -20,6 +20,7 @@ script|description
 ---|---
 [bin/00-clear-action-runs.sh](bin/00-clear-action-runs.sh) | Clears all GitHub Action runs for a given GitHub repository.
 [bin/00-commit.sh](bin/00-commit.sh) | Commits back to the repository the script is run in, as the GitHub Actions user.
+[bin/00-dispatch.sh](bin/00-dispatch.sh) | Trigger repository_dispatch event for child repositories using this template.
 [bin/00-invalidate-cloudfront-distribution.sh](bin/00-invalidate-cloudfront-distribution.sh) | Invalidate files in the CloudFront cache, to make it quicker to update the deployed website.
 [bin/00-list-repository-topics.sh](bin/00-list-repository-topics.sh) | Lists all topics for a given GitHub repository in a given org.
 [bin/00-README.sh](bin/00-README.sh) | Generates a README.md, using a found README.md template.
