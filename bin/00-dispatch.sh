@@ -32,6 +32,10 @@ token=$(aws ssm get-parameter --name "/tokens/github" \
 name=$(basename "$PWD") \
   || die "failed to get repository name"
 
+# default depot name to root-template, since everything is built from this.
+[[ "$name" == "depot" ]] \
+  && { name="root-template"; }
+
 # retrieve repositories using this template.
 repos=()
 cursor=null
