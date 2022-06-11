@@ -1,0 +1,49 @@
+---
+on:
+  workflow_call:
+    inputs:
+      aws-region:
+        description: The AWS region to deploy to.
+        required: true
+        type: string
+    secrets:
+      github-token:
+        required: true
+      aws-access-key-id:
+        required: true
+      aws-secret-access-key:
+        required: true
+
+jobs:
+  run:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Checkout depot.
+        uses: actions/checkout@v2
+        with:
+          repository: jmpa-io/depot
+          ref: main
+          token: ${{ secrets.github-token }}
+          path: depot
+
+      - name: Setup depot.
+        run: |
+          [[ -d bin ]] || { mkdir -p bin; }
+          [[ -d cf ]] || { mkdir -p cf; }
+          [[ -d .github/templates ]] || { mkdir -p .github/templates; }
+          mv -n depot/bin/* bin
+          mv -n depot/cf/* cf
+          mv -n depot/.github/templates/* .github/templates
+
+      - name: Configure AWS.
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.aws-access-key-id }}
+          aws-secret-access-key: ${{ secrets.aws-secret-access-key }}
+          aws-region: ${{ inputs.aws-region }}
+
+      - name: Dispatch.
+        run: bin/00-dispatch.sh
