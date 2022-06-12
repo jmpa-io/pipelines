@@ -10,6 +10,9 @@ on:
         description: The AWS region to deploy to.
         required: true
         type: string
+      artifacts:
+        description: The path to the artifacts generated locally.
+        type: string
     secrets:
       github-token:
         required: true
@@ -48,6 +51,12 @@ jobs:
           aws-access-key-id: ${{ secrets.aws-access-key-id }}
           aws-secret-access-key: ${{ secrets.aws-secret-access-key }}
           aws-region: ${{ inputs.aws-region }}
+
+      - name: Download artifacts.
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ inputs.artifacts }}
+          path: dist
 
       - name: Deploy.
         run: bin/30-deploy.sh ${{ inputs.templates }}
