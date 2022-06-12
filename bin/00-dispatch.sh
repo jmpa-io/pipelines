@@ -115,7 +115,6 @@ for repo in "${repos[@]}"; do
 
   # skip depot repo, since it will be running this code.
   [[ $repo == "depot" ]] && { continue; }
-  [[ $repo != "aws" ]] && { continue; }
 
   echo "##[group]Posting dispatch event to $repo"
   # https://github.community/t/triggering-actions-by-other-repository-webhooks/16295/3
