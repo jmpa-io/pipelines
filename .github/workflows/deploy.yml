@@ -10,8 +10,8 @@ on:
         description: The AWS region to deploy to.
         required: true
         type: string
-      artifacts:
-        description: The path to the artifacts generated locally.
+      artifact:
+        description: The name of the artifact uploaded in the workflow.
         type: string
     secrets:
       github-token:
@@ -52,10 +52,10 @@ jobs:
           aws-secret-access-key: ${{ secrets.aws-secret-access-key }}
           aws-region: ${{ inputs.aws-region }}
 
-      - name: Download artifacts.
+      - name: Download artifact.
         uses: actions/download-artifact@v3
         with:
-          name: ${{ inputs.artifacts }}
+          name: ${{ inputs.artifact }}
           path: dist
 
       - name: Deploy.
