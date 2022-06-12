@@ -2,8 +2,8 @@
 on:
   workflow_call:
     inputs:
-      artifacts:
-        description: The path to the artifacts generated locally.
+      artifact:
+        description: The name of the artifact uploaded in the workflow.
         required: true
         type: string
     secrets:
@@ -45,10 +45,10 @@ jobs:
           aws-secret-access-key: ${{ secrets.aws-secret-access-key }}
           aws-region: ap-southeast-2
 
-      - name: Download artifacts.
+      - name: Download artifact.
         uses: actions/download-artifact@v3
         with:
-          name: ${{ inputs.artifacts }}
+          name: ${{ inputs.artifact }}
           path: dist
 
       - name: Upload website.
