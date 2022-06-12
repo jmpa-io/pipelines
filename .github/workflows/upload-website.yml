@@ -2,8 +2,8 @@
 on:
   workflow_call:
     inputs:
-      artifact:
-        description: The name of the artifact uploaded to GitHub Actions to-be-uploaded to S3.
+      artifacts:
+        description: The path to the artifacts generated locally.
         required: true
         type: string
     secrets:
@@ -45,10 +45,10 @@ jobs:
           aws-secret-access-key: ${{ secrets.aws-secret-access-key }}
           aws-region: ap-southeast-2
 
-      - name: Download artifact.
+      - name: Download artifacts.
         uses: actions/download-artifact@v3
         with:
-          name: ${{ inputs.artifact }}
+          name: ${{ inputs.artifacts }}
           path: dist
 
       - name: Upload website.
