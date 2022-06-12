@@ -53,12 +53,15 @@ for t in $templates; do
   [[ -f "$template" ]] \
     || { missing+=("$template"); continue; }
 
+  # setup package file.
+  package="cf/$t/package.yml"
+
   # determine name of the service.
   name="$t"
   name="${name//00-/}"
 
   # append.
-  templatesToDeploy+=("$name,$template")
+  templatesToDeploy+=("$name,$template,$package")
 done
 if [[ ${#missing[@]} -ne 0 ]]; then
   s=""; [[ ${#missing[@]} -gt 1 ]] && { s="s"; }
@@ -69,6 +72,7 @@ fi
 for t in "${templatesToDeploy[@]}"; do
   name=$(<<< "$t" cut -d',' -f1)
   template=$(<<< "$t" cut -d',' -f2)
+  package=$(<<< "$t" cut -d',' -f3)
 
   # decide stack name.
   stack="$repo-$name"
@@ -141,9 +145,33 @@ for t in "${templatesToDeploy[@]}"; do
     overrides+=("RedirectProtocol=$redirectProtocol")
   fi
 
+  # add lambda parameters.
+  if [[ $topics == *lambda* ]]; then
+
+    # retrieve lambda bucket.
+    bucket=$(aws ssm get-parameter --name /buckets/lambda \
+      --query 'Parameter.Value' --output text --with-decryption) \
+      || die "failed to retrieve lambda bucket from paramstore"
+
+    # package template.
+    echo "##[group]Packaging $name"
+    echo aws cloudformation package \
+      --region "$AWS_DEFAULT_REGION" \
+      --template-file "$template" \
+      --output-template-file "$package" \
+      --s3-prefix "$name" \
+      --s3-bucket "$bucket" \
+      || die "failed to package $template for $name"
+    echo "##[endgroup]"
+
+    # alter path to template.
+    template="$package"
+
+  fi
+
   # deploy stack.
   echo "##[group]Deploying $name"
-  aws cloudformation deploy \
+  echo aws cloudformation deploy \
     --region "$AWS_DEFAULT_REGION" \
     --template-file "$template" \
     --stack-name "$stack" \
