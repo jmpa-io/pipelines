@@ -117,7 +117,7 @@ for repo in "${repos[@]}"; do
   [[ $repo == "depot" ]] && { continue; }
   [[ $repo != "aws" ]] && { continue; }
 
-  echo "~~~ posting dispatch event to $repo"
+  echo "##[group]Posting dispatch event to $repo"
   # https://github.community/t/triggering-actions-by-other-repository-webhooks/16295/3
   # https://gist.github.com/ciiqr/31af63601a4b52a05133cf2c87e022e3
   resp=$(curl -s "https://api.github.com/repos/jmpa-io/$repo/dispatches" \
@@ -127,4 +127,6 @@ for repo in "${repos[@]}"; do
     || die "failed curl to post repository_dispatch event to $repo"
   [[ $(<<< "$resp" jq -r '.message') == "Not Found" ]] && \
     diejq "error returned when sending out repository_dispatch to $repo:" "$resp"
+  echo "##[endgroup]"
+
 done
