@@ -155,7 +155,7 @@ for t in "${templatesToDeploy[@]}"; do
 
     # package template.
     echo "##[group]Packaging $name"
-    echo aws cloudformation package \
+    aws cloudformation package \
       --region "$AWS_DEFAULT_REGION" \
       --template-file "$template" \
       --output-template-file "$package" \
@@ -171,7 +171,7 @@ for t in "${templatesToDeploy[@]}"; do
 
   # deploy stack.
   echo "##[group]Deploying $name"
-  echo aws cloudformation deploy \
+  aws cloudformation deploy \
     --region "$AWS_DEFAULT_REGION" \
     --template-file "$template" \
     --stack-name "$stack" \
