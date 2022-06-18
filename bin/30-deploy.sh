@@ -108,7 +108,7 @@ for t in "${templatesToDeploy[@]}"; do
       || die "failed to get hosted zone id for $domain"
     hostedZoneId=${hostedZoneId/\/hostedzone\//} # remove prefix.
     [[ -z "$hostedZoneId" ]] \
-      && die "failed to determine a hostedZoneId that belongs to $domain"
+      && die "failed to determine a hostedZoneId for $domain"
 
     # determine certificate arn from domain.
     certs=$(aws acm list-certificates --region us-east-1) \
@@ -117,15 +117,15 @@ for t in "${templatesToDeploy[@]}"; do
       '.CertificateSummaryList[] | select(.DomainName==$domain) | .CertificateArn') \
       || die "failed to parse acm certificates response"
     [[ -z "$cert" ]] \
-      && die "failed to determine a cert that belongs to $domain"
+      && die "failed to determine a cert for $domain"
 
     # update domain to be sub-domain, only after determining everything.
     [[ $repo == *$domain && $domain != "$repo" ]] \
       && { domain="$repo"; }
 
     # add overrides.
-    overrides+=("Domain=$domain")
     overrides+=("HostedZoneId=$hostedZoneId")
+    overrides+=("Domain=$domain")
     overrides+=("AcmCertificateArn=$cert")
   fi
 
@@ -167,6 +167,27 @@ for t in "${templatesToDeploy[@]}"; do
     # alter path to template.
     template="$package"
 
+    # retrieve hosted zone id.
+    domain="jcleal.me"
+    hostedZoneId=$(aws route53 list-hosted-zones-by-name \
+      --query "HostedZones[?Name=='$domain.'].Id" --output text) \
+      || die "failed to determine a hostedZoneId for $domain"
+    [[ -z "$hostedZoneId" ]] \
+      && die "failed to find a hostedZoneId for $domain"
+    hostedZoneId=${hostedZoneId/\/hostedzone\//}
+
+    # determine certificate arn from domain.
+    cert=$(aws acm list-certificates --region us-east-1 \
+      --query "CertificateSummaryList[?DomainName=='$domain'].CertificateArn" \
+      --output text) \
+      || die "failed to determine a certificate arn for $domain"
+    [[ -z "$cert" ]] \
+      && die "failed to find a certificate for $domain"
+
+    # add overrides.
+    overrides+=("HostedZoneId=$hostedZoneId")
+    overrides+=("Domain=$domain")
+    overrides+=("AcmCertificateArn=$cert")
   fi
 
   # deploy stack.
