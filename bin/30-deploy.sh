@@ -177,7 +177,7 @@ for t in "${templatesToDeploy[@]}"; do
     hostedZoneId=${hostedZoneId/\/hostedzone\//}
 
     # determine certificate arn from domain.
-    cert=$(aws acm list-certificates --region us-east-1 \
+    cert=$(aws acm list-certificates \
       --query "CertificateSummaryList[?DomainName=='$domain'].CertificateArn" \
       --output text) \
       || die "failed to determine a certificate arn for $domain"
