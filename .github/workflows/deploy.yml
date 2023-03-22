@@ -3,7 +3,7 @@ on:
   workflow_call:
     inputs:
       templates:
-        description: A space seperated list of templates to deploy.
+        description: A space separated list of templates to deploy.
         required: true
         type: string
       aws-region:
