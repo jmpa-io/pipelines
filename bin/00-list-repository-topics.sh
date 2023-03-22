@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# lists all topics for a given GitHub repository in a given org.
+# lists ALL topics for a given GitHub repository in a given GitHub org.
 
 # funcs.
 die() { echo "$1" >&2; exit "${2:-1}"; }

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# commits back to the repository the script is run in, as the GitHub Actions user.
-# PLEASE NOTE: this should ONLY be run in the pipeline.
+# as the GitHub Actions user, this script commits back to the git repository it is executed in.
+# PLEASE NOTE: this script is only intended to be run in a GitHub Action workflow.
 
 # funcs.
 die() { echo "$1" >&2; exit "${2:-1}"; }
