@@ -9,7 +9,7 @@ on:
 
 jobs:
   determine-conclusion:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     outputs:
       conclusion: ${{ steps.determine.outputs.conclusion }}
     steps:
@@ -20,7 +20,7 @@ jobs:
 
   post:
     needs: [determine-conclusion]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: jmpa-io/notify-slack@v0.0.1
         with:
