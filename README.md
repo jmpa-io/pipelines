@@ -16,7 +16,7 @@
 
 ## 🧰 Scripts
 
-script|description
+Script|Description
 :---|:---
 [bin/10-lint.sh](bin/10-lint.sh) | Lints everything!
 [bin/20-test.sh](bin/20-test.sh) | Tests everything!
