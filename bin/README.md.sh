@@ -136,7 +136,7 @@ fi
 pattern="%HOW_TO_USE_TEMPLATE%"; out="";
 if [[ $template == *"$pattern"* ]]; then
   read -r -d '' out <<@
-## How do I use this template?
+## 🧠 How do I use this template?
 
 1. Using a <kbd>terminal</kbd>, download the child repository locally.
 
@@ -162,7 +162,7 @@ if [[ $template == *"$pattern"* ]]; then
   if [[ -z "$scripts" ]]; then
     template=$(<<< "$template" sed "/$pattern/,+1 d" 2>/dev/null)
   else
-    out="## Scripts\n\n"
+    out="## 🍱 Scripts\n\n"
     out+="script|description\n"
     out+=":---|:---\n"
     for script in $scripts; do
