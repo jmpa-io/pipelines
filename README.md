@@ -14,7 +14,7 @@
 + in conjunction with https://github.com/jmpa-io/root-template.
 ```
 
-## 🍱 Scripts
+## 🧰 Scripts
 
 script|description
 :---|:---
