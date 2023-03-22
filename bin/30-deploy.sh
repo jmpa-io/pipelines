@@ -35,7 +35,7 @@ aws sts get-caller-identity &>/dev/null \
   || die "unable to connect to AWS; are you authed?"
 
 # retrieve repository topics.
-topics=$(bin/00-list-repository-topics.sh "$fullRepo") \
+topics=$(bin/list-repository-topics.sh "$fullRepo") \
   || die "failed to list repository topics"
 
 # validate given templates.
