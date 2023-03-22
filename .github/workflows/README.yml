@@ -23,7 +23,7 @@ jobs:
           path: depot
 
       - name: Generate README.md.
-        run: depot/bin/README.md.sh jmpa-io
+        run: depot/bin/README.sh jmpa-io
         env:
           GITHUB_TOKEN: ${{ secrets.github-token }}
 
