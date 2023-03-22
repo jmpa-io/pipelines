@@ -31,10 +31,10 @@ name="${name,,}" # lowercase
 repo="$org/$name"
 
 # retrieve template, but allow it to be overwritten by a local file if needed.
-file=".github/templates/00-README.md"
+file="templates/README.md"
 [[ -f "$file" ]] \
   || die "missing $file"
-altFile=".github/templates/README.md"
+altFile="depot/templates/README.md"
 [[ -f "$altFile" ]] \
   && { file="$altFile"; }
 template=$(cat "$file") \
@@ -164,7 +164,7 @@ if [[ $template == *"$pattern"* ]]; then
   else
     out="## Scripts\n\n"
     out+="script|description\n"
-    out+="---|---\n"
+    out+=":---|:---\n"
     for script in $scripts; do
         comments=$(head -n4 "$script") \
           || die "failed to read description for $script"
