@@ -14,7 +14,7 @@
 + in conjunction with https://github.com/jmpa-io/root-template.
 ```
 
-## Scripts
+## 🍱 Scripts
 
 script|description
 :---|:---
@@ -27,5 +27,5 @@ script|description
 [bin/dispatch.sh](bin/dispatch.sh) | Trigger a repository_dispatch event in ALL repositories in a given GitHub org.
 [bin/invalidate-cloudfront-distribution.sh](bin/invalidate-cloudfront-distribution.sh) | Invalidates files in the CloudFront cache, for the repostitory this script is execututed in - best to be run in a website repository.
 [bin/list-repository-topics.sh](bin/list-repository-topics.sh) | Lists ALL topics for a given GitHub repository in a given GitHub org.
-[bin/README.md.sh](bin/README.md.sh) | Generates a README.md, using a found README.md template.
+[bin/README.sh](bin/README.sh) | Generates a README.md, using a found README.md template.
 
