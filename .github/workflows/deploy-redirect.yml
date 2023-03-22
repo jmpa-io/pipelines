@@ -50,7 +50,7 @@ jobs:
           aws-region: ap-southeast-2
 
       - name: Deploy.
-        run: bin/30-deploy.sh website-redirect
+        run: depot/bin/30-deploy.sh website-redirect
         env:
           GITHUB_TOKEN: ${{ secrets.github-token }}
           REDIRECT_URL: ${{ inputs.redirect-url }}

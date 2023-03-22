@@ -21,4 +21,4 @@ jobs:
           path: depot
 
       - name: Lint.
-        run: bin/10-lint.sh
+        run: depot/bin/10-lint.sh
