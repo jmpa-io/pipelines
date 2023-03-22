@@ -31,10 +31,10 @@ name="${name,,}" # lowercase
 repo="$org/$name"
 
 # retrieve template, but allow it to be overwritten by a local file if needed.
-file="templates/README.md"
+file="depot/templates/README.md"
 [[ -f "$file" ]] \
   || die "missing $file"
-altFile="depot/templates/README.md"
+altFile="templates/README.md"
 [[ -f "$altFile" ]] \
   && { file="$altFile"; }
 template=$(cat "$file") \
