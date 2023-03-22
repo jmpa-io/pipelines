@@ -24,7 +24,7 @@ jobs:
   #     aws-secret-access-key: ${{ secrets.AWS_SECRET }}
 
   post-to-slack:
-    needs: [dispatch]
+    # needs: [dispatch]
     if: always()
     uses: ./.github/workflows/post-to-slack.yml
     secrets:
