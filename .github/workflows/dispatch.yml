@@ -46,7 +46,7 @@ jobs:
           aws-region: ${{ inputs.aws-region }}
 
       - name: Dispatch.
-        run: bin/00-dispatch.sh
+        run: bin/dispatch.sh
         env:
           GITHUB_PUSHER_NAME: ${{ github.event.pusher.name }}
           GITHUB_PUSHER_EMAIL: ${{ github.event.pusher.email }}

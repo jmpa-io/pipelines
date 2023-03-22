@@ -32,9 +32,9 @@ jobs:
           mv -n depot/.github/templates/* .github/templates
 
       - name: Generate README.md.
-        run: bin/00-README.sh jmpa-io
+        run: bin/README.md.sh jmpa-io
         env:
           GITHUB_TOKEN: ${{ secrets.github-token }}
 
       - name: Commit?
-        run: bin/00-commit.sh
+        run: bin/commit.sh
