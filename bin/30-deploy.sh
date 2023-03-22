@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# for each given cloudformation template, deploy it to the authed AWS account.
+# deploys the given cloudformation template to the authed AWS account.
 
 # funcs.
 die() { echo "$1" >&2; exit "${2:-1}"; }

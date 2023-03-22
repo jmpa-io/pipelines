@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
-# uploads the dist directory to S3 for the desired website.
-#
-# PLEASE NOTE: this script is designed to run in the pipeline and is expecting
-# a dist folder to be downloaded via GitHub Actions.
+# uploads the dist directory to an expected S3 bucket in the authed AWS account.
 
 # funcs.
 die() { echo "$1" >&2; exit "${2:-1}"; }

@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# trigger repository_dispatch event for child repositories using this template.
+# trigger a repository_dispatch event in ALL repositories in a given GitHub org.
 
 # funcs.
 die() { echo "$1" >&2; exit "${2:-1}"; }
+usage() { echo "usage: $0 <org>"; exit 64; }
 diejq() { echo "$1" >&2; jq '.' <<< "$2"; exit "${3:-1}"; }
 
 # check pwd.
@@ -18,6 +19,10 @@ if [[ ${#missing[@]} -ne 0 ]]; then
   s=""; [[ ${#missing[@]} -gt 1 ]] && { s="s"; }
   die "missing dep${s}: ${missing[*]}"
 fi
+
+# check args.
+org="$1"
+[[ -z "$org" ]] && usage
 
 # check auth.
 aws sts get-caller-identity &>/dev/null \
@@ -45,7 +50,7 @@ while :; do
   # shellcheck disable=SC2162
   read -d '' q <<@
 query (\$c: String) {
-  organization(login: "jmpa-io") {
+  organization(login: "$org") {
     repositories(after: \$c, first: 100) {
       pageInfo {
         endCursor
@@ -119,7 +124,7 @@ for repo in "${repos[@]}"; do
   echo "##[group]Posting dispatch event to $repo"
   # https://github.community/t/triggering-actions-by-other-repository-webhooks/16295/3
   # https://gist.github.com/ciiqr/31af63601a4b52a05133cf2c87e022e3
-  resp=$(curl -s "https://api.github.com/repos/jmpa-io/$repo/dispatches" \
+  resp=$(curl -s "https://api.github.com/repos/$org/$repo/dispatches" \
     -H 'Accept: application/vnd.github.everest-preview+json' \
     -H "Authorization: bearer $token" \
     -d "{\"event_type\": \"trigger\", \"client_payload\": {\"user\": \"$user\", \"email\": \"$email\"} }") \
