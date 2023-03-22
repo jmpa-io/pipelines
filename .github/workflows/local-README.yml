@@ -5,7 +5,7 @@ on:
     paths:
     - '.github/templates/*'
     - '.github/workflows/*'
-    - 'img/*'
+    - 'docs/*'
   workflow_dispatch:
 
 jobs:

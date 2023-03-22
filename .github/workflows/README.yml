@@ -9,32 +9,23 @@ on:
 
 jobs:
   run:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout.
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Checkout depot.
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: jmpa-io/depot
           ref: main
           token: ${{ secrets.github-token }}
           path: depot
 
-      - name: Setup depot.
-        run: |
-          [[ -d bin ]] || { mkdir -p bin; }
-          [[ -d cf ]] || { mkdir -p cf; }
-          [[ -d .github/templates ]] || { mkdir -p .github/templates; }
-          mv -n depot/bin/* bin
-          mv -n depot/cf/* cf
-          mv -n depot/.github/templates/* .github/templates
-
       - name: Generate README.md.
-        run: bin/README.md.sh jmpa-io
+        run: depot/bin/README.md.sh jmpa-io
         env:
           GITHUB_TOKEN: ${{ secrets.github-token }}
 
       - name: Commit?
-        run: bin/commit.sh
+        run: depot/bin/commit.sh

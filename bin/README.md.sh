@@ -122,7 +122,7 @@ fi
 # add logo.
 pattern="%LOGO%"; out="";
 if [[ $template == *"$pattern"* ]]; then
-  logo=$(find img/ -name 'logo.*' 2>/dev/null)
+  logo=$(find docs/ -name 'logo.*' 2>/dev/null)
   if [[ -z "$logo" ]]; then
     template=$(<<< "$template" sed "/$pattern/,+1 d" 2>/dev/null)
   else
