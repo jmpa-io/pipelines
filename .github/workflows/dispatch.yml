@@ -29,15 +29,6 @@ jobs:
           token: ${{ secrets.github-token }}
           path: depot
 
-      - name: Setup depot.
-        run: |
-          [[ -d bin ]] || { mkdir -p bin; }
-          [[ -d cf ]] || { mkdir -p cf; }
-          [[ -d .github/templates ]] || { mkdir -p .github/templates; }
-          mv -n depot/bin/* bin
-          mv -n depot/cf/* cf
-          mv -n depot/.github/templates/* .github/templates
-
       - name: Configure AWS.
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -46,7 +37,7 @@ jobs:
           aws-region: ${{ inputs.aws-region }}
 
       - name: Dispatch.
-        run: bin/dispatch.sh
+        run: depot/bin/dispatch.sh
         env:
           GITHUB_PUSHER_NAME: ${{ github.event.pusher.name }}
           GITHUB_PUSHER_EMAIL: ${{ github.event.pusher.email }}

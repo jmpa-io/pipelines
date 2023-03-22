@@ -30,4 +30,4 @@ jobs:
           mv -n depot/.github/templates/* .github/templates
 
       - name: Test.
-        run: bin/20-test.sh
+        run: depot/bin/20-test.sh
