@@ -10,24 +10,15 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout.
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Checkout depot.
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: jmpa-io/depot
           ref: main
           token: ${{ secrets.github-token }}
           path: depot
-
-      - name: Setup depot.
-        run: |
-          [[ -d bin ]] || { mkdir -p bin; }
-          [[ -d cf ]] || { mkdir -p cf; }
-          [[ -d .github/templates ]] || { mkdir -p .github/templates; }
-          mv -n depot/bin/* bin
-          mv -n depot/cf/* cf
-          mv -n depot/.github/templates/* .github/templates
 
       - name: Lint.
         run: bin/10-lint.sh
