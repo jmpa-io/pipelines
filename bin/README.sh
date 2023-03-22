@@ -46,18 +46,20 @@ workflows=$(find .github/workflows -type f -name '*.yml') \
 workflows=$(<<< "$workflows" sort --ignore-case)
 
 # retrieve scripts.
-scripts=$(find ./bin -mindepth 1 -maxdepth 1 -type f -name '*.sh') \
-  || die "failed to retrieve scripts"
-if [[ "$name" != "depot" ]]; then
-  out=""
-  for script in $scripts; do
-    [[ $script == *[0-9][0-9]-*.sh ]] && { continue; }
-    [[ -z "$out" ]] || { out+="\n"; }
-    out+="$script"
-  done
-  scripts=$(echo -e "$out") # TODO is there a better way to do this?
+if [[ -d ./bin ]]; then
+  scripts=$(find ./bin -mindepth 1 -maxdepth 1 -type f -name '*.sh') \
+    || die "failed to retrieve scripts"
+  if [[ "$name" != "depot" ]]; then
+    out=""
+    for script in $scripts; do
+      [[ $script == *[0-9][0-9]-*.sh ]] && { continue; }
+      [[ -z "$out" ]] || { out+="\n"; }
+      out+="$script"
+    done
+    scripts=$(echo -e "$out") # TODO is there a better way to do this?
+  fi
+  scripts=$(<<< "$scripts" sort --ignore-case)
 fi
-scripts=$(<<< "$scripts" sort --ignore-case)
 
 # retrieve GitHub token.
 token="$GITHUB_TOKEN"
