@@ -7,7 +7,7 @@ Parameters:
     Type: String
 
   HostedZoneId:
-    Description: The id for the domain registered via AWS Route53.
+    Description: The ID for the domain registered via AWS Route53.
     Type: String
 
   Domain:

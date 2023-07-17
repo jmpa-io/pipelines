@@ -1,0 +1,20 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+
+Parameters:
+  Repository:
+    Description: The repository this stack is deployed from.
+    Type: String
+
+Conditions:
+  CreateResources: !Equals [ !Ref "AWS::Region" , "ap-southeast-2" ]
+
+Resources:
+  Website:
+    Type: AWS::S3::Bucket
+    Condition: CreateResources
+    Properties:
+      BucketName: !Ref Repository
+      Tags:
+        - Key: repository
+          Value: !Ref Repository
