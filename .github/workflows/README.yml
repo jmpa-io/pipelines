@@ -1,31 +1,24 @@
 ---
 on:
   workflow_call:
-    secrets:
-      github-token:
-        required: true
-      slack-webhook:
-        required: true
 
 jobs:
   run:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout.
         uses: actions/checkout@v3
 
-      - name: Checkout depot.
+      - name: Checkout root.
         uses: actions/checkout@v3
         with:
-          repository: jmpa-io/depot
+          repository: jmpa-io/root
           ref: main
-          token: ${{ secrets.github-token }}
-          path: depot
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: root
 
       - name: Generate README.md.
-        run: depot/bin/README.sh jmpa-io
-        env:
-          GITHUB_TOKEN: ${{ secrets.github-token }}
+        run: root/bin/README.sh jmpa-io
 
       - name: Commit?
-        run: depot/bin/commit.sh
+        run: root/bin/commit.sh

@@ -11,11 +11,11 @@ Parameters:
     Type: String
 
   HostedZoneId:
-    Description: The id of the domain registered via AWS Route53.
+    Description: The ID of the domain registered via AWS Route53.
     Type: String
 
   RedirectUrl:
-    Description: The url to redirect requests to.
+    Description: The URL to redirect requests to.
     Type: String
 
   RedirectProtocol:
