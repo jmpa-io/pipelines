@@ -79,7 +79,7 @@ lint-sh: ## Lints shell files.
 ifeq ($(strip $(SH_FILES)),)
 	@echo "No *.sh files to lint."
 else
-	@find . -type f -name "*.sh" -exec shellcheck '{}' \+ || true
+	find . -type f -name "*.sh" -exec shellcheck '{}' \+ || true
 endif
 	@test -z "$(CI)" || echo "##[endgroup]"
 
@@ -89,7 +89,7 @@ lint-go: ## Lints Go files.
 ifeq ($(strip $(GO_FILES)),)
 	@echo "No *.go files to lint."
 else
-	@golangci-lint run -v --allow-parallel-runners
+	golangci-lint run -v --allow-parallel-runners
 endif
 	@test -z "$(CI)" || echo "##[endgroup]"
 
@@ -99,7 +99,7 @@ lint-cf: ## Lint CF templates.
 ifeq ($(strip $(CF_FILES)),)
 	@echo "No ./cf/*/template.yml files to lint."
 else
-	@find ./cf -type f -name 'template.yml' -exec cfn-lint -r $(AWS_REGION) -t '{}' \; || true
+	find ./cf -type f -name 'template.yml' -exec cfn-lint -r $(AWS_REGION) -t '{}' \; || true
 endif
 	@test -z "$(CI)" || echo "##[endgroup]"
 
@@ -109,7 +109,7 @@ lint-sam: ## Lint SAM templates.
 ifeq ($(strip $(SAM_FILES)),)
 	@echo "No ./cf/*/template.yaml files to lint."
 else
-	@find ./cf -type f -name 'template.yaml' -exec sam validate --region $(AWS_REGION)-t '{}' \; || true
+	find ./cf -type f -name 'template.yaml' -exec sam validate --region $(AWS_REGION)-t '{}' \; || true
 endif
 	@test -z "$(CI)" || echo "##[endgroup]"
 
@@ -127,7 +127,7 @@ ifeq ($(strip $(GO_FILES)),)
 	@echo "No *.go files to test."
 else
 	@go version
-	@CGO_ENABLED=1 go test -short -coverprofile=dist/coverage.txt \
+	CGO_ENABLED=1 go test -short -coverprofile=dist/coverage.txt \
 		-covermode=atomic -race -vet=off ./... \
 		&& go tool cover -func=dist/coverage.txt
 endif
@@ -148,7 +148,7 @@ binary-%: dist/%
 dist/%: $(CMD_SOURCE)
 	@test -z "$(CI)" || echo "##[group]Building $@"
 	@go version
-	@go build --trimpath -ldflags "-w -s \
+	go build --trimpath -ldflags "-w -s \
 		    -X version.Version=$(COMMIT)" \
 		    -o $@ ./cmd/$*
 	@test -z "$(CI)" || echo "##[endgroup]"
@@ -158,7 +158,7 @@ binary-%-linux: dist/%-linux
 dist/%-linux: $(CMD_SOURCE)
 	@test -z "$(CI)" || echo "##[group]Building $@"
 	@go version
-	@CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build --trimpath -ldflags "-w -s \
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build --trimpath -ldflags "-w -s \
 		    -X version.Version=$(COMMIT)" \
 		    -o $@ ./cmd/$*
 	@test -z "$(CI)" || echo "##[endgroup]"
