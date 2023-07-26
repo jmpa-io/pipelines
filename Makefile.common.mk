@@ -141,7 +141,8 @@ endif
 binaries: $(BINARIES) ## ** Builds ALL binaries.
 
 ## Creates the dist directory, if missing.
-dist: ; mkdir dist
+dist:
+	@mkdir dist
 
 ## Builds the binary for the given service (for the local machine platform - GOOS).
 binary-%: dist/%
