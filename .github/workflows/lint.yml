@@ -10,7 +10,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Checkout roots.
-        if: ${{ github.repository }} != "roots"
+        if: github.repository != 'jmpa-io/roots'
         uses: actions/checkout@v3
         with:
           repository: jmpa-io/roots
