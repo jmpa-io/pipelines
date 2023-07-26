@@ -95,21 +95,23 @@ endif
 
 .PHONY: lint-cf
 lint-cf: ## Lint CF templates.
-	@test -z "$(BUILDKITE)" || echo "~~~ :cloudformation: Linting cf."
+	@test -z "$(CI)" || echo "##[group]Linting cf."
 ifeq ($(strip $(CF_FILES)),)
 	@echo "No ./cf/*/template.yml files to lint."
 else
 	@find ./cf -type f -name 'template.yml' -exec cfn-lint -r $(AWS_REGION) -t '{}' \; || true
 endif
+	@test -z "$(CI)" || echo "##[endgroup]"
 
 .PHONY: lint-sam
 lint-sam: ## Lint SAM templates.
-	@test -z "$(BUILDKITE)" || echo "~~~ :cloudformation: Linting sam."
+	@test -z "$(CI)" || echo "##[group]Linting sam."
 ifeq ($(strip $(SAM_FILES)),)
 	@echo "No ./cf/*/template.yaml files to lint."
 else
 	@find ./cf -type f -name 'template.yaml' -exec sam validate --region $(AWS_REGION)-t '{}' \; || true
 endif
+	@test -z "$(CI)" || echo "##[endgroup]"
 
 # ┌┬┐┌─┐┌─┐┌┬┐
 #  │ ├┤ └─┐ │
@@ -174,8 +176,9 @@ images: image-$(IMAGES) ## ** Builds ALL docker images for each service.
 
 ## Builds the docker image for the given service.
 image-%: dist/%-linux cmd/%/Dockerfile
-	@test -z "$(BUILDKITE)" || echo "~~~ :docker: Building $@ image."
+	@test -z "$(CI)" || echo "##[group]Building $@ image."
 	docker build -t $(PROJECT)/$*:$(COMMIT) -t $(PROJECT)/$*:latest -f ./cmd/$*/Dockerfile .
+	@test -z "$(CI)" || echo "##[endgroup]"
 
 .PHONY: push
 push: images-development ## ** Pushes ALL docker images to ECR.
@@ -183,18 +186,19 @@ images-development: push-$(IMAGES)
 
 ## Pushes the docker image for a given service to AWS ECR.
 push-%: image-%
-	@test -z "$(BUILDKITE)" || echo "~~~ :docker: Pushing $@ image."
+	@test -z "$(CI)" || echo "##[group]Pushing $@ image."
 	docker tag $(PROJECT)/$*:$(COMMIT) $(ECR):$(COMMIT)
 	docker tag $(PROJECT)/$*:latest $(ECR):latest
 	docker push $(ECR):$(COMMIT)
 	docker push $(ECR):latest
+	@test -z "$(CI)" || echo "##[endgroup]"
 
 .PHONY: promote
 promote: images-production ## ** Promotes ALL docker images from DEV -> PROD.
 
 .PHONY: promote-$(ENVIRONMENT)
 promote-%: ## Promotes a given docker image between the AWS ECR for DEV -> PROD.
-	@test -z "$(BUILDKITE)" || echo "~~~ :docker: Promoting $@ image."
+	@test -z "$(CI)" || echo "##[group]Promoting $@ image."
 ifeq "$(ENVIRONMENT)" "prod"
 	docker pull $(ECR_DEV):$(COMMIT)
 	docker tag $(ECR_DEV):$(COMMIT) $(ECR_PROD):$(COMMIT)
@@ -204,6 +208,7 @@ ifeq "$(ENVIRONMENT)" "prod"
 else
 	@echo "ENVIRONMENT must be set to `prod` for $<."
 endif
+	@test -z "$(CI)" || echo "##[endgroup]"
 
 .PHONY: pull
 pull: ## ** Pulls ALL docker images for every service.
