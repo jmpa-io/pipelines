@@ -14,29 +14,64 @@ ENVIRONMENT		?= dev # The environment being deployed; affects what type of resou
 COMMIT			= $(shell git describe --tags --always) # The git commit associated with the repository.
 REPO			= $(shell basename $$PWD) # The name of the git repository this was deployed from.
 # ---
-CMD_SOURCE		= $(shell find cmd/$* -type f 2>/dev/null) # The source for a command.
 SH_FILES		:= $(shell find . -name "*.sh" -type f) # A list of ALL sh files in the repository.
 GO_FILES 		:= $(shell find . -name "*.go" -type f) # A list of ALL Go files in the repository.
+CF_FILES		:= $(shell find ./cf -name 'template.yml' -type f) # A list of ALL template.yml files in the repository.
+SAM_FILES		:= $(shell find ./cf -name 'template.yaml' -type f) # A list of ALL template.yaml files in the repository.
+CF_DIRS			:= $(shell find ./cf -mindepth 1 -maxdepth 1 -type d) # A list of dirs directly under ./cf.
+CMD_DIRS		:= $(shell find ./cmd -mindepth 1 -maxdepth 1 -type d) # A list of dirs directly under ./cmd.
+# ---
+CMD_SOURCE		= $(shell find cmd/$* -type f 2>/dev/null) # The source for a command.
 BINARIES 		= $(patsubst %,dist/%,$(shell find cmd/* -maxdepth 0 -type d -exec basename {} \; 2>/dev/null)) # A list of ALL binaries in the repository.
 BINARIES_LINUX	= $(patsubst %,%-linux,$(BINARIES)) # A list of ALL linux binaries in the repository.
 # ---
 AWS_REGION		?= ap-southeast-2 # The region to use when doing things in AWS.
 STACK_NAME		= $(PROJECT)-$* # The format of the generated name for Cloudformation stacks in AWS.
+# ---
+ECR				= $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(PROJECT):$* # The ecr url for the authed AWS account.
 
 # Check deps.
-EXECUTABLES ?= awk column grep go golangci-lint find aws zip
+EXECUTABLES ?= awk column grep go golangci-lint find aws zip cfn-lint sam
 MISSING := $(strip $(foreach bin,$(EXECUTABLES),$(if $(shell command -v $(bin) 2>/dev/null),,$(bin))))
 $(if $(MISSING),$(error Please install: $(MISSING); $(PATH)))
 
 # The default command executed when running `make`.
 .DEFAULT_GOAL:=	help
 
+# ┬  ┬┌─┐┌┬┐
+# │  │└─┐ │
+# ┴─┘┴└─┘ ┴
+
+.PHONY: list-cf
+list-cf: ## Lists ALL dirs under ./cf.
+	@echo $(CF_DIRS)
+
+.PHONY: list-cmd
+list-cmd: ## Lists ALL dirs under ./cmd.
+	@echo $(CMD_DIRS)
+
+.PHONY: list-binaries
+list-binaries: ## Lists ALL binaries.
+	@echo $(BINARIES)
+
+.PHONY: list-binaries-linux
+list-binaries-linux: ## Lists ALL Linux binaries.
+	@echo $(BINARIES_LINUX)
+
+.PHONY: list-images
+list-images: ## Lists ALL docker images for every service.
+	@echo $(IMAGES)
+
+.PHONY: list-deploy
+list-deploy: ## Lists ALL services to deploy.
+	@echo $(SERVICES)
+
 # ┬  ┬ ┌┐┌┌┬┐
 # │  │ │││ │
 # ┴─┘┴ ┘└┘ ┴
 
 .PHONY: lint
-lint: lint-sh lint-go ## ** Lints everything.
+lint: lint-sh lint-go lint-cf lint-sam ## ** Lints everything.
 
 .PHONY: lint-sh
 lint-sh: ## Lints shell files.
@@ -44,7 +79,7 @@ lint-sh: ## Lints shell files.
 ifeq ($(strip $(SH_FILES)),)
 	@echo "No *.sh files to lint."
 else
-	find . -name "*.sh" -exec shellcheck '{}' \+
+	@find . -type f -name "*.sh" -exec shellcheck '{}' \+ || true
 endif
 	@test -z "$(CI)" || echo "##[endgroup]"
 
@@ -57,6 +92,24 @@ else
 	@golangci-lint run -v --allow-parallel-runners
 endif
 	@test -z "$(CI)" || echo "##[endgroup]"
+
+.PHONY: lint-cf
+lint-cf: ## Lint CF templates.
+	@test -z "$(BUILDKITE)" || echo "~~~ :cloudformation: Linting cf."
+ifeq ($(strip $(CF_FILES)),)
+	@echo "No ./cf/*/template.yml files to lint."
+else
+	@find ./cf -type f -name 'template.yml' -exec cfn-lint -r $(AWS_REGION) -t '{}' \; || true
+endif
+
+.PHONY: lint-sam
+lint-sam: ## Lint SAM templates.
+	@test -z "$(BUILDKITE)" || echo "~~~ :cloudformation: Linting sam."
+ifeq ($(strip $(SAM_FILES)),)
+	@echo "No ./cf/*/template.yaml files to lint."
+else
+	@find ./cf -type f -name 'template.yaml' -exec sam validate --region $(AWS_REGION)-t '{}' \; || true
+endif
 
 # ┌┬┐┌─┐┌─┐┌┬┐
 #  │ ├┤ └─┐ │
@@ -72,7 +125,8 @@ ifeq ($(strip $(GO_FILES)),)
 	@echo "No *.go files to test."
 else
 	@go version
-	@go test -short -coverprofile=dist/coverage.txt -covermode=atomic -race -vet=off ./... \
+	@CGO_ENABLED=1 go test -short -coverprofile=dist/coverage.txt \
+		-covermode=atomic -race -vet=off ./... \
 		&& go tool cover -func=dist/coverage.txt
 endif
 	@test -z "$(CI)" || echo "##[endgroup]"
@@ -81,14 +135,11 @@ endif
 # ├┴┐││││├─┤├┬┘│├┤ └─┐
 # └─┘┴┘└┘┴ ┴┴└─┴└─┘└─┘
 
-.PHONY: binaries list-binaries
+.PHONY: binaries
 binaries: $(BINARIES) ## ** Builds ALL binaries.
-list-binaries: ## Lists ALL binaries.
-	@echo $(BINARIES)
-list-binaries-linux: ## Lists ALL Linux binaries.
-	@echo $(BINARIES_LINUX)
 
-dist: ; mkdir dist # Creates the dist directory, if missing.
+## Creates the dist directory, if missing.
+dist: ; mkdir dist
 
 ## Builds the binary for the given service (for the local machine platform - GOOS).
 binary-%: dist/%
@@ -114,16 +165,59 @@ dist/%-linux: $(CMD_SOURCE)
 dist/%.zip: dist/%-linux
 	@zip -rjDm $@ dist/$*-linux
 
+# ┌┬┐┌─┐┌─┐┬┌─┌─┐┬─┐
+#  │││ ││  ├┴┐├┤ ├┬┘
+# ─┴┘└─┘└─┘┴ ┴└─┘┴└─
+
+.PHONY: images
+images: image-$(IMAGES) ## ** Builds ALL docker images for each service.
+
+## Builds the docker image for the given service.
+image-%: dist/%-linux cmd/%/Dockerfile
+	@test -z "$(BUILDKITE)" || echo "~~~ :docker: Building $@ image."
+	docker build -t $(PROJECT)/$*:$(COMMIT) -t $(PROJECT)/$*:latest -f ./cmd/$*/Dockerfile .
+
+.PHONY: push
+push: images-development ## ** Pushes ALL docker images to ECR.
+images-development: push-$(IMAGES)
+
+## Pushes the docker image for a given service to AWS ECR.
+push-%: image-%
+	@test -z "$(BUILDKITE)" || echo "~~~ :docker: Pushing $@ image."
+	docker tag $(PROJECT)/$*:$(COMMIT) $(ECR):$(COMMIT)
+	docker tag $(PROJECT)/$*:latest $(ECR):latest
+	docker push $(ECR):$(COMMIT)
+	docker push $(ECR):latest
+
+.PHONY: promote
+promote: images-production ## ** Promotes ALL docker images from DEV -> PROD.
+
+.PHONY: promote-$(ENVIRONMENT)
+promote-%: ## Promotes a given docker image between the AWS ECR for DEV -> PROD.
+	@test -z "$(BUILDKITE)" || echo "~~~ :docker: Promoting $@ image."
+ifeq "$(ENVIRONMENT)" "prod"
+	docker pull $(ECR_DEV):$(COMMIT)
+	docker tag $(ECR_DEV):$(COMMIT) $(ECR_PROD):$(COMMIT)
+	docker tag $(ECR_DEV):$(COMMIT) $(ECR_PROD):latest
+	docker push $(ECR_PROD):$(COMMIT)
+	docker push $(ECR_PROD):latest
+else
+	@echo "ENVIRONMENT must be set to `prod` for $<."
+endif
+
+.PHONY: pull
+pull: ## ** Pulls ALL docker images for every service.
+
+.PHONY: pull-$(IMAGES)
+pull-%: ## For the given service, pulls the associated docker image from AWS ECR.
+	docker pull $(ECR):$(COMMIT)
+
 # ┌┬┐┌─┐┌─┐┬  ┌─┐┬ ┬
 #  ││├┤ ├─┘│  │ │└┬┘
 # ─┴┘└─┘┴  ┴─┘└─┘ ┴
 
 .PHONY: deploy $(COMPONENT)
 deploy: $(SERVICES) ## ** Deploys the Cloudformation template for ALL services.
-
-.PHONY: list-deploy
-list-deploy: ## Lists ALL services to deploy.
-	@echo $(SERVICES)
 
 ## Deploys the Cloudformation template for the given service.
 deploy-%: cf/%/package.yml
@@ -164,7 +258,6 @@ clean: ## Removes generated files and folders, resetting this repository back to
 	@rm -f coverage.* traces.*
 	@rm -rf dist
 	@test -z "$(CI)" || echo "##[endgroup]"
-
 
 .PHONY: help
 help: ## Prints this help page.
