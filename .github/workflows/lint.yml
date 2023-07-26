@@ -17,6 +17,11 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           path: roots
 
+      - name: Configure roots.
+        if: github.repository != "jmpa-io/roots"
+        run: |
+          echo "hello world"
+
       - name: Configure AWS.
         uses: aws-actions/configure-aws-credentials@v2
         with:
