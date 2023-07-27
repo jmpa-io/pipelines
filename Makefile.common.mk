@@ -31,7 +31,7 @@ STACK_NAME		= $(PROJECT)-$* # The format of the generated name for Cloudformatio
 ECR				= $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(PROJECT):$* # The ecr url for the authed AWS account.
 
 # Check deps.
-EXECUTABLES ?= awk column grep go golangci-lint find aws zip cfn-lint sam
+EXECUTABLES ?= awk aws cfn-lint column find go golangci-lint grep hadolint sam zip
 MISSING := $(strip $(foreach bin,$(EXECUTABLES),$(if $(shell command -v $(bin) 2>/dev/null),,$(bin))))
 $(if $(MISSING),$(error Please install: $(MISSING); $(PATH)))
 
@@ -110,6 +110,15 @@ ifeq ($(strip $(SAM_FILES)),)
 	@echo "No ./cf/*/template.yaml files to lint."
 else
 	find ./cf -type f -name 'template.yaml' -exec sam validate --region $(AWS_REGION)-t '{}' \; || true
+endif
+	@test -z "$(CI)" || echo "##[endgroup]"
+
+lint-docker:
+	@test -z "$(CI)" || echo "##[group]Linting Docker."
+ifeq ($(strip $(DOCKER_FILES)),)
+	@echo "No Dockerfiles to lint."
+else
+	find . -type f -name Dockerfile -exec sh -c 'echo "--- $1" && hadolint "$1"' sh {} \;
 endif
 	@test -z "$(CI)" || echo "##[endgroup]"
 
