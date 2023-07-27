@@ -21,7 +21,13 @@ jobs:
       - name: Configure roots.
         if: github.repository != 'jmpa-io/roots'
         run: |
-          echo "hello world"
+          [[ -d bin ]] || { mkdir -p bin; }
+          [[ -d cf ]] || { mkdir -p cf; }
+          [[ -d templates ]] || { mkdir -p templates; }
+          mv -n roots/bin/ bin/
+          mv -n roots/cf/ cf/
+          mv -n roots/templates/ templates/
+          mv -n roots/Makefile.common.mk ./
 
       - name: Configure AWS.
         uses: aws-actions/configure-aws-credentials@v2
