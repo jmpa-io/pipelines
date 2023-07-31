@@ -53,18 +53,17 @@ jobs:
       - name: Login to AWS ECR.
         uses: aws-actions/amazon-ecr-login@v1.6.2
 
-      - name: Lint.
+      - name: Deploy.
         run: |
-          echo ${{ inputs.templates }}
-          echo ${{ inputs.artifact }}
-
+          echo "##[group]Pulling image."
+          docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/go
+          echo "##[endgroup]"
           docker run \
             -v "$PWD:/go/src/app" \
             -w "/go/src/app" \
             -e CI \
             ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/go \
-            sh -c "echo "
-
+            sh -c "make ${{ inputs.templates }}"
 
       # - name: Deploy.
       #   run: depot/bin/30-deploy.sh ${{ inputs.templates }}
