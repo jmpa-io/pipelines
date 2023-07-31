@@ -6,9 +6,9 @@ on:
         description: A space separated list of templates to deploy.
         required: true
         type: string
-      artifact:
-        description: The name of the artifact uploaded in the workflow.
-        type: string
+      # artifact:
+      #   description: The name of the artifact uploaded in the workflow.
+      #   type: string
 
 jobs:
   run:
@@ -18,13 +18,24 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Checkout roots.
-        if: ${{ github.repository }} != "roots"
+        if: github.repository != 'jmpa-io/roots'
         uses: actions/checkout@v3
         with:
           repository: jmpa-io/roots
-          ref: rework
-          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: main
+          token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
           path: roots
+
+      - name: Configure roots.
+        if: github.repository != 'jmpa-io/roots'
+        run: |
+          [[ -d bin ]] || { mkdir -p bin; }
+          [[ -d cf ]] || { mkdir -p cf; }
+          [[ -d templates ]] || { mkdir -p templates; }
+          mv -n roots/bin/ bin/
+          mv -n roots/cf/ cf/
+          mv -n roots/templates/ templates/
+          mv -n roots/Makefile.common.mk ./
 
       - name: Configure AWS.
         uses: aws-actions/configure-aws-credentials@v2
@@ -33,11 +44,11 @@ jobs:
           role-session-name: github-actions
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Download artifact.
-        uses: actions/download-artifact@v3.0.2
-        with:
-          name: ${{ inputs.artifact }}
-          path: dist
+      # - name: Download artifact.
+      #   uses: actions/download-artifact@v3.0.2
+      #   with:
+      #     name: ${{ inputs.artifact }}
+      #     path: dist
 
       - name: Login to AWS ECR.
         uses: aws-actions/amazon-ecr-login@v1.6.2
