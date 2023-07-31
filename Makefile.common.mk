@@ -120,7 +120,7 @@ lint-docker: ## Lints Dockerfiles.
 ifeq ($(strip $(DOCKER_FILES)),)
 	@echo "No Dockerfiles to lint."
 else
-	find . -type f -name 'Dockerfile' -exec sh -c 'echo "--- {}" && hadolint "{}"' \; || true
+	find . -type f -name 'Dockerfile' -exec hadolint '{}' \; || true
 endif
 	@test -z "$(CI)" || echo "##[endgroup]"
 
