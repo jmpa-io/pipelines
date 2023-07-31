@@ -18,6 +18,7 @@ SH_FILES		:= $(shell find . -name "*.sh" -type f) # A list of ALL sh files in th
 GO_FILES 		:= $(shell find . -name "*.go" -type f) # A list of ALL Go files in the repository.
 CF_FILES		:= $(shell find ./cf -name 'template.yml' -type f) # A list of ALL template.yml files in the repository.
 SAM_FILES		:= $(shell find ./cf -name 'template.yaml' -type f) # A list of ALL template.yaml files in the repository.
+DOCKER_FILES	:= $(shell find . -name 'Dockerfile' -type f) # A list of ALL Dockerfiles in the repository.
 CF_DIRS			:= $(shell find ./cf -mindepth 1 -maxdepth 1 -type d) # A list of dirs directly under ./cf.
 CMD_DIRS		:= $(shell find ./cmd -mindepth 1 -maxdepth 1 -type d) # A list of dirs directly under ./cmd.
 # ---
@@ -71,7 +72,7 @@ list-deploy: ## Lists ALL services to deploy.
 # ┴─┘┴ ┘└┘ ┴
 
 .PHONY: lint
-lint: lint-sh lint-go lint-cf lint-sam ## ** Lints everything.
+lint: lint-sh lint-go lint-cf lint-sam lint-docker ## ** Lints everything.
 
 .PHONY: lint-sh
 lint-sh: ## Lints shell files.
@@ -94,7 +95,7 @@ endif
 	@test -z "$(CI)" || echo "##[endgroup]"
 
 .PHONY: lint-cf
-lint-cf: ## Lint CF templates.
+lint-cf: ## Lints CF templates.
 	@test -z "$(CI)" || echo "##[group]Linting cf."
 ifeq ($(strip $(CF_FILES)),)
 	@echo "No ./cf/*/template.yml files to lint."
@@ -104,7 +105,7 @@ endif
 	@test -z "$(CI)" || echo "##[endgroup]"
 
 .PHONY: lint-sam
-lint-sam: ## Lint SAM templates.
+lint-sam: ## Lints SAM templates.
 	@test -z "$(CI)" || echo "##[group]Linting sam."
 ifeq ($(strip $(SAM_FILES)),)
 	@echo "No ./cf/*/template.yaml files to lint."
@@ -113,12 +114,13 @@ else
 endif
 	@test -z "$(CI)" || echo "##[endgroup]"
 
-lint-docker:
+.PHONY: lint-docker
+lint-docker: ## Lints Dockerfiles.
 	@test -z "$(CI)" || echo "##[group]Linting Docker."
 ifeq ($(strip $(DOCKER_FILES)),)
 	@echo "No Dockerfiles to lint."
 else
-	find . -type f -name Dockerfile -exec sh -c 'echo "--- $1" && hadolint "$1"' sh {} \;
+	find . -type f -name 'Dockerfile' -exec sh -c 'echo "--- {}" && hadolint "{}"' \; || true
 endif
 	@test -z "$(CI)" || echo "##[endgroup]"
 
