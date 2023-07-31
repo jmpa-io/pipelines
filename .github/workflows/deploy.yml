@@ -59,6 +59,7 @@ jobs:
           docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/go
           echo "##[endgroup]"
           docker run \
+            -v "$HOME/.aws:/root/.aws" \
             -v "$PWD:/go/src/app" \
             -w "/go/src/app" \
             -e CI \
