@@ -24,7 +24,9 @@ org="$1"
 [[ -z "$org" ]] && usage
 
 # vars.
-name="$(basename "$PWD")" \
+path="$PWD"
+[[ -z "$GITHUB_REPOSITORY" ]] && { path="$GITHUB_REPOSITORY"; }
+name="$(basename "$path")" \
   || die "failed to get repository name"
 name="${name^^}" # uppercase.
 name="${name,,}" # lowercase.
