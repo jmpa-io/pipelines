@@ -48,7 +48,7 @@ workflows=""
 if [[ -d .github/workflows ]]; then
   workflows=$(find .github/workflows -type f -name '*.yml') \
     || die "failed to retrieve workflows"
-  workflows=$(<<< "$workflows" sort --ignore-case)
+  workflows=$(<<< "$workflows" sort)
 fi
 
 # retrieve scripts.
@@ -56,7 +56,7 @@ scripts=""
 if [[ -d bin ]]; then
   scripts=$(find bin -mindepth 1 -maxdepth 1 -type f -name '*.sh') \
     || die "failed to retrieve scripts"
-  scripts=$(<<< "$scripts" sort --ignore-case)
+  scripts=$(<<< "$scripts" sort)
 fi
 
 # retrieve logo.
