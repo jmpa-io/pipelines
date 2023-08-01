@@ -264,6 +264,10 @@ cf/%/package.yml: cf/%/template.yml
 # ││││└─┐│
 # ┴ ┴┴└─┘└─┘
 
+.PHONY: generate-readme
+generate-readme: ## Generates a README.md, using a template.
+	@bin/README.sh jmpa-io
+
 .PHONY: update-template
 update-template: ## Pulls changes from obs-template into this repository.
 	git fetch template
