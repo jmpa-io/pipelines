@@ -12,8 +12,10 @@ on:
 jobs:
   generate-readme:
     uses: ./.github/workflows/README.yml
+    secrets: inherit
 
   post-to-slack:
     needs: [generate-readme]
     if: always()
     uses: ./.github/workflows/post-to-slack.yml
+    secrets: inherit
