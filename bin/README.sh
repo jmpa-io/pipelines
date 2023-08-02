@@ -61,6 +61,11 @@ if [[ -d bin ]]; then
   scripts=$(<<< "$scripts" sort)
 fi
 
+# filter scripts.
+if [[ "$name" != "roots" ]]; then
+  scripts=$(<<< "$scripts" grep -v 'bin/README.sh')
+fi
+
 # retrieve logo.
 logo=$(find docs -name 'logo.*' -type f 2>/dev/null)
 
@@ -148,10 +153,6 @@ if [[ $template == *"$pattern"* ]]; then
     out+="Script|Description\n"
     out+=":---|:---\n"
     for script in $scripts; do
-        # ignore README.sh script.
-        [[ "$script" == *"README.sh" ]] \
-          && { continue; }
-        # extract comments.
         comments=$(head -n4 "$script") \
           || die "failed to read description for $script"
         count=0; desc="";
