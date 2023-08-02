@@ -1,23 +1,17 @@
 <!-- markdownlint-disable MD041 MD010 -->
-[![.README.yml](https://github.com/jmpa-io/app/actions/workflows/.README.yml/badge.svg)](https://github.com/jmpa-io/app/actions/workflows/.README.yml)
-[![.cicd.yml](https://github.com/jmpa-io/app/actions/workflows/.cicd.yml/badge.svg)](https://github.com/jmpa-io/app/actions/workflows/.cicd.yml)
-[![README.yml](https://github.com/jmpa-io/app/actions/workflows/README.yml/badge.svg)](https://github.com/jmpa-io/app/actions/workflows/README.yml)
-[![deploy-redirect.yml](https://github.com/jmpa-io/app/actions/workflows/deploy-redirect.yml/badge.svg)](https://github.com/jmpa-io/app/actions/workflows/deploy-redirect.yml)
-[![deploy.yml](https://github.com/jmpa-io/app/actions/workflows/deploy.yml/badge.svg)](https://github.com/jmpa-io/app/actions/workflows/deploy.yml)
-[![dispatch.yml](https://github.com/jmpa-io/app/actions/workflows/dispatch.yml/badge.svg)](https://github.com/jmpa-io/app/actions/workflows/dispatch.yml)
-[![lint.yml](https://github.com/jmpa-io/app/actions/workflows/lint.yml/badge.svg)](https://github.com/jmpa-io/app/actions/workflows/lint.yml)
-[![post-to-slack.yml](https://github.com/jmpa-io/app/actions/workflows/post-to-slack.yml/badge.svg)](https://github.com/jmpa-io/app/actions/workflows/post-to-slack.yml)
-[![test.yml](https://github.com/jmpa-io/app/actions/workflows/test.yml/badge.svg)](https://github.com/jmpa-io/app/actions/workflows/test.yml)
-[![upload-website.yml](https://github.com/jmpa-io/app/actions/workflows/upload-website.yml/badge.svg)](https://github.com/jmpa-io/app/actions/workflows/upload-website.yml)
+[![.README.yml](https://github.com/jmpa-io/roots/actions/workflows/.README.yml/badge.svg)](https://github.com/jmpa-io/roots/actions/workflows/.README.yml)
+[![.cicd.yml](https://github.com/jmpa-io/roots/actions/workflows/.cicd.yml/badge.svg)](https://github.com/jmpa-io/roots/actions/workflows/.cicd.yml)
 
 <p align="center">
   <img src="docs/logo.png"/>
 </p>
 
-# `app`
+# `roots`
 
 ```diff
-+ TODO
++ 🌱 A monorepo used to store org-wide resources used by other repositories in
++ this org, such as pipelines, scripts, mechanisms to deploy, and templates. Used
++ in conjunction with https://github.com/jmpa-io/root-template.
 ```
 
 ## `Scripts`
