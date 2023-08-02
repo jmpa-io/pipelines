@@ -14,7 +14,7 @@
 + in conjunction with https://github.com/jmpa-io/root-template.
 ```
 
-## `Scripts`
+## `scripts`
 
 Here is a list of scripts in this repository:
 
