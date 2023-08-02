@@ -16,7 +16,7 @@
 
 ## `scripts`
 
-Here is a list of scripts in this repository:
+👉 Here is a list of scripts in this repository:
 
 Script|Description
 :---|:---
