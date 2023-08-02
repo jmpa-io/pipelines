@@ -148,7 +148,7 @@ if [[ $template == *"$pattern"* ]]; then
   if [[ -z "$scripts" ]]; then
     template=$(<<< "$template" sed "/$pattern/,+1 d" 2>/dev/null)
   else
-    out="## \`Scripts\`\n\n"
+    out="## \`scripts\`\n\n"
     out+="Here is a list of scripts in this repository:\n\n"
     out+="Script|Description\n"
     out+=":---|:---\n"
