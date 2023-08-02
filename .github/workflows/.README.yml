@@ -10,9 +10,9 @@ on:
     - 'docs/*'
   workflow_dispatch:
 
-permissions: write-all
-  # id-token: write
-  # contents: write
+permissions:
+  id-token: write
+  contents: write
 
 jobs:
   generate-readme:
