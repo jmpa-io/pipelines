@@ -148,6 +148,10 @@ if [[ $template == *"$pattern"* ]]; then
     out+="Script|Description\n"
     out+=":---|:---\n"
     for script in $scripts; do
+        # ignore README.sh script.
+        [[ "$script" == *"README.sh" ]] \
+          && { continue; }
+        # extract comments.
         comments=$(head -n4 "$script") \
           || die "failed to read description for $script"
         count=0; desc="";
