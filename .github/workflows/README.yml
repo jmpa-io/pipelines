@@ -50,7 +50,7 @@ jobs:
             -e CI -e GITHUB_REPOSITORY \
             -e AWS_DEFAULT_REGION -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e AWS_SESSION_TOKEN \
             ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/go \
-            sh -c "ls -la && ls -la bin && make generate-readme"
+            sh -c "make generate-readme"
 
       - name: Commit (if there are any changes).
         uses: stefanzweifel/git-auto-commit-action@v4.16.0
