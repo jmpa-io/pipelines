@@ -4,7 +4,7 @@ on:
 
 jobs:
   run:
-    uses: ./.deploy-template.yml@main
+    uses: jmpa-io/roots/.github/workflows/deploy-templates.yml@main
     secrets: inherit
     with:
       templates: ecr
