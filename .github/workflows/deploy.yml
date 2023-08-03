@@ -4,7 +4,7 @@ on:
 
 jobs:
   run:
-    uses: ./.deploy-template.yml
+    uses: ./.deploy-template.yml@main
     secrets: inherit
     with:
       templates: ecr
