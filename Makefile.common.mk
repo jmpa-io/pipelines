@@ -209,12 +209,12 @@ define push_image
 .PHONY: push-$1
 ## Pushes the docker image for a given service to AWS ECR.
 push-$1: image-$1
-	@test -n "$(CI)" || echo "##[group]Pushing $(strip $(call get_last_element,$(subst .,,$1))) image."
+	@test -z "$(CI)" || echo "##[group]Pushing $(strip $(call get_last_element,$(subst .,,$1))) image."
 	docker tag $(if $(filter $1,$(PROJECT)),$1,$(PROJECT)/$(strip $(call get_last_element,$1))):$(COMMIT) $(strip $(ECR))/$(strip $(call get_last_element,$(subst .,,$1))):$(COMMIT)
 	docker tag $(if $(filter $1,$(PROJECT)),$1,$(PROJECT)/$(strip $(call get_last_element,$1))):latest $(strip $(ECR))/$(strip $(call get_last_element,$(subst .,,$1))):latest
 	docker push $(strip $(ECR))/$(strip $(call get_last_element,$(subst .,,$1))):$(COMMIT)
 	docker push $(strip $(ECR))/$(strip $(call get_last_element,$(subst .,,$1))):latest
-	@test -n "$(CI)" || echo "##[endgroup]"
+	@test -z "$(CI)" || echo "##[endgroup]"
 endef
 $(foreach image,$(IMAGES),$(eval $(call push_image,$(image))))
 
