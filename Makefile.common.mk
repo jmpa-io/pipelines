@@ -35,7 +35,7 @@ ECR				= $(AWS_ACCOUNT_ID).dkr.ecr.$(strip $(AWS_REGION)).amazonaws.com # The ec
 get_last_element = $(lastword $(subst /, ,$1)) # Splits a string by '/' and retrieves the last element in the array.
 
 # Check deps.
-ifndef $(CI)
+ifndef CI
 EXECUTABLES ?= awk aws cfn-lint column find go golangci-lint grep hadolint sam zip
 MISSING := $(strip $(foreach bin,$(EXECUTABLES),$(if $(shell command -v $(bin) 2>/dev/null),,$(bin))))
 $(if $(MISSING),$(error Please install: $(MISSING)))
