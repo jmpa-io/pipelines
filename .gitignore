@@ -1,15 +1,17 @@
 # ignore general files.
-.DS_store
+.DS_Store
+.vscode/
+
+# ignore generated files.
+/out
+package.yml
+coverage.*
+dist/
+*.zip
+*.pem
 
 # ignore test files.
-out
-test.sh
+/test.sh
 
-# ignore log files.
-super-linter.log
-
-# ignore folders generated via CI/CD.
-/depot
-/bin/[0-9][0-9]-*.sh
-/cf/[0-9][0-9]-*.yml
-/.github/templates/[0-9][0-9]-*
+# ignore compiled binaries in root.
+/main

@@ -3,22 +3,24 @@ name: README.md
 on:
   push:
     paths:
-    - '.github/templates/*'
     - '.github/workflows/*'
-    - 'img/*'
+    - 'templates/*'
+    - 'docs/*'
   workflow_dispatch:
+  repository_dispatch:
+    types: [update-readme]
+
+permissions:
+  id-token: write
+  contents: write
 
 jobs:
   generate-readme:
-    uses: jmpa-io/depot/.github/workflows/README.yml@main
-    secrets:
-      github-token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
-      slack-webhook: ${{ secrets.SLACK_GITHUB_WEBHOOK_URL }}
+    uses: jmpa-io/roots/.github/workflows/README.yml@main
+    secrets: inherit
 
   post-to-slack:
     needs: [generate-readme]
     if: always()
-    uses: jmpa-io/depot/.github/workflows/post-to-slack.yml@main
-    secrets:
-      github-token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
-      slack-webhook: ${{ secrets.SLACK_GITHUB_WEBHOOK_URL }}
+    uses: jmpa-io/roots/.github/workflows/post-to-slack.yml@main
+    secrets: inherit
