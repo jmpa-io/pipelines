@@ -40,13 +40,4 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v1.6.2
 
       - name: Deploy.
-        run: |
-          echo "##[group]Pulling image."
-          docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/go
-          echo "##[endgroup]"
-          docker run \
-            -v "$PWD:/go/src/app" \
-            -w "/go/src/app" \
-            -e CI \
-            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/go \
-            sh -c "make push"
+        run: make push
