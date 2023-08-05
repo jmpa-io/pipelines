@@ -18,9 +18,9 @@ SH_FILES		:= $(shell find . -name "*.sh" -type f) # A list of ALL sh files in th
 GO_FILES 		:= $(shell find . -name "*.go" -type f) # A list of ALL Go files in the repository.
 CF_FILES		:= $(shell find ./cf -name 'template.yml' -type f) # A list of ALL template.yml files in the repository.
 SAM_FILES		:= $(shell find ./cf -name 'template.yaml' -type f) # A list of ALL template.yaml files in the repository.
-DOCKER_FILES	:= $(shell find . -name 'Dockerfile' -type f) # A list of ALL Dockerfiles in the repository.
 CF_DIRS			:= $(shell find ./cf -mindepth 1 -maxdepth 1 -type d) # A list of dirs directly under ./cf.
 CMD_DIRS		:= $(shell find ./cmd -mindepth 1 -maxdepth 1 -type d) # A list of dirs directly under ./cmd.
+IMAGES			:= $(patsubst .,$(PROJECT),$(patsubst ./%,%,$(shell find . -name 'Dockerfile' -type f -exec dirname {} \; 2>/dev/null))) # A list of ALL Dockerfiles paths in the repository.
 # ---
 CMD_SOURCE		= $(shell find cmd/$* -type f 2>/dev/null) # The source for a command.
 BINARIES 		= $(patsubst %,dist/%,$(shell find cmd/* -maxdepth 0 -type d -exec basename {} \; 2>/dev/null)) # A list of ALL binaries in the repository.
@@ -29,12 +29,17 @@ BINARIES_LINUX	= $(patsubst %,%-linux,$(BINARIES)) # A list of ALL linux binarie
 AWS_REGION		?= ap-southeast-2 # The region to use when doing things in AWS.
 STACK_NAME		= $(PROJECT)-$* # The format of the generated name for Cloudformation stacks in AWS.
 # ---
-ECR				= $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/$(PROJECT):$* # The ecr url for the authed AWS account.
+ECR				= $(AWS_ACCOUNT_ID).dkr.ecr.$(strip $(AWS_REGION)).amazonaws.com # The ecr url for the authed AWS account.
+
+# Funcs.
+get_last_element = $(lastword $(subst /, ,$1)) # Splits a string by '/' and retrieves the last element in the array.
 
 # Check deps.
+ifndef $(CI)
 EXECUTABLES ?= awk aws cfn-lint column find go golangci-lint grep hadolint sam zip
 MISSING := $(strip $(foreach bin,$(EXECUTABLES),$(if $(shell command -v $(bin) 2>/dev/null),,$(bin))))
-$(if $(MISSING),$(error Please install: $(MISSING); $(PATH)))
+$(if $(MISSING),$(error Please install: $(MISSING)))
+endif
 
 # The default command executed when running `make`.
 .DEFAULT_GOAL:=	help
@@ -184,50 +189,45 @@ dist/%.zip: dist/%-linux
 # ─┴┘└─┘└─┘┴ ┴└─┘┴└─
 
 .PHONY: images
-images: image-$(IMAGES) ## ** Builds ALL docker images for each service.
+images: $(foreach image,$(IMAGES),image-$(image)) ## ** Builds ALL docker images for each service.
 
+define build_image
+.PHONY: image-$1
 ## Builds the docker image for the given service.
-image-%: dist/%-linux cmd/%/Dockerfile
-	@test -z "$(CI)" || echo "##[group]Building $@ image."
-	docker build -t $(PROJECT)/$*:$(COMMIT) -t $(PROJECT)/$*:latest -f ./cmd/$*/Dockerfile .
+image-$1: dist/$1-linux $(subst $(PROJECT),.,$1)/Dockerfile
+	@test -z "$(CI)" || echo "##[group]Building $(strip $(call get_last_element,$(subst .,,$1))) image."
+	docker build -t $(if $(filter $1,$(PROJECT)),$1,$(PROJECT)/$(strip $(call get_last_element,$1))):$(COMMIT) -t $(if $(filter $1,$(PROJECT)),$1,$(PROJECT)/$(strip $(call get_last_element,$1))):latest -f $(if $(filter $1,$(PROJECT)),./,$1/Dockerfile) .
 	@test -z "$(CI)" || echo "##[endgroup]"
+endef
+$(foreach image,$(IMAGES),$(eval $(call build_image,$(image))))
 
 .PHONY: push
 push: images-development ## ** Pushes ALL docker images to ECR.
-images-development: push-$(IMAGES)
+images-development: $(foreach image,$(IMAGES),push-$(image))
 
+define push_image
+.PHONY: push-$1
 ## Pushes the docker image for a given service to AWS ECR.
-push-%: image-%
-	@test -z "$(CI)" || echo "##[group]Pushing $@ image."
-	docker tag $(PROJECT)/$*:$(COMMIT) $(ECR):$(COMMIT)
-	docker tag $(PROJECT)/$*:latest $(ECR):latest
-	docker push $(ECR):$(COMMIT)
-	docker push $(ECR):latest
-	@test -z "$(CI)" || echo "##[endgroup]"
-
-.PHONY: promote
-promote: images-production ## ** Promotes ALL docker images from DEV -> PROD.
-
-.PHONY: promote-$(ENVIRONMENT)
-promote-%: ## Promotes a given docker image between the AWS ECR for DEV -> PROD.
-	@test -z "$(CI)" || echo "##[group]Promoting $@ image."
-ifeq "$(ENVIRONMENT)" "prod"
-	docker pull $(ECR_DEV):$(COMMIT)
-	docker tag $(ECR_DEV):$(COMMIT) $(ECR_PROD):$(COMMIT)
-	docker tag $(ECR_DEV):$(COMMIT) $(ECR_PROD):latest
-	docker push $(ECR_PROD):$(COMMIT)
-	docker push $(ECR_PROD):latest
-else
-	@echo "ENVIRONMENT must be set to `prod` for $<."
-endif
-	@test -z "$(CI)" || echo "##[endgroup]"
+push-$1: image-$1
+	@test -n "$(CI)" || echo "##[group]Pushing $(strip $(call get_last_element,$(subst .,,$1))) image."
+	docker tag $(if $(filter $1,$(PROJECT)),$1,$(PROJECT)/$(strip $(call get_last_element,$1))):$(COMMIT) $(strip $(ECR))/$(strip $(call get_last_element,$(subst .,,$1))):$(COMMIT)
+	docker tag $(if $(filter $1,$(PROJECT)),$1,$(PROJECT)/$(strip $(call get_last_element,$1))):latest $(strip $(ECR))/$(strip $(call get_last_element,$(subst .,,$1))):latest
+	docker push $(strip $(ECR))/$(strip $(call get_last_element,$(subst .,,$1))):$(COMMIT)
+	docker push $(strip $(ECR))/$(strip $(call get_last_element,$(subst .,,$1))):latest
+	@test -n "$(CI)" || echo "##[endgroup]"
+endef
+$(foreach image,$(IMAGES),$(eval $(call push_image,$(image))))
 
 .PHONY: pull
-pull: ## ** Pulls ALL docker images for every service.
+pull: $(foreach image,$(IMAGES),pull-$(image)) ## ** Pulls ALL docker images for every service.
 
-.PHONY: pull-$(IMAGES)
-pull-%: ## For the given service, pulls the associated docker image from AWS ECR.
-	docker pull $(ECR):$(COMMIT)
+define pull_image
+.PHONY: pull-$1
+## For the given service, pulls the associated docker image from AWS ECR.
+pull-$1:
+	docker pull $(strip $(ECR))/$(strip $(call get_last_element,$(subst .,,$1))):$(COMMIT)
+endef
+$(foreach image,$(IMAGES),$(eval $(call pull_image,$(image))))
 
 # ┌┬┐┌─┐┌─┐┬  ┌─┐┬ ┬
 #  ││├┤ ├─┘│  │ │└┬┘
@@ -269,7 +269,7 @@ generate-readme: ## Generates a README.md, using a template.
 	@bin/README.sh jmpa-io
 
 .PHONY: update-template
-update-template: ## Pulls changes from obs-template into this repository.
+update-template: ## Pulls changes from root-template into this repository.
 	git fetch template
 	git merge template/master --allow-unrelated-histories
 
@@ -283,9 +283,16 @@ clean: ## Removes generated files and folders, resetting this repository back to
 .PHONY: help
 help: ## Prints this help page.
 	@echo "Available targets:"
-	@awk '/^[a-zA-Z\-\_0-9%\/]+:/ { \
-		nb = sub( /^## /, "", helpMsg ); \
-		if(nb == 0) { helpMsg = $$0; nb = sub( /^[^:]*:.* ## /, "", helpMsg ); } \
-		if (nb) print "\033[35m" $$1 "\033[0m" helpMsg; \
-	} { helpMsg = $$0 }' $(MAKEFILE_LIST) \
-	| column -ts:
+	@awk_script='\
+		/^[a-zA-Z\-\_0-9%\/$$]+:/ { \
+			target = $$1; \
+			gsub("\\$$1", "%", target); \
+			nb = sub(/^## /, "", helpMessage); \
+			if (nb == 0) { \
+				helpMessage = $$0; \
+				nb = sub(/^[^:]*:.* ## /, "", helpMessage); \
+			} \
+			if (nb) print "\033[35m" target "\033[0m" helpMessage; \
+		} { helpMessage = $$0 } \
+	'; \
+	awk "$$awk_script" $(MAKEFILE_LIST) | column -ts:
