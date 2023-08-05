@@ -1,14 +1,15 @@
 ---
 name: README.md
-
 on:
   push:
     paths:
-    - bin/README.sh
+    - 'bin/README.sh'
     - '.github/workflows/*'
     - 'templates/*'
     - 'docs/*'
   workflow_dispatch:
+  repository_dispatch:
+    types: [update-readme]
 
 permissions:
   id-token: write
