@@ -39,7 +39,7 @@ jobs:
       - name: Login to AWS ECR.
         uses: aws-actions/amazon-ecr-login@v1.6.2
 
-      - name: Deploy.
+      - name: Build + Push to AWS ECR.
         run: make push
         env:
           AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID}}
