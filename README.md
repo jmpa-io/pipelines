@@ -1,14 +1,15 @@
 <!-- markdownlint-disable MD041 MD010 -->
-[![root-template](https://github.com/jmpa-io/root-template/actions/workflows/cicd.yml/badge.svg)](https://github.com/jmpa-io/root-template/actions/workflows/cicd.yml)
-[![root-template](https://github.com/jmpa-io/root-template/actions/workflows/README.yml/badge.svg)](https://github.com/jmpa-io/root-template/actions/workflows/README.yml)
+[![README.yml](https://github.com/jmpa-io/root-template/actions/workflows/README.yml/badge.svg)](https://github.com/jmpa-io/root-template/actions/workflows/README.yml)
+[![cicd.yml](https://github.com/jmpa-io/root-template/actions/workflows/cicd.yml/badge.svg)](https://github.com/jmpa-io/root-template/actions/workflows/cicd.yml)
 
 # `root-template`
 
 ```diff
-+ 🌱 The root template used by all other repositories in this org.
++ 🧱 A template used to store any generic files used by all other repositories in
++ this org. Used in conjunction with https://github.com/jmpa-io/depot.
 ```
 
-## How do I use this template?
+## 🧠 How do I use this template?
 
 1. Using a <kbd>terminal</kbd>, download the child repository locally.
 
@@ -17,5 +18,5 @@
 git remote add template https://github.com/jmpa-io/root-template.git
 git fetch template
 git merge template/main --allow-unrelated-histories
-# then fix any merge conflicts as required & 'git push' when ready.
+# then fix any merge conflicts as required %HOW_TO_USE_TEMPLATE% 'git push' when ready.
 ```
