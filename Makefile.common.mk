@@ -9,27 +9,29 @@ $(error PROJECT not defined, missing Makefile?)
 endif
 
 # Vars.
-SHELL			= /bin/sh # The shell used when make runs `shell`.
-ENVIRONMENT		?= dev # The environment being deployed; affects what type of resources are used when deploying.
-COMMIT			= $(shell git describe --tags --always) # The git commit associated with the repository.
-REPO			= $(shell basename $$PWD) # The name of the git repository this was deployed from.
-# ---
-SH_FILES		:= $(shell find . -name "*.sh" -type f) # A list of ALL sh files in the repository.
-GO_FILES 		:= $(shell find . -name "*.go" -type f) # A list of ALL Go files in the repository.
-CF_FILES		:= $(shell find ./cf -name 'template.yml' -type f) # A list of ALL template.yml files in the repository.
-SAM_FILES		:= $(shell find ./cf -name 'template.yaml' -type f) # A list of ALL template.yaml files in the repository.
-CF_DIRS			:= $(shell find ./cf -mindepth 1 -maxdepth 1 -type d) # A list of dirs directly under ./cf.
-CMD_DIRS		:= $(shell find ./cmd -mindepth 1 -maxdepth 1 -type d) # A list of dirs directly under ./cmd.
-IMAGES			:= $(patsubst .,$(PROJECT),$(patsubst ./%,%,$(shell find . -name 'Dockerfile' -type f -exec dirname {} \; 2>/dev/null))) # A list of ALL Dockerfiles paths in the repository.
-# ---
-CMD_SOURCE		= $(shell find cmd/$* -type f 2>/dev/null) # The source for a command.
-BINARIES 		= $(patsubst %,dist/%,$(shell find cmd/* -maxdepth 0 -type d -exec basename {} \; 2>/dev/null)) # A list of ALL binaries in the repository.
-BINARIES_LINUX	= $(patsubst %,%-linux,$(BINARIES)) # A list of ALL linux binaries in the repository.
-# ---
-AWS_REGION		?= ap-southeast-2 # The region to use when doing things in AWS.
-STACK_NAME		= $(PROJECT)-$* # The format of the generated name for Cloudformation stacks in AWS.
-# ---
-ECR				= $(AWS_ACCOUNT_ID).dkr.ecr.$(strip $(AWS_REGION)).amazonaws.com # The ecr url for the authed AWS account.
+SHELL           = /bin/sh
+ENVIRONMENT     ?= dev
+COMMIT          = $(shell git describe --tags --always)
+REPO            = $(shell basename $$PWD)
+
+# Files.
+SH_FILES        := $(shell find . -name "*.sh" -type f)
+GO_FILES        := $(shell find . -name "*.go" -type f)
+CF_FILES        := $(shell find ./cf -name 'template.yml' -type f)
+SAM_FILES       := $(shell find ./cf -name 'template.yaml' -type f)
+CF_DIRS         := $(shell find ./cf -mindepth 1 -maxdepth 1 -type d)
+CMD_DIRS        := $(shell find ./cmd -mindepth 1 -maxdepth 1 -type d)
+IMAGES          := $(patsubst .,$(PROJECT),$(patsubst ./%,%,$(shell find . -name 'Dockerfile' -type f -exec dirname {} \; 2>/dev/null)))
+
+# Binaries.
+CMD_SOURCE      = $(shell find cmd/$* -type f 2>/dev/null)
+BINARIES        = $(patsubst %,dist/%,$(shell find cmd/* -maxdepth 0 -type d -exec basename {} \; 2>/dev/null))
+BINARIES_LINUX  = $(patsubst %,%-linux,$(BINARIES))
+
+# AWS.
+AWS_REGION      ?= ap-southeast-2
+STACK_NAME      = $(PROJECT)-$*
+ECR             = $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com
 
 # Funcs.
 get_last_element = $(lastword $(subst /, ,$1)) # Splits a string by '/' and retrieves the last element in the array.
