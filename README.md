@@ -6,7 +6,7 @@
 
 ```diff
 + 🧱 A template used to store any generic files used by all other repositories in
-+ this org. Used in conjunction with https://github.com/jmpa-io/depot.
++ this org. Used in conjunction with https://github.com/jmpa-io/roots.
 ```
 
 ## 🧠 How do I use this template?
