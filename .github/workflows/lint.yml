@@ -29,6 +29,11 @@ jobs:
           mv -n roots/templates/* templates/
           mv -n roots/Makefile.common.mk ./
 
+      - name: Setup private Go dependencies.
+        run: git config --global url."https://${{ secrets.ADMIN_GITHUB_TOKEN }}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
+        env:
+          GOSUMDB: off
+
       - name: Configure AWS.
         uses: aws-actions/configure-aws-credentials@v2
         with:
