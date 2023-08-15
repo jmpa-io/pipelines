@@ -1,0 +1,16 @@
+---
+  name: GitHub Actions Usage Audit
+  on:
+    workflow_dispatch:
+    schedule:
+      - cron: "0 7 1 * *" # Runs at 07:00 AM UTC on the first of the month.
+
+  jobs:
+    run:
+      runs-on: ubuntu-latest
+      steps:
+        - name: GitHub Actions Usage Audit
+          uses: fergusmacd/github-action-usage@main
+          with:
+            organisation: jmpa-io
+            skipReposWithoutUsage: false
