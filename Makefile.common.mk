@@ -12,15 +12,16 @@ endif
 SHELL           = /bin/sh
 ENVIRONMENT     ?= dev
 COMMIT          = $(shell git describe --tags --always)
-REPO            = $(shell basename $$PWD)
+REPO            = $(shell basename $(shell git rev-parse --show-toplevel))
+FILE_SIZE		= $(shell stat -f '%z' $<)
 
 # Files.
-SH_FILES        := $(shell find . -name "*.sh" -type f)
-GO_FILES        := $(shell find . -name "*.go" -type f)
-CF_FILES        := $(shell find ./cf -name 'template.yml' -type f)
-SAM_FILES       := $(shell find ./cf -name 'template.yaml' -type f)
-CF_DIRS         := $(shell find ./cf -mindepth 1 -maxdepth 1 -type d)
-CMD_DIRS        := $(shell find ./cmd -mindepth 1 -maxdepth 1 -type d)
+SH_FILES        := $(shell find . -name "*.sh" -type f 2>/dev/null)
+GO_FILES        := $(shell find . -name "*.go" -type f 2>/dev/null)
+CF_FILES        := $(shell find ./cf -name 'template.yml' -type f 2>/dev/null)
+SAM_FILES       := $(shell find ./cf -name 'template.yaml' -type f 2>/dev/null)
+CF_DIRS         := $(shell find ./cf -mindepth 1 -maxdepth 1 -type d 2>/dev/null)
+CMD_DIRS        := $(shell find ./cmd -mindepth 1 -maxdepth 1 -type d 2>/dev/null)
 IMAGES          := $(patsubst .,$(PROJECT),$(patsubst ./%,%,$(shell find . -name 'Dockerfile' -type f -exec dirname {} \; 2>/dev/null)))
 
 # Binaries.
@@ -31,7 +32,9 @@ BINARIES_LINUX  = $(patsubst %,%-linux,$(BINARIES))
 # AWS.
 AWS_REGION      ?= ap-southeast-2
 STACK_NAME      = $(PROJECT)-$*
-ECR             = $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com
+AWS_ACCOUNT_ID	= $(shell aws sts get-caller-identity --query 'Account' --output text)
+ECR             = $$(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com
+BUCKET			= jmpa-io-artifacts
 
 # Funcs.
 get_last_element = $(lastword $(subst /, ,$1)) # Splits a string by '/' and retrieves the last element in the array.
@@ -46,34 +49,6 @@ endif
 # The default command executed when running `make`.
 .DEFAULT_GOAL:=	help
 
-# ┬  ┬┌─┐┌┬┐
-# │  │└─┐ │
-# ┴─┘┴└─┘ ┴
-
-.PHONY: list-cf
-list-cf: ## Lists ALL dirs under ./cf.
-	@echo $(CF_DIRS)
-
-.PHONY: list-cmd
-list-cmd: ## Lists ALL dirs under ./cmd.
-	@echo $(CMD_DIRS)
-
-.PHONY: list-binaries
-list-binaries: ## Lists ALL binaries.
-	@echo $(BINARIES)
-
-.PHONY: list-binaries-linux
-list-binaries-linux: ## Lists ALL Linux binaries.
-	@echo $(BINARIES_LINUX)
-
-.PHONY: list-images
-list-images: ## Lists ALL docker images for every service.
-	@echo $(IMAGES)
-
-.PHONY: list-deploy
-list-deploy: ## Lists ALL services to deploy.
-	@echo $(SERVICES)
-
 # ┬  ┬ ┌┐┌┌┬┐
 # │  │ │││ │
 # ┴─┘┴ ┘└┘ ┴
@@ -84,7 +59,7 @@ lint: lint-sh lint-go lint-cf lint-sam lint-docker ## ** Lints everything.
 .PHONY: lint-sh
 lint-sh: ## Lints shell files.
 	@test -z "$(CI)" || echo "##[group]Linting sh."
-ifeq ($(strip $(SH_FILES)),)
+ifeq ($(SH_FILES),)
 	@echo "No *.sh files to lint."
 else
 	find . -type f -name "*.sh" -exec shellcheck '{}' \+ || true
@@ -94,7 +69,7 @@ endif
 .PHONY: lint-go
 lint-go: ## Lints Go files.
 	@test -z "$(CI)" || echo "##[group]Linting Go."
-ifeq ($(strip $(GO_FILES)),)
+ifeq ($(GO_FILES),)
 	@echo "No *.go files to lint."
 else
 	golangci-lint run -v --allow-parallel-runners
@@ -104,7 +79,7 @@ endif
 .PHONY: lint-cf
 lint-cf: ## Lints CF templates.
 	@test -z "$(CI)" || echo "##[group]Linting cf."
-ifeq ($(strip $(CF_FILES)),)
+ifeq ($(CF_FILES),)
 	@echo "No ./cf/*/template.yml files to lint."
 else
 	find ./cf -type f -name 'template.yml' -exec cfn-lint -r $(AWS_REGION) -t '{}' \; || true
@@ -114,7 +89,7 @@ endif
 .PHONY: lint-sam
 lint-sam: ## Lints SAM templates.
 	@test -z "$(CI)" || echo "##[group]Linting sam."
-ifeq ($(strip $(SAM_FILES)),)
+ifeq ($(SAM_FILES),)
 	@echo "No ./cf/*/template.yaml files to lint."
 else
 	find ./cf -type f -name 'template.yaml' -exec sam validate --region $(AWS_REGION)-t '{}' \; || true
@@ -124,7 +99,7 @@ endif
 .PHONY: lint-docker
 lint-docker: ## Lints Dockerfiles.
 	@test -z "$(CI)" || echo "##[group]Linting Docker."
-ifeq ($(strip $(DOCKER_FILES)),)
+ifeq ($(DOCKER_FILES),)
 	@echo "No Dockerfiles to lint."
 else
 	find . -type f -name 'Dockerfile' -exec hadolint '{}' \; || true
@@ -141,7 +116,7 @@ test: test-go ## ** Tests everything.
 .PHONY: test-go
 test-go: dist ## Tests Go + generates coverage report.
 	@test -z "$(CI)" || echo "##[group]Unit tests."
-ifeq ($(strip $(GO_FILES)),)
+ifeq ($(GO_FILES),)
 	@echo "No *.go files to test."
 else
 	@go version
@@ -212,10 +187,10 @@ define push_image
 ## Pushes the docker image for a given service to AWS ECR.
 push-$1: image-$1
 	@test -z "$(CI)" || echo "##[group]Pushing $(strip $(call get_last_element,$(subst .,,$1))) image."
-	docker tag $(if $(filter $1,$(PROJECT)),$1,$(PROJECT)/$(strip $(call get_last_element,$1))):$(COMMIT) $(strip $(ECR))/$(strip $(call get_last_element,$(subst .,,$1))):$(COMMIT)
-	docker tag $(if $(filter $1,$(PROJECT)),$1,$(PROJECT)/$(strip $(call get_last_element,$1))):latest $(strip $(ECR))/$(strip $(call get_last_element,$(subst .,,$1))):latest
-	docker push $(strip $(ECR))/$(strip $(call get_last_element,$(subst .,,$1))):$(COMMIT)
-	docker push $(strip $(ECR))/$(strip $(call get_last_element,$(subst .,,$1))):latest
+	docker tag $(if $(filter $1,$(PROJECT)),$1,$(PROJECT)/$(strip $(call get_last_element,$1))):$(COMMIT) $(PROJECT)/$(strip $(ECR))/$(strip $(call get_last_element,$(subst .,,$1))):$(COMMIT)
+	docker tag $(if $(filter $1,$(PROJECT)),$1,$(PROJECT)/$(strip $(call get_last_element,$1))):latest $(PROJECT)/$(strip $(ECR))/$(strip $(call get_last_element,$(subst .,,$1))):latest
+	docker push $(PROJECT)/$(strip $(ECR))/$(strip $(call get_last_element,$(subst .,,$1))):$(COMMIT)
+	docker push $(PROJECT)/$(strip $(ECR))/$(strip $(call get_last_element,$(subst .,,$1))):latest
 	@test -z "$(CI)" || echo "##[endgroup]"
 endef
 $(foreach image,$(IMAGES),$(eval $(call push_image,$(image))))
@@ -235,8 +210,15 @@ $(foreach image,$(IMAGES),$(eval $(call pull_image,$(image))))
 #  ││├┤ ├─┘│  │ │└┬┘
 # ─┴┘└─┘┴  ┴─┘└─┘ ┴
 
-.PHONY: deploy $(COMPONENT)
-deploy: $(SERVICES) ## ** Deploys the Cloudformation template for ALL services.
+.PHONY: auth-aws
+auth-aws: ## Checks current auth to AWS; An error indicates an issue with auth to an AWS account.
+	@aws sts get-caller-identity &>/dev/null
+
+# Sets PRIMARY_SERVICES to be SERVICES, so you can use either in a Makefile.
+PRIMARY_SERVICES ?= $(SERVICES)
+
+.PHONY: deploy $(PRIMARY_SERVICES) $(SECONDARY_SERVICES) $(TERTIARY_SERVICES)
+deploy: $(PRIMARY_SERVICES) $(SECONDARY_SERVICES) $(TERTIARY_SERVICES) ## ** Deploys the Cloudformation template for ALL services.
 
 ## Deploys the Cloudformation template for the given service.
 deploy-%: cf/%/package.yml
@@ -244,10 +226,17 @@ deploy-%: cf/%/package.yml
 	aws cloudformation deploy \
 		--region $(AWS_REGION) \
 		--template-file $< \
+		$(shell [[ $(FILE_SIZE) -ge 51200 ]] && echo "--s3-bucket $(BUCKET)") \
 		--stack-name $(STACK_NAME) \
-		--tags repo=$(REPO) project=$(PROJECT) component=$* \
+		--tags \
+			repository=$(REPO) \
+			project=$(PROJECT) \
+			component=$* \
+			revision=$(COMMIT) \
 		--capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
-		--parameter-override Component=$* Revision=$(COMMIT) Environment=$(ENVIRONMENT) \
+		--parameter-overrides Component=$* Revision=$(COMMIT) Environment=$(ENVIRONMENT) \
+		$(if $(wildcard cf/params/$(ENVIRONMENT).json),$(shell jq -r 'map("\(.ParameterKey)=\(.ParameterValue)") | join(" ")' ./cf/params/$(ENVIRONMENT).json),) \
+		$(if $(ADDITIONAL_PARAMETER_OVERRIDES),$(ADDITIONAL_PARAMETER_OVERRIDES),) \
 		--no-fail-on-empty-changeset
 	@test -z "$(CI)" || echo "##[endgroup]"
 
@@ -259,7 +248,7 @@ cf/%/package.yml: cf/%/template.yml
 		--template-file $< \
 		--output-template-file $@ \
 		--s3-prefix $(PROJECT) \
-		--s3-bucket kepler-deployment-$(ENVIRONMENT)
+		--s3-bucket $(BUCKET)
 	@test -z "$(CI)" || echo "##[endgroup]"
 
 # ┌┬┐┬┌─┐┌─┐
@@ -294,7 +283,45 @@ help: ## Prints this help page.
 				helpMessage = $$0; \
 				nb = sub(/^[^:]*:.* ## /, "", helpMessage); \
 			} \
-			if (nb) print "\033[35m" target "\033[0m" helpMessage; \
+			if (nb) print "\033[33m" target "\033[0m" helpMessage; \
 		} { helpMessage = $$0 } \
 	'; \
 	awk "$$awk_script" $(MAKEFILE_LIST) | column -ts:
+
+# ┬  ┬┌─┐┌┬┐
+# │  │└─┐ │
+# ┴─┘┴└─┘ ┴
+
+.PHONY: list-sh
+list-sh: # Lists ALL shell scripts under the current directory.
+	@echo $(SH_FILES)
+
+.PHONY: list-go
+list-go: # Lists ALL Go files under the current directory.
+	@echo $(GO_FILES)
+
+.PHONY: list-cf
+list-cf: # Lists ALL dirs under ./cf.
+	@echo $(CF_DIRS)
+
+.PHONY: list-cmd
+list-cmd: # Lists ALL dirs under ./cmd.
+	@echo $(CMD_DIRS)
+
+.PHONY: list-binaries
+list-binaries: # Lists ALL binaries.
+	@echo $(BINARIES)
+
+.PHONY: list-binaries-linux
+list-binaries-linux: # Lists ALL Linux binaries.
+	@echo $(BINARIES_LINUX)
+
+.PHONY: list-images
+list-images: # Lists ALL docker images for every service.
+	@echo $(IMAGES)
+
+.PHONY: list-deploy
+list-deploy: # Lists ALL services to deploy.
+	@echo $(PRIMARY_SERVICES)
+	@echo $(SECONDARY_SERVICES)
+	@echo $(TERTIARY_SERVICES)
