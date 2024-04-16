@@ -1,6 +1,7 @@
 <!-- markdownlint-disable MD041 MD010 -->
 [![README.yml](https://github.com/jmpa-io/root-template/actions/workflows/README.yml/badge.svg)](https://github.com/jmpa-io/root-template/actions/workflows/README.yml)
 [![cicd.yml](https://github.com/jmpa-io/root-template/actions/workflows/cicd.yml/badge.svg)](https://github.com/jmpa-io/root-template/actions/workflows/cicd.yml)
+[![dependabot-automerge.yml](https://github.com/jmpa-io/root-template/actions/workflows/dependabot-automerge.yml/badge.svg)](https://github.com/jmpa-io/root-template/actions/workflows/dependabot-automerge.yml)
 
 # `root-template`
 
