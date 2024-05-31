@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [opened, synchronize]
   repository_dispatch:
-    types: [update]
+    types: [update-dependabot-automerge]
 
 permissions:
   contents: write
