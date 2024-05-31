@@ -338,7 +338,7 @@ clean: ## Removes generated files and folders, resetting this repository back to
 help: ## Prints this help page.
 	@echo "Available targets:"
 	@awk_script='\
-		/^[a-zA-Z\-\_0-9%\/$$]+:/ { \
+		/^[a-zA-Z\-\\_0-9%\/$$]+:/ { \
 			target = $$1; \
 			gsub("\\$$1", "%", target); \
 			nb = sub(/^## /, "", helpMessage); \
