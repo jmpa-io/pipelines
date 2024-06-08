@@ -75,7 +75,7 @@ endif
 # ┴─┘┴ ┘└┘ ┴
 
 .PHONY: lint
-lint: lint-sh lint-go lint-cf lint-sam lint-docker ## ** Lints everything.
+lint: lint-sh lint-go lint-cf lint-sam lint-docker lint-workflows ## ** Lints everything.
 
 .PHONY: lint-sh
 lint-sh: ## Lints shell files.
