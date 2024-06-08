@@ -1,6 +1,11 @@
 ---
 on:
   workflow_call:
+      inputs:
+        upload-code-coverage:
+          description: Uploads the generated code-coverage to a hosted location (eg. AWS S3).
+          type: boolean
+          default: true
 
 jobs:
   run:
@@ -8,26 +13,6 @@ jobs:
     steps:
       - name: Checkout.
         uses: actions/checkout@v3
-
-      - name: Checkout roots.
-        if: github.repository != 'jmpa-io/roots'
-        uses: actions/checkout@v3
-        with:
-          repository: jmpa-io/roots
-          ref: main
-          token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
-          path: roots
-
-      - name: Configure roots.
-        if: github.repository != 'jmpa-io/roots'
-        run: |
-          [[ -d bin ]] || { mkdir -p bin; }
-          [[ -d cf ]] || { mkdir -p cf; }
-          [[ -d templates ]] || { mkdir -p templates; }
-          mv -n roots/bin/* bin/
-          mv -n roots/cf/* cf/
-          mv -n roots/templates/* templates/
-          mv -n roots/Makefile.common.mk ./
 
       - name: Setup private Go dependencies.
         run: git config --global url."https://${{ secrets.ADMIN_GITHUB_TOKEN }}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
@@ -44,7 +29,7 @@ jobs:
       - name: Login to AWS ECR.
         uses: aws-actions/amazon-ecr-login@v1.6.2
 
-      - name: Lint.
+      - name: Test.
         run: |
           echo "##[group]Pulling image."
           docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/go
@@ -54,4 +39,19 @@ jobs:
             -w "/go/src/app" \
             -e CI \
             ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/go \
-            sh -c "make lint"
+            sh -c "make test"
+
+      # TODO: upload code coverage to S3.
+      - name: Uplood code-coverage.
+        if: ${{ inputs.upload-code-coverage }}
+        run: |
+          echo "##[group]Pulling image."
+          docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/go
+          echo "##[endgroup]"
+          docker run \
+            -v "$PWD:/go/src/app" \
+            -w "/go/src/app" \
+            -e CI \
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/go \
+            sh -c "make code-coverage"
+

@@ -3,10 +3,10 @@ name: README.md
 on:
   push:
     paths:
-    - 'bin/README.sh'
-    - '.github/workflows/*'
-    - 'templates/*'
-    - 'docs/*'
+      - '.github/workflows/*' # NOTE: this must include .github/workflows/.README.yml
+      - 'bin/README.sh'
+      - 'templates/*'
+      - 'docs/*'
   workflow_dispatch:
   repository_dispatch:
     types: [update-readme]
@@ -18,11 +18,11 @@ permissions:
 
 jobs:
   generate-readme:
-    uses: ./.github/workflows/README.yml
+    uses: ./.github/workflows/00-README.yml
     secrets: inherit
 
   post-to-slack:
     needs: [generate-readme]
     if: always()
-    uses: ./.github/workflows/post-to-slack.yml
+    uses: ./.github/workflows/99-post-to-slack.yml
     secrets: inherit
