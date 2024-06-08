@@ -1,57 +1,65 @@
 ---
 on:
   workflow_call:
-      inputs:
-        upload-code-coverage:
-          description: Uploads the generated code-coverage to a hosted location (eg. AWS S3).
-          type: boolean
-          default: true
+    # inputs:
+    #   upload-code-coverage:
+    #     description: Uploads the generated code-coverage to a hosted location (eg. AWS S3).
+    #     type: boolean
+    #     default: true
+    secrets:
+      AWS_REGION:
+        required: true
+      AWS_ACCOUNT_ID:
+        required: true
+      AWS_RUNNER_ROLE_NAME:
+        required: true
+      ADMIN_GITHUB_TOKEN:
+        required: true
 
 jobs:
   run:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout.
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup private Go dependencies.
         run: git config --global url."https://${{ secrets.ADMIN_GITHUB_TOKEN }}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
-        env:
-          GOSUMDB: off
 
       - name: Configure AWS.
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.AWS_RUNNER_ROLE_NAME }}
           role-session-name: github-actions
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Login to AWS ECR.
-        uses: aws-actions/amazon-ecr-login@v1.6.2
+        uses: aws-actions/amazon-ecr-login@v2
 
       - name: Test.
         run: |
+          img="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/go"
           echo "##[group]Pulling image."
-          docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/go
+          docker pull "$img"
           echo "##[endgroup]"
           docker run \
             -v "$PWD:/go/src/app" \
             -w "/go/src/app" \
             -e CI \
-            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/go \
+            "$img" \
             sh -c "make test"
 
-      # TODO: upload code coverage to S3.
-      - name: Uplood code-coverage.
-        if: ${{ inputs.upload-code-coverage }}
-        run: |
-          echo "##[group]Pulling image."
-          docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/go
-          echo "##[endgroup]"
-          docker run \
-            -v "$PWD:/go/src/app" \
-            -w "/go/src/app" \
-            -e CI \
-            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/go \
-            sh -c "make code-coverage"
+      # # TODO: upload code coverage to S3.
+      # - name: Uplood code-coverage.
+      #   if: ${{ inputs.upload-code-coverage }}
+      #   run: |
+      #     echo "##[group]Pulling image."
+      #     docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/go
+      #     echo "##[endgroup]"
+      #     docker run \
+      #       -v "$PWD:/go/src/app" \
+      #       -w "/go/src/app" \
+      #       -e CI \
+      #       ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/go \
+      #       sh -c "make code-coverage"
 
