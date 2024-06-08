@@ -1,19 +1,6 @@
 ---
 on:
   workflow_call:
-    inputs:
-      aws_account_id:
-        description: The ID of the AWS account used to pull the docker image from.
-        type: string
-        required: true
-      aws_region:
-        description: The AWS region to pull the docker image from.
-        type: string
-        required: true
-      aws_runner_role_name:
-        description: The name of the IAM role used to assume in the AWS account.
-        type: string
-        required: true
 
 jobs:
   run:
@@ -28,16 +15,16 @@ jobs:
       - name: Configure AWS.
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::104132128521:role/github-actions
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.AWS_RUNNER_ROLE_NAME }}
           role-session-name: github-actions
-          aws-region: ap-southeast-2
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Login to AWS ECR.
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Lint.
         run: |
-          img="${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com/go"
+          img="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/go"
           echo "##[group]Pulling image."
           docker pull "$img"
           echo "##[endgroup]"
