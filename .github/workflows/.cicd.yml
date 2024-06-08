@@ -34,15 +34,16 @@ jobs:
   test:
     uses: ./.github/workflows/20-test.yml
     secrets: inherit
-
-  dispatch:
-    needs: [lint, test]
-    if: contains(github.event.head_commit.message, '[dispatch]')
-    uses: ./.github/workflows/80-dispatch.yml
-    secrets: inherit
+  #
+  # dispatch:
+  #   needs: [lint, test]
+  #   if: contains(github.event.head_commit.message, '[dispatch]')
+  #   uses: ./.github/workflows/80-dispatch.yml
+  #   secrets: inherit
 
   post-to-slack:
-    needs: [dispatch]
+    needs: [lint, test]
+    # needs: [dispatch]
     if: always()
     uses: ./.github/workflows/99-post-to-slack.yml
     secrets: inherit
