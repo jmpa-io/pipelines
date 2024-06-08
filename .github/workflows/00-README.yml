@@ -9,25 +9,24 @@ jobs:
       - name: Checkout.
         uses: actions/checkout@v3
 
-      - name: Checkout roots.
-        if: github.repository != 'jmpa-io/roots'
+      - name: Checkout pipelines.
         uses: actions/checkout@v3
         with:
-          repository: jmpa-io/roots
+          repository: jmpa-io/pipelines
           ref: main
           token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
-          path: roots
+          path: pipelines
 
-      - name: Configure roots.
-        if: github.repository != 'jmpa-io/roots'
+      - name: Setup pipelines.
         run: |
           [[ -d bin ]] || { mkdir -p bin; }
           [[ -d cf ]] || { mkdir -p cf; }
+          [[ -d cmd ]] || { mkdir -p cmd; }
           [[ -d templates ]] || { mkdir -p templates; }
-          mv -n roots/bin/* bin/
-          mv -n roots/cf/* cf/
-          mv -n roots/templates/* templates/
-          mv -n roots/Makefile.common.mk ./
+          mv -n pipelines/bin/* bin
+          mv -n pipelines/cf/* cf
+          mv -n pipelines/cmd/* cmd
+          mv -n pipelines/templates/* templates
 
       - name: Configure AWS.
         uses: aws-actions/configure-aws-credentials@v2
@@ -39,7 +38,7 @@ jobs:
       - name: Login to AWS ECR.
         uses: aws-actions/amazon-ecr-login@v1.6.2
 
-      - name: Deploy.
+      - name: Generate README.md.
         run: |
           echo "##[group]Pulling image."
           docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/go
@@ -47,6 +46,13 @@ jobs:
           docker run \
             -v "$PWD:/go/src/app" \
             -w "/go/src/app" \
-            -e CI -e AWS_DEFAULT_REGION -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e AWS_SESSION_TOKEN \
+            -e CI -e GITHUB_REPOSITORY \
+            -e AWS_DEFAULT_REGION -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e AWS_SESSION_TOKEN \
             ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/go \
-            sh -c "make deploy"
+            sh -c "make generate-readme"
+
+      - name: Commit (if there are any changes).
+        uses: stefanzweifel/git-auto-commit-action@v4.16.0
+        with:
+          commit_message: "[skip ci] Updated README.md"
+          file_pattern: 'README.md'
