@@ -37,6 +37,7 @@ CF_FILES    := $(shell find ./cf $(IGNORE_SUBMODULES) -name 'template.yml' -type
 SAM_FILES	:= $(shell find ./cf $(IGNORE_SUBMODULES) -name 'template.yaml' -type f 2>/dev/null)
 CF_DIRS     := $(shell find ./cf $(IGNORE_SUBMODULES) -mindepth 1 -maxdepth 1 -type d 2>/dev/null)
 CMD_DIRS    := $(shell find ./cmd $(IGNORE_SUBMODULES) -mindepth 1 -maxdepth 1 -type d 2>/dev/null)
+WORKFLOW_FILES := $(shell find .github/workflows $(IGNORE_SUBMODULES) -mindepth 1 -maxdepth 1 -name '*.yml' -type f 2>/dev/null)
 IMAGES      := $(patsubst .,$(PROJECT),$(patsubst ./%,%,$(shell find . -name 'Dockerfile' -type f -exec dirname {} \; 2>/dev/null)))
 
 # Submodules.
@@ -123,6 +124,16 @@ ifeq ($(DOCKER_FILES),)
 	@echo "No Dockerfiles to lint."
 else
 	find . -type f -name 'Dockerfile' -exec hadolint '{}' \; || true
+endif
+	@test -z "$(CI)" || echo "##[endgroup]"
+
+.PHONY: lint-workflows
+lint-workflows: ## Lints GitHub Action workflows.
+	@test -z "$(CI)" || echo "##[group]Linting GitHub Action workflows."
+ifeq ($(WORKFLOW_FILES),)
+	@echo "No GitHub Action workflows to lint."
+else
+	find .github/workflows -mindepth 1 -maxdepth 1 -name '*.yml' -type f -exec actionlint '{}' \; || true
 endif
 	@test -z "$(CI)" || echo "##[endgroup]"
 
@@ -379,6 +390,10 @@ list-cf: # Lists ALL dirs under ./cf.
 .PHONY: list-cmd
 list-cmd: # Lists ALL dirs under ./cmd.
 	@echo $(CMD_DIRS)
+
+.PHONY: list-workflows
+list-workflows: # Lists ALL workflows under the '.github/workflows' directory.
+	@echo $(WORKFLOW_FILES)
 
 .PHONY: list-binaries
 list-binaries: # Lists ALL binary targets and their output directories.
