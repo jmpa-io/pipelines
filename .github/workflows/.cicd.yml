@@ -23,27 +23,19 @@ jobs:
   lint:
     uses: ./.github/workflows/10-lint.yml
     secrets:
-      aws_region: ${{ secrets.AWS_REGION }}
-      aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
-      aws_runner_role_name: ${{ secrets.AWS_RUNNER_ROLE_NAME }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+      AWS_RUNNER_ROLE_NAME: ${{ secrets.AWS_RUNNER_ROLE_NAME }}
 
   test:
     uses: ./.github/workflows/20-test.yml
     secrets: inherit
-    with:
-      aws-region: ${{ secrets.AWS_REGION }}
-      aws-account-id: ${{ secrets.AWS_ACCOUNT_ID }}
-      aws-runner-role-name: ${{ secrets.AWS_RUNNER_ROLE_NAME }}
 
   dispatch:
     needs: [lint, test]
     if: contains(github.event.head_commit.message, "[dispatch]")
     uses: ./.github/workflows/80-dispatch.yml
     secrets: inherit
-    with:
-      aws-region: ${{ secrets.AWS_REGION }}
-      aws-account-id: ${{ secrets.AWS_ACCOUNT_ID }}
-      aws-runner-role-name: ${{ secrets.AWS_RUNNER_ROLE_NAME }}
 
   post-to-slack:
     needs: [dispatch]
