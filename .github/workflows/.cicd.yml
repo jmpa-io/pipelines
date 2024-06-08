@@ -22,8 +22,7 @@ permissions:
 jobs:
   lint:
     uses: ./.github/workflows/10-lint.yml
-    secrets: inherit
-    with:
+    secrets:
       aws_region: ${{ secrets.AWS_REGION }}
       aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
       aws_runner_role_name: ${{ secrets.AWS_RUNNER_ROLE_NAME }}
