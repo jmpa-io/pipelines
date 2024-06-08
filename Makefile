@@ -3,10 +3,10 @@ ifndef PROJECT
 PROJECT=pipelines
 endif
 
-AWS_ACCOUNT_ID := $(shell aws sts get-caller-identity --query 'Account' --output text)
-AWS_REGION := $(shell aws configure get region)
-AWS_RUNNER_ROLE_NAME := $(shell aws ssm get-parameter --name '/oidc/iam-role-name' --query 'Parameter.Value' --output text --with-decryption)
-
+# AWS_ACCOUNT_ID := $(shell aws sts get-caller-identity --query 'Account' --output text)
+# AWS_REGION := $(shell aws configure get region)
+# AWS_RUNNER_ROLE_NAME := $(shell aws ssm get-parameter --name '/oidc/iam-role-name' --query 'Parameter.Value' --output text --with-decryption)
+#
 ---: ## ---
 
 dispatch: ## Dispatches an event to ALL the repositories in the $ORG; This will trigger the CI/CD workflow to run per repository.
