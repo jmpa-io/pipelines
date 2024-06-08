@@ -1,6 +1,13 @@
 ---
 on:
   workflow_call:
+    secrets:
+      AWS_REGION:
+        required: true
+      AWS_ACCOUNT_ID:
+        required: true
+      AWS_RUNNER_ROLE_NAME:
+        required: true
 
 jobs:
   run:
