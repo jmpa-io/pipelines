@@ -15,6 +15,7 @@ SHELL          					= /bin/sh # The shell to use for executing commands.
 ENVIRONMENT     				?= dev # The environment to deploy to.
 COMMIT          				= $(shell git describe --tags --always) # The git commit hash.
 REPO            				= $(shell basename $(shell git rev-parse --show-toplevel)) # The name of the repository.
+ORG								?= jmpa-io # The name of the GitHub organization commonly used.
 COMMA							:= , # Used for if conditions in Make where a comma is needed.
 OS 								:= $(shell uname | tr '[:upper:]' '[:lower:]') # The operating system the Makefile is being executed on.
 BUILDING_OS 					?= $(OS) # The operating system used when building binaries.
@@ -36,6 +37,7 @@ CF_FILES    := $(shell find ./cf $(IGNORE_SUBMODULES) -name 'template.yml' -type
 SAM_FILES	:= $(shell find ./cf $(IGNORE_SUBMODULES) -name 'template.yaml' -type f 2>/dev/null)
 CF_DIRS     := $(shell find ./cf $(IGNORE_SUBMODULES) -mindepth 1 -maxdepth 1 -type d 2>/dev/null)
 CMD_DIRS    := $(shell find ./cmd $(IGNORE_SUBMODULES) -mindepth 1 -maxdepth 1 -type d 2>/dev/null)
+WORKFLOW_FILES := $(shell find .github/workflows $(IGNORE_SUBMODULES) -mindepth 1 -maxdepth 1 -name '*.yml' -type f 2>/dev/null)
 IMAGES      := $(patsubst .,$(PROJECT),$(patsubst ./%,%,$(shell find . -name 'Dockerfile' -type f -exec dirname {} \; 2>/dev/null)))
 
 # Submodules.
@@ -53,7 +55,7 @@ AWS_REGION      ?= ap-southeast-2
 STACK_NAME      = $(PROJECT)-$*
 AWS_ACCOUNT_ID	?= $(shell aws sts get-caller-identity --query 'Account' --output text)
 ECR             = $$(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com
-BUCKET			?= jmpa-io-artifacts
+BUCKET			?= $(ORG)-artifacts
 
 # Funcs.
 get_last_element = $(lastword $(subst /, ,$1)) # Splits a string by '/' and retrieves the last element in the given array.
@@ -73,7 +75,14 @@ endif
 # ┴─┘┴ ┘└┘ ┴
 
 .PHONY: lint
-lint: lint-sh lint-go lint-cf lint-sam lint-docker ## ** Lints everything.
+lint: ## ** Lints everything.
+lint: \
+	lint-sh \
+	lint-go \
+	lint-cf \
+	lint-sam \
+	lint-docker \
+	lint-workflows
 
 .PHONY: lint-sh
 lint-sh: ## Lints shell files.
@@ -122,6 +131,16 @@ ifeq ($(DOCKER_FILES),)
 	@echo "No Dockerfiles to lint."
 else
 	find . -type f -name 'Dockerfile' -exec hadolint '{}' \; || true
+endif
+	@test -z "$(CI)" || echo "##[endgroup]"
+
+.PHONY: lint-workflows
+lint-workflows: ## Lints GitHub Action workflows.
+	@test -z "$(CI)" || echo "##[group]Linting GitHub Action workflows."
+ifeq ($(WORKFLOW_FILES),)
+	@echo "No GitHub Action workflows to lint."
+else
+	find .github/workflows -mindepth 1 -maxdepth 1 -name '*.yml' -type f -exec actionlint '{}' \; || true
 endif
 	@test -z "$(CI)" || echo "##[endgroup]"
 
@@ -338,7 +357,7 @@ clean: ## Removes generated files and folders, resetting this repository back to
 help: ## Prints this help page.
 	@echo "Available targets:"
 	@awk_script='\
-		/^[a-zA-Z\-\_0-9%\/$$]+:/ { \
+		/^[a-zA-Z\-\\_0-9%\/$$]+:/ { \
 			target = $$1; \
 			gsub("\\$$1", "%", target); \
 			nb = sub(/^## /, "", helpMessage); \
@@ -355,6 +374,14 @@ help: ## Prints this help page.
 # │  │└─┐ │
 # ┴─┘┴└─┘ ┴
 
+.PHONY: list-project
+list-project: # Lists the project name used within the Makefile.
+	@echo $(PROJECT)
+
+.PHONY: list-org
+list-org: # Lists the GitHub organization used within the Makefile.
+	@echo $(ORG)
+
 .PHONY: list-sh
 list-sh: # Lists ALL shell scripts under the current directory.
 	@echo $(SH_FILES)
@@ -370,6 +397,10 @@ list-cf: # Lists ALL dirs under ./cf.
 .PHONY: list-cmd
 list-cmd: # Lists ALL dirs under ./cmd.
 	@echo $(CMD_DIRS)
+
+.PHONY: list-workflows
+list-workflows: # Lists ALL workflows under the '.github/workflows' directory.
+	@echo $(WORKFLOW_FILES)
 
 .PHONY: list-binaries
 list-binaries: # Lists ALL binary targets and their output directories.

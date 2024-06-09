@@ -23,7 +23,7 @@ aws sts get-caller-identity &>/dev/null \
   || die "unable to connect to AWS; are you authed?"
 
 # does the dist directory exist?
-path="dist"
+path="dist"bEND
 [[ -d "$path" ]] \
   || die "missing $path"
 
