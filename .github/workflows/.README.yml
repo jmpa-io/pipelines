@@ -19,7 +19,11 @@ permissions:
 jobs:
   generate-readme:
     uses: ./.github/workflows/00-README.yml
-    secrets: inherit
+    secrets:
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+      AWS_RUNNER_ROLE_NAME: ${{ secrets.AWS_RUNNER_ROLE_NAME }}
+      ADMIN_GITHUB_TOKEN: ${{ secrets.ADMIN_GITHUB_TOKEN }}
 
   post-to-slack:
     needs: [generate-readme]

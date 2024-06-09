@@ -1,42 +1,49 @@
 ---
 on:
   workflow_call:
+    secrets:
+      AWS_REGION:
+        required: true
+      AWS_ACCOUNT_ID:
+        required: true
+      AWS_RUNNER_ROLE_NAME:
+        required: true
+      ADMIN_GITHUB_TOKEN:
+        required: true
 
 jobs:
   run:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout.
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Checkout pipelines.
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
+          token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
           repository: jmpa-io/pipelines
           ref: main
-          token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
           path: pipelines
 
       - name: Setup pipelines.
         run: |
           [[ -d bin ]] || { mkdir -p bin; }
-          [[ -d cf ]] || { mkdir -p cf; }
           [[ -d cmd ]] || { mkdir -p cmd; }
           [[ -d templates ]] || { mkdir -p templates; }
           mv -n pipelines/bin/* bin
-          mv -n pipelines/cf/* cf
           mv -n pipelines/cmd/* cmd
           mv -n pipelines/templates/* templates
 
       - name: Configure AWS.
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.AWS_RUNNER_ROLE_NAME }}
           role-session-name: github-actions
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Login to AWS ECR.
-        uses: aws-actions/amazon-ecr-login@v1.6.2
+        uses: aws-actions/amazon-ecr-login@v2
 
       - name: Generate README.md.
         run: |
