@@ -8,8 +8,6 @@ on:
         required: true
       AWS_RUNNER_ROLE_NAME:
         required: true
-      GITHUB_TOKEN:
-        required: true
 
 jobs:
   run:
