@@ -30,10 +30,10 @@ jobs:
         run: |
           [[ -d bin ]] || { mkdir -p bin; }
           [[ -d cmd ]] || { mkdir -p cmd; }
-          [[ -d templates ]] || { mkdir -p templates; }
+          # [[ -d templates ]] || { mkdir -p templates; }
           mv -n pipelines/bin/* bin
           mv -n pipelines/cmd/* cmd
-          mv -n pipelines/templates/* templates
+          # mv -n pipelines/templates/* templates
 
       - name: Configure AWS.
         uses: aws-actions/configure-aws-credentials@v4
