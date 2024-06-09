@@ -9,9 +9,7 @@
 # `roots`
 
 ```diff
-+ 🌱 A monorepo used to store org-wide resources used by other repositories in
-+ this org, such as pipelines, scripts, mechanisms to deploy, and templates. Used
-+ in conjunction with https://github.com/jmpa-io/root-template.
++ TODO
 ```
 
 ## `scripts`
@@ -20,6 +18,7 @@
 
 Script|Description
 :---|:---
+[bin/00-dispatch.sh](bin/00-dispatch.sh) | Trigger a repository_dispatch event in ALL repositories in a given GitHub org.
 [bin/30-deploy.sh](bin/30-deploy.sh) | Deploys the given cloudformation template to the authed AWS account.
 [bin/40-sync.sh](bin/40-sync.sh) | Uploads the dist directory to an expected S3 bucket in the authed AWS account.
 [bin/README.sh](bin/README.sh) | Generates a README.md, using a README.md template.
