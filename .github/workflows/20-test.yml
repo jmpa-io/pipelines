@@ -13,7 +13,7 @@ on:
         required: true
       AWS_RUNNER_ROLE_NAME:
         required: true
-      ADMIN_GITHUB_TOKEN:
+      GITHUB_TOKEN:
         required: true
 
 jobs:
@@ -24,7 +24,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup private Go dependencies.
-        run: git config --global url."https://${{ secrets.ADMIN_GITHUB_TOKEN }}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
+        run: git config --global url."https://${{ secrets.GITHUB_TOKEN }}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
 
       - name: Configure AWS.
         uses: aws-actions/configure-aws-credentials@v4
