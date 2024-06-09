@@ -51,5 +51,6 @@ jobs:
     # needs: [dispatch]
     if: always()
     uses: ./.github/workflows/99-post-to-slack.yml
-    secrets: inherit
+    secrets:
+      WEBHOOK: ${{ secrets.SLACK_GITHUB_NOTIFICATIONS_WEBHOOK }}
 
