@@ -1,6 +1,9 @@
 ---
 on:
   workflow_call:
+    secrets:
+      WEBHOOK:
+        required: true
 
 jobs:
   determine-conclusion:
@@ -19,5 +22,5 @@ jobs:
     steps:
       - uses: jmpa-io/post-to-slack@main
         with:
-          webhook: ${{ secrets.SLACK_GITHUB_NOTIFICATIONS_WEBHOOK }}
+          webhook: ${{ secrets.WEBHOOK }}
           status: ${{ needs.determine-conclusion.outputs.conclusion }}
