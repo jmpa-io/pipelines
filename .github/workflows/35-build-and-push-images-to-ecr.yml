@@ -1,30 +1,32 @@
 ---
 on:
   workflow_call:
-    inputs:
-      aws-region:
-        description: The AWS region to deploy to.
+    secrets:
+      AWS_REGION:
         required: true
-        type: string
+      AWS_ACCOUNT_ID:
+        required: true
+      AWS_RUNNER_ROLE_NAME:
+        required: true
+      GITHUB_TOKEN:
+        required: true
 
 jobs:
   run:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout.
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Configure AWS.
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.AWS_RUNNER_ROLE_NAME }}
           role-session-name: github-actions
-          aws-region: ${{ inputs.aws-region }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Login to AWS ECR.
-        uses: aws-actions/amazon-ecr-login@v1.6.2
-        with:
-          aws-region: ${{ inputs.aws-region }}
+        uses: aws-actions/amazon-ecr-login@v2
 
       # NOTE: This step should NOT run inside a docker container, since this
         #     step is intented to build ocker images as artefacts (i.e these
@@ -33,6 +35,4 @@ jobs:
         #     writing, we want to avoid docker-in-docker because of the complexity.
       - name: Build images & push images to AWS ECR.
         run: make push
-        env:
-          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID}}
 
