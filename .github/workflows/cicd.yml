@@ -21,15 +21,25 @@ permissions:
 
 jobs:
   lint:
-    uses: jmpa-io/roots/.github/workflows/lint.yml@main
-    secrets: inherit
+    uses: jmpa-io/pipelines/.github/workflows/10-lint.yml@main
+    secrets:
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+      AWS_RUNNER_ROLE_NAME: ${{ secrets.AWS_RUNNER_ROLE_NAME }}
+      ADMIN_GITHUB_TOKEN: ${{ secrets.ADMIN_GITHUB_TOKEN }}
 
   test:
-    uses: jmpa-io/roots/.github/workflows/test.yml@main
-    secrets: inherit
+    uses: jmpa-io/pipelines/.github/workflows/20-test.yml@main
+    secrets:
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+      AWS_RUNNER_ROLE_NAME: ${{ secrets.AWS_RUNNER_ROLE_NAME }}
+      ADMIN_GITHUB_TOKEN: ${{ secrets.ADMIN_GITHUB_TOKEN }}
 
   post-to-slack:
     needs: [lint, test]
     if: always()
-    uses: jmpa-io/roots/.github/workflows/post-to-slack.yml@main
-    secrets: inherit
+    uses: jmpa-io/pipelines/.github/workflows/99-post-to-slack.yml@main
+    secrets:
+      WEBHOOK: ${{ secrets.SLACK_GITHUB_NOTIFICATIONS_WEBHOOK }}
+

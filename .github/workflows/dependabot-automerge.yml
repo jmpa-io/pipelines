@@ -1,5 +1,5 @@
 ---
-name: Dependabot auto-merge
+name: Dependabot Auto-merge
 on:
   pull_request:
     types: [opened, synchronize]
@@ -15,4 +15,4 @@ permissions:
 jobs:
   dependabot-automerge:
     if: startsWith(github.head_ref, 'dependabot/')
-    uses: jmpa-io/roots/.github/workflows/dependabot-automerge.yml@main
+    uses: jmpa-io/pipelines/.github/workflows/00-dependabot-automerge.yml@main
