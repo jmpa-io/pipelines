@@ -38,6 +38,7 @@ jobs:
 
           # extract project name.
           echo PROJECT=$(awk -F= '/^PROJECT=/ {print $2}' Makefile) >> "$GITHUB_ENV"
+          echo REPOSITORY=$GITHUB_REPOSITORY >> "$GITHUB_ENV"
 
           # overwrite the Makefile.
           mv -f templates/Makefile Makefile
@@ -61,11 +62,11 @@ jobs:
           docker run \
             -v "$PWD:/go/src/app" \
             -w "/go/src/app" \
-            -e CI -e GITHUB_REPOSITORY \
+            -e CI -e GITHUB_REPOSITORY -e REPOSITORY \
             -e PROJECT \
             -e AWS_DEFAULT_REGION -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e AWS_SESSION_TOKEN \
             ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/go \
-            sh -c "echo $GITHUB_REPOSITORY | make generate-README"
+            sh -c "echo --> $GITHUB_REPOSITORY $REPOSITORY | make generate-README"
 
       - name: Commit (if there are any changes).
         uses: stefanzweifel/git-auto-commit-action@v4.16.0
