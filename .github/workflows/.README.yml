@@ -3,8 +3,8 @@ name: README.md
 on:
   push:
     paths:
-      - '.github/workflows/*' # NOTE: this must include .github/workflows/.README.yml
-      - 'bin/README.sh'
+      # NOTE: this section must always include '.github/workflows/README.yml'.
+      - '.github/workflows/*'
       - 'templates/*'
       - 'docs/*'
   workflow_dispatch:
