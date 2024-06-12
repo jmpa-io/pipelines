@@ -1,5 +1,5 @@
 ---
-name: Dependabot Auto-merge
+name: Dependabot | Auto-merge
 on:
   pull_request:
     types: [opened, synchronize]
