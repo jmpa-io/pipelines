@@ -7,7 +7,7 @@ endif
 SERVICES =
 # TODO: fill these out with services to deploy.
 
-# Targets:
+# Targets.
 # TODO: fill these out with Make targets.
 
 ---: ## ---
