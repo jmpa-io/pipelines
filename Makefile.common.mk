@@ -105,11 +105,11 @@ BINARIES_OUTPUT_DIRECTORIES = $(addprefix dist/,$(CMD_DIRS))
 # ---- Submodules ----
 
 # The paths to any given submodules found in this repository.
-SUBMODULES 			:= $(shell git config --file $(shell while [[ ! -d .git ]]; do cd ..; done; pwd)/.gitmodules --get-regexp path | awk '{ print $$2 }')
+SUBMODULES := $(shell git config --file $(shell while [[ ! -d .git ]]; do cd ..; done; pwd)/.gitmodules --get-regexp path | awk '{ print $$2 }')
 
 # A space separated list of submodules to ignore when using 'find' commands in
 # this Makefile.
-IGNORE_SUBMODULES 	= $(foreach module,$(SUBMODULES),-not \( -path "./$(module)" -o -path "./$(module)/*" \))
+IGNORE_SUBMODULES = $(foreach module,$(SUBMODULES),-not \( -path "./$(module)" -o -path "./$(module)/*" \))
 
 # ---- AWS ----
 
