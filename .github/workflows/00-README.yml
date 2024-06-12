@@ -18,22 +18,26 @@ jobs:
       - name: Checkout.
         uses: actions/checkout@v4
 
-      - name: Checkout pipelines.
+      - name: Checkout templates.
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
-          repository: jmpa-io/pipelines
+          repository: jmpa-io/templates
           ref: main
-          path: pipelines
+          path: template
 
-      - name: Setup pipelines.
+      - name: Setup templates.
         run: |
+          # create directories, if necessary.
           [[ -d bin ]] || { mkdir -p bin; }
-          [[ -d cmd ]] || { mkdir -p cmd; }
-          # [[ -d templates ]] || { mkdir -p templates; }
-          mv -n pipelines/bin/* bin
-          mv -n pipelines/cmd/* cmd
-          # mv -n pipelines/templates/* templates
+          [[ -d templates ]] || { mkdir -p templates; }
+
+          # copy contents to directories, but don't overwrite any existing files.
+          mv -n templates/bin/* bin
+          mv -n templates/templates/* templates
+
+          # overwrite the Makefile though,
+          mv -f templates/Makefile Makefile
 
       - name: Configure AWS.
         uses: aws-actions/configure-aws-credentials@v4
@@ -56,7 +60,7 @@ jobs:
             -e CI -e GITHUB_REPOSITORY \
             -e AWS_DEFAULT_REGION -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e AWS_SESSION_TOKEN \
             ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/go \
-            sh -c "make generate-readme"
+            sh -c "make generate-README"
 
       - name: Commit (if there are any changes).
         uses: stefanzweifel/git-auto-commit-action@v4.16.0
