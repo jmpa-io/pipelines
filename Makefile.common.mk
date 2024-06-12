@@ -1,78 +1,173 @@
+
 #
-# This Makefile is generic across all repositories:
+# This Makefile is generic across ALL repositories:
 # https://github.com/jmpa-io/root-template/blob/main/Makefile.common.mk
 #
 # See the bottom for additional notes.
 #
 
-# Check project variables are given.
+# The name of the project.
 ifndef PROJECT
 $(error PROJECT not defined, missing from Makefile?)
-endif
-
-# Variables.
-SHELL          					= /bin/sh # The shell to use for executing commands.
-ENVIRONMENT     				?= dev # The environment to deploy to.
-COMMIT          				= $(shell git describe --tags --always) # The git commit hash.
-REPO            				= $(shell basename $(shell git rev-parse --show-toplevel)) # The name of the repository.
-ORG								?= jmpa-io # The name of the GitHub organization commonly used.
-COMMA							:= , # Used for if conditions in Make where a comma is needed.
-OS 								:= $(shell uname | tr '[:upper:]' '[:lower:]') # The operating system the Makefile is being executed on.
-BUILDING_OS 					?= $(OS) # The operating system used when building binaries.
-SUPPORTED_OPERATING_SYSTEMS 	= linux,darwin # A list of operating systems that can be used when building binaries.
-
-# Setup OS specific variables.
-ifeq ($(OS),linux)
-	SED_FLAGS 	= -i
-	FILE_SIZE 	= $(shell stat -c '%s' $<)
-else ifeq ($(OS),darwin)
-	SED_FLAGS 	= -i ''
-	FILE_SIZE	= $(shell stat -f '%z' $<)
-endif
-
-# Files + Directories.
-SH_FILES    := $(shell find . $(IGNORE_SUBMODULES) -name "*.sh" -type f 2>/dev/null)
-GO_FILES	:= $(shell find . $(IGNORE_SUBMODULES) -name "*.go" -type f 2>/dev/null)
-CF_FILES    := $(shell find ./cf $(IGNORE_SUBMODULES) -name 'template.yml' -type f 2>/dev/null)
-SAM_FILES	:= $(shell find ./cf $(IGNORE_SUBMODULES) -name 'template.yaml' -type f 2>/dev/null)
-CF_DIRS     := $(shell find ./cf $(IGNORE_SUBMODULES) -mindepth 1 -maxdepth 1 -type d 2>/dev/null)
-CMD_DIRS    := $(shell find ./cmd $(IGNORE_SUBMODULES) -mindepth 1 -maxdepth 1 -type d 2>/dev/null)
-WORKFLOW_FILES := $(shell find .github/workflows $(IGNORE_SUBMODULES) -mindepth 1 -maxdepth 1 -name '*.yml' -type f 2>/dev/null)
-IMAGES      := $(patsubst .,$(PROJECT),$(patsubst ./%,%,$(shell find . -name 'Dockerfile' -type f -exec dirname {} \; 2>/dev/null)))
-
-# Submodules.
-SUBMODULES 			:= $(shell git config --file $(shell while [[ ! -d .git ]]; do cd ..; done; pwd)/.gitmodules --get-regexp path | awk '{ print $$2 }')
-IGNORE_SUBMODULES 	= $(foreach module,$(SUBMODULES),-not \( -path "./$(module)" -o -path "./$(module)/*" \))
-
-# Binaries.
-CMD_DIRS 					= $(shell find cmd/* -name main.go -maxdepth 1 -type f -exec dirname {} \; 2>/dev/null | awk -F/ '{$$1=""; sub(/^ /, ""); print $$0}')
-CMD_SOURCE 					= $(addprefix cmd/,$(CMD_DIRS))
-BINARIES_TARGETS 			= $(addprefix binary-,$(CMD_DIRS))
-BINARIES_OUTPUT_DIRECTORIES = $(addprefix dist/,$(CMD_DIRS))
-
-# AWS.
-AWS_REGION      ?= ap-southeast-2
-STACK_NAME      = $(PROJECT)-$*
-AWS_ACCOUNT_ID	?= $(shell aws sts get-caller-identity --query 'Account' --output text)
-ECR             = $$(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com
-BUCKET			?= $(ORG)-artifacts
-
-# Funcs.
-get_last_element = $(lastword $(subst /, ,$1)) # Splits a string by '/' and retrieves the last element in the given array.
-
-# Check deps.
-ifndef CI
-EXECUTABLES ?= awk aws cfn-lint column find go golangci-lint grep hadolint sam zip
-MISSING := $(strip $(foreach bin,$(EXECUTABLES),$(if $(shell command -v $(bin) 2>/dev/null),,$(bin))))
-$(if $(MISSING),$(error Please install: $(MISSING)))
 endif
 
 # The default command executed when running `make`.
 .DEFAULT_GOAL:=	help
 
-# ┬  ┬ ┌┐┌┌┬┐
-# │  │ │││ │
-# ┴─┘┴ ┘└┘ ┴
+#
+# ┬  ┬┌─┐┬─┐┬┌─┐┌┐ ┬  ┌─┐┌─┐
+# └┐┌┘├─┤├┬┘│├─┤├┴┐│  ├┤ └─┐
+#  └┘ ┴ ┴┴└─┴┴ ┴└─┘┴─┘└─┘└─┘o
+#
+
+# The shell used for executing commands.
+SHELL = /bin/sh
+
+# The environment used when deploying; This can affect which config is used when deploying.
+ENVIRONMENT ?= dev # The environment to deploy to.
+
+# The git commit hash.
+COMMIT = $(shell git describe --tags --always)
+
+# The name of this repository.
+REPO = $(shell basename $(shell git rev-parse --show-toplevel))
+
+# The name of the GitHub organization commonly used.
+ORG ?= jmpa-io
+
+# The operating system this Makefile is being executed on.
+OS := $(shell uname | tr '[:upper:]' '[:lower:]')
+
+# The operating system used when building binaries.
+BUILDING_OS ?= $(OS)
+
+# A comma separated list of operating systems that can be used when building binaries.
+SUPPORTED_OPERATING_SYSTEMS = linux,darwin
+
+# Used for 'if' conditions in Make where a comma is needed.
+COMMA := ,
+
+# Linux specific variables.
+ifeq ($(OS),linux)
+
+	# Flags used when doing certain 'sed' commands.
+	SED_FLAGS = -i
+
+	# Command used to determine the size of a given file.
+	FILE_SIZE = $(shell stat -c '%s' $<)
+
+# Darwin specific variables.
+else ifeq ($(OS),darwin)
+
+	# Flags used when doing certain 'sed' commands.
+	SED_FLAGS = -i ''
+
+	# Command used to determine the size of a given file.
+	FILE_SIZE = $(shell stat -f '%z' $<)
+
+endif
+
+# ---- Files & Directories ----
+
+# A list of shell scripts under ALL paths (except submodules) in this repository.
+SH_FILES := $(shell find . $(IGNORE_SUBMODULES) -name "*.sh" -type f 2>/dev/null)
+
+# A list of Go files under ALL paths (except submodules) in this repository.
+GO_FILES := $(shell find . $(IGNORE_SUBMODULES) -name "*.go" -type f 2>/dev/null)
+
+# A list of Cloudformation templates under './cf' (except submodules) in this repository.
+CF_FILES := $(shell find ./cf $(IGNORE_SUBMODULES) -name 'template.yml' -type f 2>/dev/null)
+
+# A list of SAM templates under './cf' (except submodules) in this repository.
+SAM_FILES := $(shell find ./cf $(IGNORE_SUBMODULES) -name 'template.yaml' -type f 2>/dev/null)
+
+# A list of directories under './cf' (except submodules) housing Cloudformation templates.
+CF_DIRS := $(shell find ./cf $(IGNORE_SUBMODULES) -mindepth 1 -maxdepth 1 -type d 2>/dev/null)
+
+# A list of workflows under '.github/workflows' (except submodules) in this repository.
+WORKFLOW_FILES := $(shell find .github/workflows $(IGNORE_SUBMODULES) -mindepth 1 -maxdepth 1 -name '*.yml' -type f 2>/dev/null)
+
+# A list of Dockerfiles under ALL paths (except submodules) in this repository.
+IMAGES := $(patsubst .,$(PROJECT),$(patsubst ./%,%,$(shell find . -name 'Dockerfile' -type f -exec dirname {} \; 2>/dev/null)))
+
+# A list of directories under './cmd' that contain 'main.go'.
+CMD_DIRS = $(shell find cmd/* -name main.go -maxdepth 1 -type f -exec dirname {} \; 2>/dev/null | awk -F/ '{$$1=""; sub(/^ /, ""); print $$0}')
+
+# Adds 'cmd/' to each directory found under $(CMD_DIRS).
+CMD_SOURCE = $(addprefix cmd/,$(CMD_DIRS))
+
+# Adds 'binary-' to each directory found under $(CMD_DIRS).
+BINARIES_TARGETS = $(addprefix binary-,$(CMD_DIRS))
+
+# Adds 'dist/' to each directory found under $(CMD_DIRS).
+BINARIES_OUTPUT_DIRECTORIES = $(addprefix dist/,$(CMD_DIRS))
+
+# ---- Submodules ----
+
+# The paths to any given submodules found in this repository.
+SUBMODULES := $(shell git config --file $(shell while [[ ! -d .git ]]; do cd ..; done; pwd)/.gitmodules --get-regexp path | awk '{ print $$2 }')
+
+# A space separated list of submodules to ignore when using 'find' commands in
+# this Makefile.
+IGNORE_SUBMODULES = $(foreach module,$(SUBMODULES),-not \( -path "./$(module)" -o -path "./$(module)/*" \))
+
+# ---- AWS ----
+
+# The region used when deploying a Cloudformation stack, or doing some things
+# via the aws-cli, in the authed AWS account.
+AWS_REGION ?= ap-southeast-2
+
+# The Cloudformation stack name used when deploying a Cloudformation stack to
+# the authed AWS account.
+STACK_NAME = $(PROJECT)-$*
+
+# The id of the authed AWS account.
+AWS_ACCOUNT_ID ?= $(shell aws sts get-caller-identity --query 'Account' --output text)
+
+# The default path to an AWS ECR repository for the authed AWS account.
+ECR = $$(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com
+
+# The name of a generic S3 bucket in the authed AWS account.
+# TODO: should this be an AWS SSM Parameter Store path?
+BUCKET ?= $(ORG)-artifacts
+
+#
+# ┌─┐┬ ┬┌┐┌┌─┐┌┬┐┬┌─┐┌┐┌┌─┐
+# ├┤ │ │││││   │ ││ ││││└─┐
+# └  └─┘┘└┘└─┘ ┴ ┴└─┘┘└┘└─┘o
+#
+
+# Splits a string by '/' and retrieves the last element in the given array.
+get_last_element = $(lastword $(subst /, ,$1))
+
+#
+# ┌┬┐┌─┐┌─┐┌─┐┌┐┌┌┬┐┌─┐┌┐┌┌─┐┬┌─┐┌─┐
+#  ││├┤ ├─┘├┤ │││ ││├┤ ││││  │├┤ └─┐
+# ─┴┘└─┘┴  └─┘┘└┘─┴┘└─┘┘└┘└─┘┴└─┘└─┘o
+#
+
+ifndef CI
+EXECUTABLES ?= \
+	awk \
+	aws \
+	cfn-lint \
+	column \
+	find \
+	go \
+	golangci-lint \
+	grep \
+	hadolint \
+	sam \
+	zip
+MISSING := $(strip $(foreach bin,$(EXECUTABLES),$(if $(shell command -v $(bin) 2>/dev/null),,$(bin))))
+$(if $(MISSING),$(error Please install: $(MISSING)))
+endif
+
+#
+# ┬  ┬┌┐┌┌┬┐
+# │  ││││ │
+# ┴─┘┴┘└┘ ┴ o
+#
 
 .PHONY: lint
 lint: ## ** Lints everything.
@@ -144,19 +239,24 @@ else
 endif
 	@test -z "$(CI)" || echo "##[endgroup]"
 
+#
 # ┌┬┐┌─┐┌─┐┌┬┐
 #  │ ├┤ └─┐ │
-#  ┴ └─┘└─┘ ┴
+#  ┴ └─┘└─┘ ┴ o
+#
 
 .PHONY: test
-test: test-go ## ** Tests everything.
+test: ## ** Tests everything.
+test: \
+	test-go
 
 .PHONY: test-go
-test-go: dist/coverage.txt ## Runs Go tests.
+test-go: ## Runs Go tests.
+test-go: dist/coverage.txt
 dist/coverage.txt: dist
 	@test -z "$(CI)" || echo "##[group]Unit tests."
 ifeq ($(GO_FILES),)
-	@echo "No *.go files to test."
+	@echo "No *.go files to test or generate code-coverage."
 else
 	@go version
 	CGO_ENABLED=1 go test -short -coverprofile=$@ \
@@ -165,7 +265,8 @@ endif
 	@test -z "$(CI)" || echo "##[endgroup]"
 
 .PHONY: code-coverage
-code-coverage: dist/coverage.txt ## Generates a Go code coverage report, broken-down by function, to stdout.
+code-coverage: ## Generate a Go code coverage report, broken down by function.
+code-coverage: dist/coverage.txt
 	@if [[ -f $< ]]; then \
 		test -z "$(CI)" || echo "##[group]Code coverage."; \
 		go tool cover -func=$<; \
@@ -173,18 +274,24 @@ code-coverage: dist/coverage.txt ## Generates a Go code coverage report, broken-
 	fi
 
 .PHONY: code-coverage-html
-code-coverage-html: dist/coverage.txt ## Generates a Go code HTML coverage report, rendered in the default browser.
+code-coverage-html: ## Generate a Go code HTML coverage report, rendered in the default browser.
+code-coverage-html: dist/coverage.txt
 	@if [[ -f $< ]]; then \
 		go tool cover -html=$<; \
 	fi
 
+#
 # ┌┐ ┬┌┐┌┌─┐┬─┐┬┌─┐┌─┐
 # ├┴┐││││├─┤├┬┘│├┤ └─┐
-# └─┘┴┘└┘┴ ┴┴└─┴└─┘└─┘
+# └─┘┴┘└┘┴ ┴┴└─┴└─┘└─┘o
+#
 
-.PHONY: binaries binaries-all
-binaries: $(BINARIES_TARGETS) ## ** Builds ALL binaries for the $(BUILDING_OS) environment.
-binaries-all:  ## ** Builds ALL binaries for ALL supported operating systems.
+.PHONY: binaries
+binaries: ## ** Builds binaries only for the environment of the $(BUILDING_OS) operating system.
+binaries: $(BINARIES_TARGETS)
+
+.PHONY: binaries-all
+binaries-all: ## ** Builds binaries for ALL supported operating systems under $(SUPPORTED_OPERATING_SYSTEMS).
 	@for os in $(shell echo $(SUPPORTED_OPERATING_SYSTEMS) | tr ',' ' '); do \
 		$(MAKE) --no-print-directory BUILDING_OS=$$os binaries; \
 	done
@@ -223,28 +330,33 @@ define build_binary
 	@test -z "$(CI)" || echo "##[endgroup]"
 endef
 
-## Builds a binary, for the given service, for the $(BUILDING_OS) environment.
+binary-%: ## Builds a binary, for the given service, for the $(BUILDING_OS) environment.
 binary-%: cmd/%/main.go dist/%
 	$(call build_binary,$(BUILDING_OS))
 
+#
 # ┬  ┌─┐┌┬┐┌┐ ┌┬┐┌─┐
 # │  ├─┤│││├┴┐ ││├─┤
-# ┴─┘┴ ┴┴ ┴└─┘─┴┘┴ ┴
+# ┴─┘┴ ┴┴ ┴└─┘─┴┘┴ ┴ o
+#
 
 # Moves the bootstrap, for the given service, into the dist directory.
 bootstrap-%: dist/% cmd/%/bootstrap
 	@cp cmd/$*/bootstrap dist/$*/
 
-# Invokes the given service locally, if able.
+invoke-%: ## Invokes the given service locally, using aws-sam-cli, if able.
 invoke-%: cmd/%/local.sh binary-% bootstrap-%
 	@$<
 
+#
 # ┌┬┐┌─┐┌─┐┬┌─┌─┐┬─┐
 #  │││ ││  ├┴┐├┤ ├┬┘
-# ─┴┘└─┘└─┘┴ ┴└─┘┴└─
+# ─┴┘└─┘└─┘┴ ┴└─┘┴└─ o
+#
 
 .PHONY: images
-images: $(foreach image,$(IMAGES),image-$(image)) ## ** Builds ALL docker images for each service.
+images: ## ** Builds ALL docker images for each services.
+images: $(foreach image,$(IMAGES),image-$(image))
 
 define build_image
 .PHONY: image-$1
@@ -257,7 +369,8 @@ endef
 $(foreach image,$(IMAGES),$(eval $(call build_image,$(image))))
 
 .PHONY: push
-push: images-development ## ** Pushes ALL docker images to ECR.
+push: ## ** Pushes ALL docker images to AWS ECR.
+push: images-development
 images-development: $(foreach image,$(IMAGES),push-$(image))
 
 define push_image
@@ -265,16 +378,17 @@ define push_image
 ## Pushes the docker image for a given service to AWS ECR.
 push-$1: image-$1
 	@test -z "$(CI)" || echo "##[group]Pushing $(strip $(call get_last_element,$(subst .,,$1))) image."
-	docker tag $(if $(filter $1,$(PROJECT)),$1,$(PROJECT)/$(strip $(call get_last_element,$1))):$(COMMIT) $(PROJECT)/$(strip $(ECR))/$(strip $(call get_last_element,$(subst .,,$1))):$(COMMIT)
-	docker tag $(if $(filter $1,$(PROJECT)),$1,$(PROJECT)/$(strip $(call get_last_element,$1))):latest $(PROJECT)/$(strip $(ECR))/$(strip $(call get_last_element,$(subst .,,$1))):latest
-	docker push $(PROJECT)/$(strip $(ECR))/$(strip $(call get_last_element,$(subst .,,$1))):$(COMMIT)
-	docker push $(PROJECT)/$(strip $(ECR))/$(strip $(call get_last_element,$(subst .,,$1))):latest
+	docker tag $(if $(filter $1,$(PROJECT)),$1,$(PROJECT)/$(strip $(call get_last_element,$1))):$(COMMIT) $(strip $(ECR))/$(strip $(call get_last_element,$(subst .,,$1))):$(COMMIT)
+	docker tag $(if $(filter $1,$(PROJECT)),$1,$(PROJECT)/$(strip $(call get_last_element,$1))):latest $(strip $(ECR))/$(strip $(call get_last_element,$(subst .,,$1))):latest
+	docker push $(strip $(ECR))/$(strip $(call get_last_element,$(subst .,,$1))):$(COMMIT)
+	docker push $(strip $(ECR))/$(strip $(call get_last_element,$(subst .,,$1))):latest
 	@test -z "$(CI)" || echo "##[endgroup]"
 endef
 $(foreach image,$(IMAGES),$(eval $(call push_image,$(image))))
 
 .PHONY: pull
-pull: $(foreach image,$(IMAGES),pull-$(image)) ## ** Pulls ALL docker images for every service.
+pull: ## ** Pulls ALL docker images for every service from AWS ECR.
+pull: $(foreach image,$(IMAGES),pull-$(image))
 
 define pull_image
 .PHONY: pull-$1
@@ -284,21 +398,25 @@ pull-$1:
 endef
 $(foreach image,$(IMAGES),$(eval $(call pull_image,$(image))))
 
+#
 # ┌┬┐┌─┐┌─┐┬  ┌─┐┬ ┬
 #  ││├┤ ├─┘│  │ │└┬┘
-# ─┴┘└─┘┴  ┴─┘└─┘ ┴
+# ─┴┘└─┘┴  ┴─┘└─┘ ┴ o
+#
 
-.PHONY: auth-aws
-auth-aws: ## Checks current auth to AWS; An error indicates an issue with auth to an AWS account.
-	@aws sts get-caller-identity &>/dev/null
-
-# Sets PRIMARY_SERVICES to be SERVICES, so you can use either in a Makefile.
+# Sets PRIMARY_SERVICES to be SERVICES, so either can be used in ANY Makefile.
 PRIMARY_SERVICES ?= $(SERVICES)
 
 .PHONY: deploy $(PRIMARY_SERVICES) $(SECONDARY_SERVICES) $(TERTIARY_SERVICES) $(QUATERNARY_SERVICES) $(QUINARY_SERVICES)
-deploy: $(PRIMARY_SERVICES) $(SECONDARY_SERVICES) $(TERTIARY_SERVICES) $(QUATERNARY_SERVICES) $(QUINARY_SERVICES) ## ** Deploys the Cloudformation template for ALL services.
+deploy: ## ** Deploys the Cloudformation template for ALL services.
+deploy: \
+	$(PRIMARY_SERVICES) \
+	$(SECONDARY_SERVICES) \
+	$(TERTIARY_SERVICES) \
+	$(QUATERNARY_SERVICES) \
+	$(QUINARY_SERVICES)
 
-## Deploys the Cloudformation template for the given service.
+deploy-%: ## Deploys the Cloudformation template for the given service.
 deploy-%: cf/%/package.yml
 ifndef ENVIRONMENT
 	$(error ENVIRONMENT not defined; please populate it before deploying)
@@ -316,9 +434,10 @@ else
 		$(if $(wildcard cf/.params/$(ENVIRONMENT).json),$(shell jq -r 'map("\(.ParameterKey)=\(.ParameterValue)") | join(" ")' ./cf/.params/$(ENVIRONMENT).json),) \
 		$(if $(ADDITIONAL_PARAMETER_OVERRIDES),$(ADDITIONAL_PARAMETER_OVERRIDES),) \
 		--no-fail-on-empty-changeset
+	@test -z "$(CI)" || echo "##[endgroup]"
 endif
 
-## Packages the Cloudformation template for the given service.
+cf/%/package.yml: ## Packages the Cloudformation template for the given service.
 cf/%/package.yml: cf/%/template.yml
 ifndef ENVIRONMENT
 	$(error ENVIRONMENT not defined; please populate it before deploying)
@@ -333,21 +452,19 @@ else
 	@test -z "$(CI)" || echo "##[endgroup]"
 endif
 
+#
 # ┌┬┐┬┌─┐┌─┐
 # ││││└─┐│
-# ┴ ┴┴└─┘└─┘
-
-.PHONY: generate-readme
-generate-readme: ## Generates a README.md, using a template.
-	@bin/README.sh jmpa-io
+# ┴ ┴┴└─┘└─┘ o
+#
 
 .PHONY: update-template
-update-template: ## Pulls changes from root-template into this repository.
+update-template: ## Pulls changes from the pre-defined template into this repository.
 	git fetch template
 	git merge template/main --allow-unrelated-histories
 
 .PHONY: clean
-clean: ## Removes generated files and folders, resetting this repository back to its initial clone state.
+clean: ## Removes generated files & folders, resetting this repository back to its initial clone state.
 	@test -z "$(CI)" || echo "##[group]Cleaning up."
 	@rm -f coverage.* traces.*
 	@rm -rf dist
@@ -360,19 +477,21 @@ help: ## Prints this help page.
 		/^[a-zA-Z\-\\_0-9%\/$$]+:/ { \
 			target = $$1; \
 			gsub("\\$$1", "%", target); \
-			nb = sub(/^## /, "", helpMessage); \
+			nb = sub(/^## /, "", helpMsg); \
 			if (nb == 0) { \
-				helpMessage = $$0; \
-				nb = sub(/^[^:]*:.* ## /, "", helpMessage); \
+				helpMsg = $$0; \
+				nb = sub(/^[^:]*:.* ## /, "", helpMsg); \
 			} \
-			if (nb) print "\033[33m" target "\033[0m" helpMessage; \
-		} { helpMessage = $$0 } \
+			if (nb) print "\033[33m" target "\033[0m" helpMsg; \
+		} { helpMsg = $$0 } \
 	'; \
 	awk "$$awk_script" $(MAKEFILE_LIST) | column -ts:
 
+#
 # ┬  ┬┌─┐┌┬┐
 # │  │└─┐ │
-# ┴─┘┴└─┘ ┴
+# ┴─┘┴└─┘ ┴ o
+#
 
 .PHONY: list-project
 list-project: # Lists the project name used within the Makefile.
@@ -423,8 +542,3 @@ list-deploy: # Lists ALL services to deploy.
 list-submodules: # Lists ALL submodules.
 	@echo $(SUBMODULES)
 
-# ┌┐┌┌─┐┌┬┐┌─┐┌─┐
-# ││││ │ │ ├┤ └─┐
-# ┘└┘└─┘ ┴ └─┘└─┘
-
-# ASCII art in this file are generated from: https://patorjk.com/software/taag/#p=display&h=0&v=0&f=Calvin%20S&t=notes%0A
