@@ -40,7 +40,7 @@ jobs:
           echo PROJECT=$(awk -F= '/^PROJECT=/ {print $2}' Makefile) >> "$GITHUB_ENV"
           echo REPOSITORY=$GITHUB_REPOSITORY >> "$GITHUB_ENV"
 
-          # overwrite the Makefile.
+          # Overwrite the Makefile.
           mv -f templates/Makefile Makefile
 
       - name: Configure AWS.
