@@ -28,15 +28,15 @@ jobs:
 
       - name: Setup templates.
         run: |
-          # create directories, if necessary.
+          # Create directories, if necessary.
           [[ -d bin ]] || { mkdir -p bin; }
           [[ -d templates ]] || { mkdir -p templates; }
 
-          # copy contents to directories, but don't overwrite any existing files.
+          # Copy contents to directories, but don't overwrite any existing files.
           mv -n templates/bin/* bin
           mv -n templates/templates/* templates
 
-          # extract project name.
+          # Extract project name.
           echo PROJECT=$(awk -F= '/^PROJECT=/ {print $2}' Makefile) >> "$GITHUB_ENV"
           echo REPOSITORY=$GITHUB_REPOSITORY >> "$GITHUB_ENV"
 
@@ -55,7 +55,8 @@ jobs:
 
       - name: Generate README.md.
         run: |
-          echo "HERE1 --> $GITHUB_REPOSITORY"
+          echo "$PROJECT"
+          echo "$REPOSITORY"
           echo "##[group]Pulling image."
           docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/go
           echo "##[endgroup]"
