@@ -47,5 +47,5 @@ jobs:
             -w "/go/src/app" \
             -e CI \
             "$img" \
-            sh -c "make test ${{ inputs.with-code-coverage && 'code-coverage' }}"
+            sh -c "make test ${{ inputs.with-code-coverage && 'code-coverage' || '' }}"
 
