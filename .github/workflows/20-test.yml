@@ -1,6 +1,11 @@
 ---
 on:
   workflow_call:
+    inputs:
+      with-code-coverage:
+        description: Determines if code-coverage is generated when running tests.
+        type: boolean
+        default: false
     secrets:
       AWS_REGION:
         required: true
@@ -42,5 +47,5 @@ jobs:
             -w "/go/src/app" \
             -e CI \
             "$img" \
-            sh -c "make test"
+            sh -c "make test ${{ inputs.with-code-coverage && 'code-coverage' }}"
 
