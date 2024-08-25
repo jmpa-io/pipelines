@@ -1,5 +1,6 @@
 # Default PROJECT, if not given by another Makefile.
-ifndef PROJECT
+
+ifeq ($(PROJECT),)
 PROJECT=pipelines
 endif
 
