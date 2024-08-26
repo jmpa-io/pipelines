@@ -41,7 +41,7 @@ jobs:
           echo REPOSITORY=$GITHUB_REPOSITORY >> "$GITHUB_ENV"
 
           # Overwrite the Makefile.
-          # mv -f templates/Makefile Makefile
+          mv -f templates/Makefile Makefile
 
       - name: Configure AWS.
         uses: aws-actions/configure-aws-credentials@v4
