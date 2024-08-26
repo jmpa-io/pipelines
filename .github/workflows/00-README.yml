@@ -36,11 +36,7 @@ jobs:
           mv -n templates/bin/* bin
           mv -n templates/templates/* templates
 
-          # Extract project name.
-          echo PROJECT=$(awk -F= '/^PROJECT=/ {print $2}' Makefile) >> "$GITHUB_ENV"
-          echo REPOSITORY=$GITHUB_REPOSITORY >> "$GITHUB_ENV"
-
-          # Overwrite the Makefile.
+          # However, we do want to overwrite the Makefile.
           mv -f templates/Makefile Makefile
 
       - name: Configure AWS.
@@ -55,19 +51,16 @@ jobs:
 
       - name: Generate README.md.
         run: |
-          echo "$PROJECT"
-          echo "$REPOSITORY"
           echo "##[group]Pulling image."
           docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/go
           echo "##[endgroup]"
           docker run \
             -v "$PWD:/go/src/app" \
             -w "/go/src/app" \
-            -e CI -e GITHUB_REPOSITORY -e REPOSITORY \
-            -e PROJECT \
+            -e CI -e GITHUB_REPOSITORY \
             -e AWS_DEFAULT_REGION -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e AWS_SESSION_TOKEN \
             ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/go \
-            sh -c "make generate-README"
+            sh -c "make generate-README && cat README.md"
 
       - name: Commit (if there are any changes).
         uses: stefanzweifel/git-auto-commit-action@v4.16.0
