@@ -9,6 +9,7 @@ coverage.*
 dist/
 *.zip
 *.pem
+traces.txt
 
 # ignore test files.
 /test.sh
