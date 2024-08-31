@@ -610,7 +610,7 @@ push: images
 # $(1) = The name of the service to pull from in AWS ECR.
 define pull_image
 	@test -z "$(CI)" || echo "##[group]Pulling $(1) from AWS ECR in $(AWS_ACCOUNT_ID)."
-	@echo docker pull $(ECR)/$(1):$(COMMIT)
+	@docker pull $(ECR)/$(1):$(COMMIT)
 	@test -z "$(CI)" || echo "##[endgroup]"
 endef
 
@@ -637,11 +637,11 @@ define promote_image
 
 	@test -z "$(CI)" || echo "##[group]Tagging $(1) for AWS ECR in $(AWS_ACCOUNT_ID)."
 	@$(foreach tag,$(TAGS), \
-		@echo docker tag $(PROMOTE_FROM_ECR)/$(1):$(COMMIT) $(ECR)/$(1):$(tag)
+		@docker tag $(PROMOTE_FROM_ECR)/$(1):$(COMMIT) $(ECR)/$(1):$(tag)
 	)
 	@test -z "$(CI)" || echo "##[group]Pushing $(1) to AWS ECR in $(AWS_ACCOUNT_ID)."
 	@$(foreach tag,$(TAGS), \
-		@echo docker push $(ECR)/$(1):$(tag)
+		@docker push $(ECR)/$(1):$(tag)
 	)
 	@test -z "$(CI)" || echo "##[endgroup]"
 endef
@@ -703,7 +703,7 @@ ifndef ENVIRONMENT
 	$(error ENVIRONMENT not defined; please populate it before deploying)
 else
 	@test -z "$(CI)" || echo "##[group]Deploying $*."
-	echo aws cloudformation deploy \
+	aws cloudformation deploy \
 		--region $(AWS_REGION) \
 		--template-file $< \
 		$(shell [ $(FILE_SIZE) >= 51200 ] && echo "--s3-bucket $(BUCKET)") \
@@ -724,7 +724,7 @@ ifndef ENVIRONMENT
 	$(error ENVIRONMENT not defined; please populate it before deploying)
 else
 	@test -z "$(CI)" || echo "##[group]Packaging $*."
-	echo aws cloudformation package \
+	aws cloudformation package \
 		--region $(AWS_REGION) \
 		--template-file $< \
 		--output-template-file $@ \
