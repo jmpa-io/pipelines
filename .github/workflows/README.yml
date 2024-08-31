@@ -1,0 +1,33 @@
+---
+name: README.md
+on:
+  push:
+    paths:
+    # NOTE: this section must always include '.github/workflows/README.yml'.
+    - '.github/workflows/*'
+    - 'templates/*'
+    - 'docs/*'
+  workflow_dispatch:
+  repository_dispatch:
+    types: [update-readme]
+
+permissions:
+  id-token: write
+  contents: write
+  actions: read
+
+jobs:
+  generate-readme:
+    uses: jmpa-io/pipelines/.github/workflows/00-README.yml@main
+    secrets:
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+      AWS_RUNNER_ROLE_NAME: ${{ secrets.AWS_RUNNER_ROLE_NAME }}
+      ADMIN_GITHUB_TOKEN: ${{ secrets.ADMIN_GITHUB_TOKEN }}
+
+  post-to-slack:
+    needs: [generate-readme]
+    if: always()
+    uses: jmpa-io/pipelines/.github/workflows/99-post-to-slack.yml@main
+    secrets:
+      WEBHOOK: ${{ secrets.SLACK_GITHUB_NOTIFICATIONS_WEBHOOK }}

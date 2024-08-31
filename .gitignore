@@ -1,0 +1,17 @@
+# ignore general files.
+.DS_Store
+.vscode/
+
+# ignore generated files.
+/out
+package.yml
+coverage.*
+dist/
+*.zip
+*.pem
+
+# ignore test files.
+/test.sh
+
+# ignore compiled binaries in root.
+/main
