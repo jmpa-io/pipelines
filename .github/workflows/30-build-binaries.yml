@@ -1,8 +1,15 @@
 ---
 on:
   workflow_call:
-    inputs:
-      # image:
+    secrets:
+      AWS_REGION:
+        required: true
+      AWS_ACCOUNT_ID:
+        required: true
+      AWS_RUNNER_ROLE_NAME:
+        required: true
+      ADMIN_GITHUB_TOKEN:
+        required: true
 
 jobs:
   run:
@@ -33,7 +40,6 @@ jobs:
             -e CI \
             "$img" \
             sh -c "make build"
-
 
 
       # TODO: output artifacts so they can be used in subsequent workflows.
