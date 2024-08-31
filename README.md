@@ -1,13 +1,36 @@
 <!-- markdownlint-disable MD041 MD010 -->
-[![./cicd.yml](https://github.com/jmpa-io/templates/actions/workflows/./cicd.yml/badge.svg)](https://github.com/jmpa-io/templates/actions/workflows/./cicd.yml)[![./dependabot-automerge.yml](https://github.com/jmpa-io/templates/actions/workflows/./dependabot-automerge.yml/badge.svg)](https://github.com/jmpa-io/templates/actions/workflows/./dependabot-automerge.yml)[![./README.yml](https://github.com/jmpa-io/templates/actions/workflows/./README.yml/badge.svg)](https://github.com/jmpa-io/templates/actions/workflows/./README.yml)
+[![root-template](https://github.com/jmpa-io/root-template/actions/workflows/.github/workflows/README.yml/badge.svg)](https://github.com/jmpa-io/root-template/actions/workflows/.github/workflows/README.yml)
+[![root-template](https://github.com/jmpa-io/root-template/actions/workflows/.github/workflows/cicd.yml/badge.svg)](https://github.com/jmpa-io/root-template/actions/workflows/.github/workflows/cicd.yml)
+[![root-template](https://github.com/jmpa-io/root-template/actions/workflows/.github/workflows/dependabot-automerge.yml/badge.svg)](https://github.com/jmpa-io/root-template/actions/workflows/.github/workflows/dependabot-automerge.yml)
 
 <p align="center">
-  <img src="docs/logo.png"/>
+  <img src="docs/logo.png">
 </p>
 
-# `templates`
+# `root-template`
 
 ```diff
-+ A collection of GENERIC templates likely used across the other repositories in
-+ this org.
++ 🧱 A template used to store any generic files used by all other repositories
++ in in this org. Used in conjunction with https://github.com/jmpa-io/pipelines.
+```
+
+## `Scripts`
+
+👉 Here is a list of scripts in this repository:
+
+Script|Description
+:---|:---
+[bin/README.sh](bin/README.sh) | Generates a README.md, using a README.md template.
+[bin/test.sh](bin/test.sh) | This is a test script, and should be ignored. This line should also be included.
+
+## 🧠 How do I use this template?
+
+1. Using a <kbd>terminal</kbd>, download the child repository locally.
+
+2. From the root of that child repository, run:
+```bash
+git remote add template https://github.com/root-template.git
+git fetch template
+git merge template/main --allow-unrelated-histories
+# then fix any merge conflicts as required & 'git push' when ready.
 ```
