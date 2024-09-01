@@ -164,7 +164,7 @@ ECR = $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com
 
 # The name of a generic S3 bucket in the AWS Account for storing artifacts.
 ifndef BUCKET
-BUCKET = $(shell aws ssm get-parameter --name "/common/artifacts-bucket" --query 'Parameter.Value' --output text)
+BUCKET = $(shell aws ssm get-parameter --name "/common/artifacts-bucket" --query 'Parameter.Value' --output text 2>/dev/null)
 endif
 
 # ---
@@ -706,7 +706,7 @@ else
 	aws cloudformation deploy \
 		--region $(AWS_REGION) \
 		--template-file $< \
-		$(shell [ $(FILE_SIZE) >= 51200 ] && echo "--s3-bucket $(BUCKET)") \
+		$(shell [ -n "$(FILE_SIZE)" ] &&[ $(FILE_SIZE) -ge 51200 ] && echo "--s3-bucket $(BUCKET)") \
 		--stack-name $(STACK_NAME) \
 		--tags repository=$(REPO) project=$(PROJECT) component=$* revision=$(COMMIT) \
 		$(if $(ADDITIONAL_STACK_TAGS),$(ADDITIONAL_STACK_TAGS),) \
