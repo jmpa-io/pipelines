@@ -456,7 +456,7 @@ endef
 define build_binary
 	@test -z "$$CI" || echo "##[group]Building binary $(1)-$(2)-$(3)"
 	GOOS=$(2) GOARCH=$(3) \
-	go build --trimpath \
+	CGO_ENABLED=0 go build --trimpath \
 		-tags lambda.norpc \
 		-ldflags "-w -s -X version.Version=$(COMMIT)" \
 		-o dist/$(1)/$(1)-$(2)-$(3)$(call add_windows_suffix,$(2)) ./cmd/$(1)
