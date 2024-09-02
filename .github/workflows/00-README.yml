@@ -43,7 +43,7 @@ jobs:
 
           # Setup tools.
           mkdir dist
-          mv templates/dist/* dist/*
+          mv templates/dist/ ./
           ls -la
           tree
 
