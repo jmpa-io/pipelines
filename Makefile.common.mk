@@ -585,7 +585,7 @@ define push_image
 	@test -z "$(CI)" || echo "##[endgroup]"
 	@test -z "$(CI)" || echo "##[group]Pushing $(1) to AWS ECR in $(AWS_ACCOUNT_ID)."
 	@$(foreach tag,$(TAGS), \
-		echo docker push $(ECR)/$(1):$(tag); \
+		docker push $(ECR)/$(1):$(tag); \
 	)
 	@test -z "$(CI)" || echo "##[endgroup]"
 endef
@@ -632,7 +632,7 @@ pull:
 # $(1) = The name of the service to promote between AWS accounts.
 define promote_image
 	@test -z "$(CI)" || echo "##[group]Pulling $(1) from AWS ECR in $(PROMOTE_FROM_AWS_ACCOUNT_ID)."
-	@echo docker pull $(PROMOTE_FROM_ECR)/$(1):$(COMMIT)
+	@docker pull $(PROMOTE_FROM_ECR)/$(1):$(COMMIT)
 	@test -z "$(CI)" || echo "##[endgroup]"
 
 	@test -z "$(CI)" || echo "##[group]Tagging $(1) for AWS ECR in $(AWS_ACCOUNT_ID)."
@@ -706,7 +706,7 @@ else
 	aws cloudformation deploy \
 		--region $(AWS_REGION) \
 		--template-file $< \
-		$(shell [ -n "$(FILE_SIZE)" ] &&[ $(FILE_SIZE) -ge 51200 ] && echo "--s3-bucket $(BUCKET)") \
+    $(shell [ -n "$(FILE_SIZE)" ] && [ $(FILE_SIZE) -gt 51200 ] && echo "--s3-bucket $(BUCKET)") \
 		--stack-name $(STACK_NAME) \
 		--tags repository=$(REPO) project=$(PROJECT) component=$* revision=$(COMMIT) \
 		$(if $(ADDITIONAL_STACK_TAGS),$(ADDITIONAL_STACK_TAGS),) \
