@@ -32,12 +32,15 @@ jobs:
           [[ -d bin ]] || { mkdir -p bin; }
           [[ -d templates ]] || { mkdir -p templates; }
 
-          # Copy contents to directories, but don't overwrite any existing files.
-          mv -n templates/bin/* bin
+          # Copy templates.
           mv -n templates/templates/* templates
 
-          # However, we do want to overwrite the Makefile.
-          mv -f templates/Makefile Makefile
+          # Compile tools required for this workflow.
+          cd templates && make binary-readme-generator; cd ..
+
+          # Setup tools.
+          mkdir dist
+          mv templates/dist/ dist/
 
       - name: Configure AWS.
         uses: aws-actions/configure-aws-credentials@v4
@@ -51,18 +54,16 @@ jobs:
 
       - name: Generate README.md.
         run: |
-          pwd
-          ls -la
           echo "##[group]Pulling image."
-          docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/go
+          docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/docker/go
           echo "##[endgroup]"
           docker run \
             -v "$PWD:/go/src/app" \
             -w "/go/src/app" \
             -e CI -e GITHUB_REPOSITORY \
             -e AWS_DEFAULT_REGION -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e AWS_SESSION_TOKEN \
-            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/docker/go \
-            sh -c "pwd && ls -la && make generate-README && cat README.md"
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/docker/docker/go \
+            sh -c "dist/readme-generator/readme-generator-linux-amd64"
 
       - name: Commit (if there are any changes).
         uses: stefanzweifel/git-auto-commit-action@v4.16.0
