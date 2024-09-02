@@ -44,8 +44,6 @@ jobs:
           # Setup tools.
           mkdir dist
           mv templates/dist/ ./
-          ls -la
-          tree
 
       - name: Configure AWS.
         uses: aws-actions/configure-aws-credentials@v4
@@ -68,7 +66,7 @@ jobs:
             -e CI -e GITHUB_REPOSITORY \
             -e AWS_DEFAULT_REGION -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e AWS_SESSION_TOKEN \
             ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/docker/go \
-            sh -c "ls -la && tree && dist/readme-generator/readme-generator-linux-amd64"
+            sh -c "dist/readme-generator/readme-generator-linux-amd64"
 
       - name: Commit (if there are any changes).
         uses: stefanzweifel/git-auto-commit-action@v4.16.0
