@@ -33,7 +33,7 @@ jobs:
 
       - name: Lint.
         run: |
-          img="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/go"
+          img="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/docker/go"
           echo "##[group]Pulling image."
           docker pull "$img"
           echo "##[endgroup]"
