@@ -39,4 +39,5 @@ jobs:
 
       - name: Upload website.
         run: |
+          ls -la
           echo make upload-dist
