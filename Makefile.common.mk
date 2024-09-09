@@ -46,6 +46,13 @@ $(patsubst $(PROJECT),image-root, \
 )
 endef
 
+# Replaces the '.' character with the '-' character, for when names of resources
+# are sensitive or require specific regex patterns (such as website urls used
+# as the name for a GitHub repository).
+define replace_dots_with_dashes
+$(subst .,-,$(1))
+endef
+
 
 #
 # ┬  ┬┌─┐┬─┐┬┌─┐┌┐ ┬  ┌─┐┌─┐
@@ -75,6 +82,12 @@ REPO = $(shell basename $(shell git rev-parse --show-toplevel))
 
 # The GitHub organization associated with this repository.
 ORG ?= jmpa-io
+
+# The user id of the user running this Makefile.
+USER_ID ?= $(shell id -u)
+
+# The group id of the user running this Makefile.
+GROUP_ID ?= $(shell id -g)
 
 # ---
 
@@ -150,7 +163,7 @@ TAGS ?= $(COMMIT) latest
 # ---
 
 # The Cloudformation stack name used when deploying a Cloudformation stack..
-STACK_NAME = $(PROJECT)-$*
+STACK_NAME = $(call replace_dots_with_dashes,$(PROJECT)-$*-$(ENVIRONMENT))
 
 # The region used when deploying a Cloudformation stack, or other aws-cli
 # commands, in the authed AWS account.
@@ -167,6 +180,10 @@ ifndef BUCKET
 BUCKET = $(shell aws ssm get-parameter --name "/common/artifacts-bucket" --query 'Parameter.Value' --output text 2>/dev/null)
 endif
 
+# The path to the `.params` file. This doesn't check if it exists, it's just
+# the expected path this file MAY exist at.
+PARAMS_FILE ?= cf/.params/$(ENVIRONMENT).json
+
 # ---
 
 # The AWS region to promote Docker images from.
@@ -182,10 +199,10 @@ PROMOTE_FROM_ECR = $(PROMOTE_FROM_AWS_ACCOUNT_ID).dkr.ecr.$(PROMOTE_AWS_REGION).
 # ---
 
 # The paths to any given Git submodules found in this repository.
-SUBMODULES := $(shell git config --file $(shell while [ ! -d .git ]; do cd ..; done; pwd)/.gitmodules --get-regexp path | awk '{ print $$2 }')
+GIT_SUBMODULES := $(shell git config --file $(shell while [ ! -d .git ]; do cd ..; done; pwd)/.gitmodules --get-regexp path | awk '{ print $$2 }')
 
 # A filter for ignoring Git submodules when using 'find' commands in this Makefile.
-FILTER_IGNORE_SUBMODULES = $(foreach module,$(SUBMODULES),-not \( -path "./$(module)" -o -path "./$(module)/*" \))
+FILTER_IGNORE_SUBMODULES = $(foreach module,$(GIT_SUBMODULES),-not \( -path "./$(module)" -o -path "./$(module)/*" \))
 
 # ---
 
@@ -456,7 +473,7 @@ endef
 define build_binary
 	@test -z "$$CI" || echo "##[group]Building binary $(1)-$(2)-$(3)"
 	GOOS=$(2) GOARCH=$(3) \
-	CGO_ENABLED=0 go build --trimpath \
+	go build --trimpath \
 		-tags lambda.norpc \
 		-ldflags "-w -s -X version.Version=$(COMMIT)" \
 		-o dist/$(1)/$(1)-$(2)-$(3)$(call add_windows_suffix,$(2)) ./cmd/$(1)
@@ -551,6 +568,8 @@ print-docker-version:
 define build_image
 	@test -z "$(CI)" || echo "##[group]Building $(2)."
 	docker build \
+		--build-arg UID=$(USER_ID) \
+		--build-arg GID=$(GROUP_ID) \
 		$(patsubst %,-t $(2):%,$(TAGS)) \
 		-f $(1) .
 	@test -z "$(CI)" || echo "##[endgroup]"
@@ -706,14 +725,14 @@ else
 	aws cloudformation deploy \
 		--region $(AWS_REGION) \
 		--template-file $< \
-    $(shell [ -n "$(FILE_SIZE)" ] && [ $(FILE_SIZE) -gt 51200 ] && echo "--s3-bucket $(BUCKET)") \
+		$(shell [ -n "$(FILE_SIZE)" ] && [ $(FILE_SIZE) -gt 51200 ] && echo "--s3-bucket $(BUCKET)") \
 		--stack-name $(STACK_NAME) \
-		--tags repository=$(REPO) project=$(PROJECT) component=$* revision=$(COMMIT) \
+		--tags organization=$(ORG) repository=$(REPO) project=$(PROJECT) component=$* revision=$(COMMIT) environment=$(ENVIRONMENT) \
 		$(if $(ADDITIONAL_STACK_TAGS),$(ADDITIONAL_STACK_TAGS),) \
-		--capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
-		--parameter-overrides Component=$* Revision=$(COMMIT) Environment=$(ENVIRONMENT) \
-		$(if $(wildcard cf/.params/$(ENVIRONMENT).json),$(shell jq -r 'map("\(.ParameterKey)=\(.ParameterValue)") | join(" ")' ./cf/.params/$(ENVIRONMENT).json),) \
+		--parameter-overrides Organization=$(ORG) Repository=$(REPO) Project=$(PROJECT) Component=$* Revision=$(COMMIT) Environment=$(ENVIRONMENT) \
+		$(if $(wildcard $(PARAMS_FILE)),$(shell jq -r 'map("\(.ParameterKey)=\(.ParameterValue)") | join(" ")' $(PARAMS_FILE)),) \
 		$(if $(ADDITIONAL_PARAMETER_OVERRIDES),$(ADDITIONAL_PARAMETER_OVERRIDES),) \
+		--capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
 		--no-fail-on-empty-changeset
 	@test -z "$(CI)" || echo "##[endgroup]"
 endif
