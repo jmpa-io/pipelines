@@ -41,6 +41,7 @@ jobs:
             -v "$PWD:/go/src/app" \
             -w "/go/src/app" \
             -e CI \
+            -e REPO=$(basename $(git rev-parse --show-toplevel)) \
             -e AWS_REGION -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e AWS_SESSION_TOKEN \
             "$img" \
             sh -c "make ${{ inputs.templates }}"
