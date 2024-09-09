@@ -38,6 +38,4 @@ jobs:
           path: dist
 
       - name: Upload website.
-        run: |
-          ls -la
-          echo make upload-dist
+        run: make upload
