@@ -1,26 +1,36 @@
 <!-- markdownlint-disable MD041 MD010 -->
-[![templates](https://github.com/jmpa-io/templates/actions/workflows/.github/workflows/README.yml/badge.svg)](https://github.com/jmpa-io/templates/actions/workflows/.github/workflows/README.yml)
-[![templates](https://github.com/jmpa-io/templates/actions/workflows/.github/workflows/cicd.yml/badge.svg)](https://github.com/jmpa-io/templates/actions/workflows/.github/workflows/cicd.yml)
-[![templates](https://github.com/jmpa-io/templates/actions/workflows/.github/workflows/dependabot-automerge.yml/badge.svg)](https://github.com/jmpa-io/templates/actions/workflows/.github/workflows/dependabot-automerge.yml)
+<br/>
 
 <p align="center">
   <img src="docs/logo.png">
 </p>
 
-# `templates`
+<br/>
+
+<p align="center">
+    <a href="LICENSE" target="_blank">
+        <img src="https://img.shields.io/github/license/jmpa-io/pipelines.svg" alt="GitHub License">
+    </a>
+    [![templates](https://github.com/jmpa-io/templates/actions/workflows/.github/workflows/cicd.yml/badge.svg)](https://github.com/jmpa-io/templates/actions/workflows/.github/workflows/cicd.yml)
+    [![templates](https://github.com/jmpa-io/templates/actions/workflows/.github/workflows/dependabot-automerge.yml/badge.svg)](https://github.com/jmpa-io/templates/actions/workflows/.github/workflows/dependabot-automerge.yml)
+</p>
+
+# `pipelines`
 
 ```diff
-+ 📚 A collection of GENERIC templates likely used across the other repositories
-+ in in this org.
+🌱 A collection of org-wide pipelines used by other repositories in this org.
 ```
 
-## `Scripts`
+## `Usage`
 
-👉 Here is a list of scripts in this repository:
+Below is an example of how to use a pipeline (aka. `workflow`) from this repository:
 
-Script|Description
-:---|:---
-[bin/README.sh](bin/README.sh) | Generates a README.md, using a README.md template.
-[bin/test.sh](bin/test.sh) | This is a test script, and should be ignored. This line should also be included.
-
-
+```yaml
+jobs:
+    my-job:
+        uses: jmpa-io/pipelines/.github/workflows/<workflow>.yml@main
+        with:
+            // add any variables that the workflow may require.
+        secrets:
+            // add any secrets that the workflow may require.
+```
