@@ -49,3 +49,8 @@ jobs:
             "$img" \
             sh -c "make test ${{ inputs.with-code-coverage && 'code-coverage' || '' }}"
 
+      - name: Upload code-coverage to codecov.
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: ${{ GITHUB_REPOSITORY }}
