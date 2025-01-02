@@ -3,9 +3,11 @@
 
 ## `pipelines`
 
-🌱 A collection of org-wide pipelines used by other repositories in this org.
-
 <img align="right" width="250px" src="docs/logo.png">
+
+```diff
+🌱 A collection of org-wide pipelines used by other repositories in this org.
+```
 
 <a href="LICENSE" target="_blank"><img src="https://img.shields.io/github/license/jmpa-io/pipelines.svg" alt="GitHub License"></a>
 [![CI/CD](https://github.com/jmpa-io/templates/actions/workflows/.github/workflows/cicd.yml/badge.svg)](https://github.com/jmpa-io/templates/actions/workflows/.github/workflows/cicd.yml)
