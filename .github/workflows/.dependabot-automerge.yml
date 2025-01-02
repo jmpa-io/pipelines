@@ -15,4 +15,4 @@ permissions:
 jobs:
   dependabot-automerge:
     if: startsWith(github.head_ref, 'dependabot/')
-    usess: ./.github/workflows/00-dependabot-automerge.yml
+    uses: ./.github/workflows/00-dependabot-automerge.yml
