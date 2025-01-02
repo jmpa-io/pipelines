@@ -1,43 +1,41 @@
 ---
 on:
   workflow_call:
-    inputs:
-      aws-region:
-        description: The AWS region to deploy to.
-        required: true
-        type: string
     secrets:
-      github-token:
+      AWS_REGION:
         required: true
-      aws-access-key-id:
+      AWS_ACCOUNT_ID:
         required: true
-      aws-secret-access-key:
+      AWS_RUNNER_ROLE_NAME:
         required: true
-
+      ADMIN_GITHUB_TOKEN:
+        required: true
 jobs:
   run:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Checkout depot.
-        uses: actions/checkout@v2
-        with:
-          repository: jmpa-io/depot
-          ref: main
-          token: ${{ secrets.github-token }}
-          path: depot
+      - name: Checkout.
+        uses: actions/checkout@v4
 
       - name: Configure AWS.
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.aws-access-key-id }}
-          aws-secret-access-key: ${{ secrets.aws-secret-access-key }}
-          aws-region: ${{ inputs.aws-region }}
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.AWS_RUNNER_ROLE_NAME }}
+          role-session-name: github-actions
+          aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Dispatch.
-        run: depot/bin/dispatch.sh
-        env:
-          GITHUB_PUSHER_NAME: ${{ github.event.pusher.name }}
-          GITHUB_PUSHER_EMAIL: ${{ github.event.pusher.email }}
+      - name: Login to AWS ECR.
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: D:ispatch.
+        run: |
+          img="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/docker/go"
+          echo "##[group]Pulling image."
+          docker pull "$img"
+          echo "##[endgroup]"
+          docker run \
+            -v "$PWD:/go/src/app" \
+            -w "/go/src/app" \
+            -e CI \
+            "$img" \
+            sh -c "make dispatch"
