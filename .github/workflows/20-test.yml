@@ -52,7 +52,7 @@ jobs:
             sh -c "make test ${{ inputs.with-code-coverage && 'code-coverage' || '' }}"
 
       - name: Upload code-coverage to codecov.
-        if: {{ inputs.with-code-coverage }}
+        if: inputs.with-code-coverage
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
