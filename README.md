@@ -1,6 +1,8 @@
 <!-- markdownlint-disable MD041 MD010 -->
 
-<img align="right" width="250px" src="docs/logo.png">
+<p align="centre">
+    <img align="right" width="250px" src="docs/logo.png">
+</p>
 
 ## `pipelines`
 
