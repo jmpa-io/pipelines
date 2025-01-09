@@ -577,7 +577,7 @@ define build_binary_go
 	GOOS=$(2) GOARCH=$(3) \
 	go build --trimpath \
 		-tags lambda.norpc \
-		-ldflags "-w -s -X version.Version=$(COMMIT)" \
+		-ldflags "-w -s -X main.Version=$(COMMIT)" \
 		-o dist/$(1)/$(1)-$(2)-$(3)$(call add_windows_suffix,$(2)) ./cmd/$(1)
 	@test -z "$$CI" || echo "##[endgroup]"
 endef
