@@ -2,6 +2,10 @@
 on:
   workflow_call:
     inputs:
+      environment:
+        description: The environment to use when deploying.
+        type: string
+        default: dev
       templates:
         description: A space separated list of templates to deploy.
         type: string
@@ -41,6 +45,7 @@ jobs:
             -v "$PWD:/go/src/app" \
             -w "/go/src/app" \
             -e CI \
+            -e ENVIRONMENT=${{ inputs.environment }} \
             -e REPO=$(basename $(git rev-parse --show-toplevel)) \
             -e AWS_REGION -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e AWS_SESSION_TOKEN \
             "$img" \
