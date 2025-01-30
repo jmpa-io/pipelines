@@ -1,6 +1,11 @@
 ---
 on:
   workflow_call:
+    inputs:
+      environment:
+        description: The environment to use when deploying.
+        type: string
+        default: dev
     secrets:
       AWS_REGION:
         required: true
@@ -38,8 +43,8 @@ jobs:
             -v "$PWD:/go/src/app" \
             -w "/go/src/app" \
             -e CI \
+            -e ENVIRONMENT=${{ inputs.environment }} \
             "$img" \
             sh -c "make build"
-
 
       # TODO: output artifacts so they can be used in subsequent workflows.
