@@ -16,7 +16,6 @@ on:
       ADMIN_GITHUB_TOKEN:
         required: true
       CODECOV_TOKEN:
-        required: true
 
 jobs:
   run:
