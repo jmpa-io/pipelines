@@ -302,7 +302,7 @@ lint-go:
 ifeq ($(GO_FILES),)
 	@echo "No *.go files to lint."
 else
-	golangci-lint run -v --allow-parallel-runners ./...
+	golangci-lint run -v --allow-parallel-runners ./... --timeout 5m
 endif
 	@test -z "$(CI)" || echo "##[endgroup]"
 
