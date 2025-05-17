@@ -10,8 +10,8 @@
 ```
 
 <a href="LICENSE" target="_blank"><img src="https://img.shields.io/github/license/jmpa-io/pipelines.svg" alt="GitHub License"></a>
-[![CI/CD](https://github.com/jmpa-io/templates/actions/workflows/.github/workflows/cicd.yml/badge.svg)](https://github.com/jmpa-io/templates/actions/workflows/.github/workflows/cicd.yml)
-[![Automerge](https://github.com/jmpa-io/templates/actions/workflows/.github/workflows/dependabot-automerge.yml/badge.svg)](https://github.com/jmpa-io/templates/actions/workflows/.github/workflows/dependabot-automerge.yml)
+[![CI/CD](https://github.com/jmpa-io/pipelines/actions/workflows/.github/workflows/cicd.yml/badge.svg)](https://github.com/jmpa-io/pipelines/actions/workflows/.github/workflows/cicd.yml)
+[![Automerge](https://github.com/jmpa-io/pipelines/actions/workflows/.github/workflows/dependabot-automerge.yml/badge.svg)](https://github.com/jmpa-io/pipelines/actions/workflows/.github/workflows/dependabot-automerge.yml)
 
 ## `Usage`
 
