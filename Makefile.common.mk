@@ -88,6 +88,12 @@ REPO = $(shell basename $(shell git rev-parse --show-toplevel))
 # The GitHub organization associated with this repository.
 ORG ?= jmpa-io
 
+# The id of the user.
+UID := $(shell id -u)
+
+# The id of the group.
+GID := $(shell id -g)
+
 # ---
 
 # A list of supported operating systems for building binaries.
@@ -196,7 +202,7 @@ PROMOTE_FROM_AWS_ACCOUNT_ID ?= $(AWS_ACCOUNT_ID)
 
 # The default path to an AWS ECR repository in another AWS account.
 # NOTE: This is used when promoting Docker images between AWS accounts.
-PROMOTE_FROM_ECR = $(PROMOTE_FROM_AWS_ACCOUNT_ID).dkr.ecr.$(PROMOTE_AWS_REGION).amazonaws.com
+PROMOTE_FROM_ECR = $(PROMOTE_FROM_AWS_ACCOUNT_ID).dkr.ecr.$(PROMOTE_FROM_AWS_REGION).amazonaws.com
 
 # ---
 
@@ -243,17 +249,18 @@ ifndef CI
 
 # Below is a list of dependencies required for running this Makefile.
 DEPENDENCIES ?= \
+	actionlint \
 	awk \
 	aws \
 	cfn-lint \
 	column \
+	cpplint \
 	find \
 	go \
 	golangci-lint \
 	grep \
 	hadolint \
-	sam \
-	zip
+	sam
 
 # Determines if there are any missing dependencies.
 MISSING := \
@@ -302,7 +309,7 @@ lint-go:
 ifeq ($(GO_FILES),)
 	@echo "No *.go files to lint."
 else
-	golangci-lint run -v --allow-parallel-runners ./...
+	golangci-lint run -v --allow-parallel-runners ./... --timeout 5m
 endif
 	@test -z "$(CI)" || echo "##[endgroup]"
 
@@ -366,7 +373,7 @@ endif
 	@test -z "$(CI)" || echo "##[endgroup]"
 
 PHONY += lint \
-				 lint-sh lint-go lintcpp \
+				 lint-sh lint-go lint-cpp \
 				 lint-cf lint-sam lint-docker lint-workflows
 
 
@@ -509,7 +516,7 @@ else ifeq ($(BUILDING_OS), windows)
 endif
 endef
 
-print-cpp-version: # Prints the install C++ compiler version.
+print-cpp-version: # Prints the installed C++ compiler version.
 print-cpp-version:
 	$(eval $(call set_cpp_compiler))
 	@test -z "$(CI)" || echo "##[group]C++ compiler version ($(CPP_COMPILER))."
@@ -719,7 +726,7 @@ define pull_image
 	@test -z "$(CI)" || echo "##[endgroup]"
 endef
 
-pull-%: ## Pulls a Docker image, for the given servicea, from AWS ECR.
+pull-%: ## Pulls a Docker image, for the given service, from AWS ECR.
 pull-%: cmd/%/Dockerfile
 	$(call pull_image,$(call determine_image_name_from_dockerfile,$<))
 
@@ -742,11 +749,12 @@ define promote_image
 
 	@test -z "$(CI)" || echo "##[group]Tagging $(1) for AWS ECR in $(AWS_ACCOUNT_ID)."
 	@$(foreach tag,$(TAGS), \
-		@docker tag $(PROMOTE_FROM_ECR)/$(1):$(COMMIT) $(ECR)/$(1):$(tag)
+		docker tag $(PROMOTE_FROM_ECR)/$(1):$(COMMIT) $(ECR)/$(1):$(tag); \
 	)
+	@test -z "$(CI)" || echo "##[endgroup]"
 	@test -z "$(CI)" || echo "##[group]Pushing $(1) to AWS ECR in $(AWS_ACCOUNT_ID)."
 	@$(foreach tag,$(TAGS), \
-		@docker push $(ECR)/$(1):$(tag)
+		docker push $(ECR)/$(1):$(tag); \
 	)
 	@test -z "$(CI)" || echo "##[endgroup]"
 endef
@@ -766,7 +774,7 @@ promote:
 	)
 
 PHONY += print-docker-version \
-				 images push pull promote \
+				 images docker-images push pull promote \
 				 image-root push-root pull-root promote-root
 
 
@@ -932,9 +940,8 @@ list-shell-scripts:
 	@echo $(SH_FILES) | $(FORMAT_ARRAY)
 
 list-go: list-go-files
-list-go-files: list-Go-files
-list-Go-files: # Lists ALL found Go files in this repository.
-list-Go-files:
+list-go-files: # Lists ALL found Go files in this repository.
+list-go-files:
 	@echo $(GO_FILES) | $(FORMAT_ARRAY)
 
 list-cpp: list-cpp-files
@@ -954,7 +961,7 @@ list-cf-templates:
 
 list-workflows: # Lists ALL found GitHub Action workflows in this repository.
 list-workflows:
-	@echo $(WORKFLOWS) | $(FORMAT_ARRAY)
+	@echo $(WORKFLOW_FILES) | $(FORMAT_ARRAY)
 
 # ---
 
