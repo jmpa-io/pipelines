@@ -6,7 +6,10 @@ endif
 ---: ## ---
 
 dispatch: ## Dispatches an event to ALL the repositories in the $ORG; This will trigger the CI/CD workflow to run per repository.
-	./bin/00-dispatch.sh
+	./bin/00-dispatch.sh $(ORG)
+
+sync: ## Syncs the dist directory to the S3 bucket for this repository.
+	./bin/40-sync.sh
 
 # create-secrets: ## Creates the .secrets file locally.
 # 	@{ \

@@ -37,9 +37,5 @@ jobs:
           name: ${{ inputs.artifact }}
           path: dist
 
-      - name: Upload website.
-        run: |
-          ls -la
-          ls -la dist/
-          ls -la dist/public/
-          make upload
+      - name: Upload artifacts to S3.
+        run: make sync

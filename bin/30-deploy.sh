@@ -10,7 +10,7 @@ usage() { echo "usage: $0 <templates-to-deploy>"; exit 64; }
   && die "must be run from repository root directory"
 
 # check deps.
-deps=(aws)
+deps=(aws curl jq)
 for dep in "${deps[@]}"; do
   hash "$dep" 2>/dev/null || missing+=("$dep")
 done
@@ -35,8 +35,15 @@ aws sts get-caller-identity &>/dev/null \
   || die "unable to connect to AWS; are you authed?"
 
 # retrieve repository topics.
-topics=$(bin/list-repository-topics.sh "$fullRepo") \
-  || die "failed to list repository topics"
+token="${ADMIN_GITHUB_TOKEN:-$GITHUB_TOKEN}"
+[[ -z "$token" ]] \
+  && die "missing \$ADMIN_GITHUB_TOKEN or \$GITHUB_TOKEN"
+topics=$(curl -sf \
+  -H "Authorization: Bearer $token" \
+  -H "Accept: application/vnd.github.mercy-preview+json" \
+  "https://api.github.com/repos/$fullRepo/topics" \
+  | jq -r '.names[]' | tr '\n' ' ') \
+  || die "failed to list repository topics for $fullRepo"
 
 # validate given templates.
 templatesToDeploy=(); missing=()
@@ -168,7 +175,16 @@ for t in "${templatesToDeploy[@]}"; do
     template="$package"
 
     # retrieve hosted zone id.
-    domain="jcleal.me"
+    data=$(aws route53domains list-domains --region us-east-1) \
+      || die "failed to list route53 domains"
+    domains=$(<<< "$data" jq -r '.Domains[].DomainName') \
+      || die "failed to parse response from listing route53 domains"
+    domain=""
+    for d in $domains; do
+      [[ $repo == *$d ]] && { domain=$d; break; }
+    done
+    [[ -z "$domain" ]] \
+      && die "failed to determine which domain $repo belongs to"
     hostedZoneId=$(aws route53 list-hosted-zones-by-name \
       --query "HostedZones[?Name=='$domain.'].Id" --output text) \
       || die "failed to determine a hostedZoneId for $domain"
@@ -177,7 +193,7 @@ for t in "${templatesToDeploy[@]}"; do
     hostedZoneId=${hostedZoneId/\/hostedzone\//}
 
     # determine certificate arn from domain.
-    cert=$(aws acm list-certificates \
+    cert=$(aws acm list-certificates --region us-east-1 \
       --query "CertificateSummaryList[?DomainName=='$domain'].CertificateArn" \
       --output text) \
       || die "failed to determine a certificate arn for $domain"

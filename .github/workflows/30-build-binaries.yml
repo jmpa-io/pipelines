@@ -45,6 +45,6 @@ jobs:
             -e CI \
             -e ENVIRONMENT=${{ inputs.environment }} \
             "$img" \
-            sh -c "make build"
+            sh -c "make binaries"
 
       # TODO: output artifacts so they can be used in subsequent workflows.
