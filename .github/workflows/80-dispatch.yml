@@ -27,7 +27,7 @@ jobs:
       - name: Login to AWS ECR.
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: D:ispatch.
+      - name: Dispatch.
         run: |
           img="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/docker/go"
           echo "##[group]Pulling image."
