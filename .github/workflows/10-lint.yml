@@ -3,7 +3,7 @@ on:
   workflow_call:
     inputs:
       ansible:
-        description: When true, uses the docker/ansible ECR image instead of docker/go.
+        description: When true, uses the docker/python ECR image instead of docker/go.
         type: boolean
         default: false
       requirements:
@@ -74,7 +74,7 @@ jobs:
 
       - name: Lint.
         run: |
-          img="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/docker/ansible"
+          img="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/docker/python"
           echo "##[group]Pulling image."
           docker pull "$img"
           echo "##[endgroup]"
