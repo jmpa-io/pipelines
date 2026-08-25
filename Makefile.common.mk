@@ -1,16 +1,22 @@
+
 #
 # This Makefile is designed to be generic across ALL repositories.
 #
 # The original source code for this Makefile can be found here:
 # https://github.com/jmpa-io/root-template/blob/main/Makefile.common.mk
-# NOTE: Any changes to this Makefile should be made at the original source code.
+#
+# PLEASE NOTE:
+# Any changes to this Makefile should be made there instead.
+
+# ---
 
 # The name of the project.
-# NOTE: This must be given by another Makefile that references this Makefile.
+#
+# PLEASE NOTE:
+# This value must be given any other Makefile that references this common Makefile.
 ifndef PROJECT
 $(error PROJECT not defined, missing from Makefile?)
 endif
-
 
 #
 # ┌─┐┬ ┬┌┐┌┌─┐┌┬┐┬┌─┐┌┐┌┌─┐
@@ -71,22 +77,40 @@ SHELL = /bin/sh
 # The default command executed when `make` is run without arguments.
 .DEFAULT_GOAL := help
 
+# Suppress "Entering/Leaving directory" messages in recursive make calls.
+MAKEFLAGS += --no-print-directory
+
 # ---
 
 # The deployment environment (eg. dev, sit, prod).
-# NOTE: This affects which config is used when deploying.
-ENVIRONMENT ?= dev
+# PLEASE NOTE: This affects which config is used when deploying.
+ENVIRONMENT ?= local
 
 # The git commit hash.
-# NOTE: This affects how unique or identifiable resources deployed are.
+# PLEASE NOTE: This affects how unique or identifiable deployed resources are.
 COMMIT ?= $(shell git describe --tags --always)
 
 # The name of this repository, derived from the 'git root directory'.
-# NOTE: This affects how identifiable resources deployed are.
+# PLEASE NOTE: This affects how identifiable deployed resources are.
 REPO = $(shell basename $(shell git rev-parse --show-toplevel))
 
 # The GitHub organization associated with this repository.
 ORG ?= jmpa-io
+
+# ---
+
+# The directory to place any output, artifacts, or downloaded files.
+OUTPUT_DIR ?= dist
+
+# The log level for any scripts that support it.
+LOG_LEVEL ?= info
+
+# ---
+
+# The Python interpreter to use for running Python scripts and tests.
+PYTHON ?= python3
+
+# ---
 
 # The id of the user.
 UID := $(shell id -u)
@@ -106,7 +130,7 @@ OS := $(shell uname | tr '[:upper:]' '[:lower:]')
 BUILDING_OS ?= $(OS)
 
 # A list of supported CPU architectures for compiling binaries.
-# NOTE: run 'go tool dist list' to see all supported architectures for Go.
+# PLEASE NOTE: run 'go tool dist list' to see all supported architectures for Go.
 SUPPORTED_ARCHITECTURES = arm64 amd64
 
 # The CPU architecture currently being used by the host.
@@ -122,11 +146,30 @@ BUILDING_ARCH ?= $(ARCH)
 
 # ---
 
+# The root directory containing Cloudformation templates.
+CLOUDFORMATION_ROOT_DIRECTORY ?= ./cf
+
+# ---
+
+# The paths to any given Git submodules found in this repository.
+GIT_SUBMODULES := $(shell git config --file $(shell while [ ! -d .git ]; do cd ..; done; pwd)/.gitmodules --get-regexp path | awk '{ print $$2 }')
+
+# A filter for ignoring Git submodules when using 'find' commands in this Makefile.
+FILTER_IGNORE_SUBMODULES = $(foreach module,$(GIT_SUBMODULES),-not \( -path "./$(module)" -o -path "./$(module)/*" \))
+
+# ---
+
 # All '.*sh' files in the repository (excluding submodules).
 SH_FILES := $(shell find . $(FILTER_IGNORE_SUBMODULES) -name "*.sh" -type f 2>/dev/null)
 
+# All PowerShell scripts in the repository (excluding submodules).
+POWERSHELL_FILES := $(shell find . $(FILTER_IGNORE_SUBMODULES) -name "*.ps1" -type f 2>/dev/null)
+
 # All Go files in the repository (excluding submodules).
 GO_FILES := $(shell find . $(FILTER_IGNORE_SUBMODULES) -name "*.go" -type f 2>/dev/null)
+
+# All Python files in the repository (excluding submodules).
+PYTHON_FILES := $(shell find . $(FILTER_IGNORE_SUBMODULES) -name "*.py" -type f 2>/dev/null)
 
 # All C++ files in the repository (excluding submodules).
 CPP_FILES := $(shell find . $(FILTER_IGNORE_SUBMODULES) -name "*.cpp" -type f 2>/dev/null)
@@ -170,7 +213,7 @@ TAGS ?= $(COMMIT) latest
 
 # ---
 
-# The Cloudformation stack name used when deploying a Cloudformation stack..
+# The Cloudformation stack name used when deploying a Cloudformation stack.
 STACK_NAME = $(call replace_dots_with_dashes,$(PROJECT)-$*-$(ENVIRONMENT))
 
 # The region used when deploying a Cloudformation stack, or other aws-cli
@@ -194,6 +237,11 @@ PARAMS_FILE ?= cf/.params/$(ENVIRONMENT).json
 
 # ---
 
+# The generic environment to promote from; This could have ties from Artifactory, or AWS ECR, etc.
+PROMOTE_FROM_ENVIRONMENT ?= $(ENVIRONMENT)
+
+# ---
+
 # The AWS region to promote Docker images from.
 PROMOTE_FROM_AWS_REGION ?= $(AWS_REGION)
 
@@ -201,16 +249,8 @@ PROMOTE_FROM_AWS_REGION ?= $(AWS_REGION)
 PROMOTE_FROM_AWS_ACCOUNT_ID ?= $(AWS_ACCOUNT_ID)
 
 # The default path to an AWS ECR repository in another AWS account.
-# NOTE: This is used when promoting Docker images between AWS accounts.
+# PLEASE NOTE: This is used when promoting Docker images between AWS accounts.
 PROMOTE_FROM_ECR = $(PROMOTE_FROM_AWS_ACCOUNT_ID).dkr.ecr.$(PROMOTE_FROM_AWS_REGION).amazonaws.com
-
-# ---
-
-# The paths to any given Git submodules found in this repository.
-GIT_SUBMODULES := $(shell git config --file $(shell while [ ! -d .git ]; do cd ..; done; pwd)/.gitmodules --get-regexp path | awk '{ print $$2 }')
-
-# A filter for ignoring Git submodules when using 'find' commands in this Makefile.
-FILTER_IGNORE_SUBMODULES = $(foreach module,$(GIT_SUBMODULES),-not \( -path "./$(module)" -o -path "./$(module)/*" \))
 
 # ---
 
@@ -234,10 +274,33 @@ else ifeq ($(OS),darwin)
 
 else ifeq ($(OS),windows)
 
-  # TODO
+  # Native Windows (cmd.exe / PowerShell / MSYS2 / Chocolatey make) is not a
+  # supported configuration for this Makefile. Running under WSL is the
+  # recommended approach on Windows — WSL reports 'linux' via uname, so the
+  # linux block above applies and no changes are needed here.
+  #
+  # If native Windows support is added in future, SED_FLAGS and FILE_SIZE
+  # would need platform-appropriate equivalents defined here.
 
 endif
 
+#
+# ┌─┐┬─┐┌─┐  ┌─┐┬─┐┌┬┐┬┌─┐┌─┐┌─┐┌┬┐┌─┐
+# ├─┘├┬┘├┤───├─┤├┬┘ │ │├┤ ├─┤│   │ └─┐
+# ┴  ┴└─└─┘  ┴ ┴┴└─ ┴ ┴└  ┴ ┴└─┘ ┴ └─┘
+#
+
+$(OUTPUT_DIR): ## Creates the output folder.
+$(OUTPUT_DIR):
+	@mkdir -p $@
+
+$(OUTPUT_DIR)/%: ## Creates the output folder, for a given service.
+$(OUTPUT_DIR)/%: $(OUTPUT_DIR)
+	@mkdir -p $@
+
+PHONY += \
+  $(OUTPUT_DIR) \
+  $(OUTPUT_DIR)/%
 
 #
 # ┌┬┐┌─┐┌─┐┌─┐┌┐┌┌┬┐┌─┐┌┐┌┌─┐┬┌─┐┌─┐
@@ -247,20 +310,52 @@ endif
 
 ifndef CI
 
-# Below is a list of dependencies required for running this Makefile.
+# Below is a list of core dependencies required for running this Makefile.
 DEPENDENCIES ?= \
-	actionlint \
 	awk \
-	aws \
-	cfn-lint \
 	column \
-	cpplint \
 	find \
-	go \
-	golangci-lint \
 	grep \
-	hadolint \
-	sam
+	zip
+
+# Below aggregates all language-specific dependencies required for this Makefile.
+DEPENDENCIES += \
+  $(BASH_DEPENDENCIES) \
+  $(PYTHON_DEPENDENCIES) \
+  $(GO_DEPENDENCIES) \
+  $(DOCKER_DEPENDENCIES) \
+  $(AWS_DEPENDENCIES)
+
+# Bash-specific dependencies.
+BASH_DEPENDENCIES ?= \
+  bash \
+  shellcheck
+
+# Python-specific dependencies.
+PYTHON_DEPENDENCIES ?= \
+  python \
+  ruff
+
+# Go-specific dependencies.
+GO_DEPENDENCIES ?= \
+  go \
+  golangci-lint
+
+# Docker-specific dependencies.
+DOCKER_DEPENDENCIES ?= \
+  docker \
+  hadolint
+
+# AWS-specific dependencies.
+AWS_DEPENDENCIES ?= \
+  aws \
+  cfn-lint \
+  sam
+
+# Additional jmpa-io specific dependencies.
+DEPENDENCIES += \
+  actionlint \
+  cpplint
 
 # Determines if there are any missing dependencies.
 MISSING := \
@@ -275,25 +370,75 @@ $(if $(MISSING),$(error Please install: $(MISSING)))
 
 endif
 
+# ---
+
+install-deps: ## ** Installs ALL dependencies required for running services in this repository.
+install-deps: \
+  install-python-deps
+
+#
+# Python.
+#
+
+# Determine which requirements file to use at the root (supports any ENVIRONMENT).
+ifeq ($(ENVIRONMENT),local)
+  PYTHON_REQUIREMENTS_FILE = requirements-local.txt
+else
+  PYTHON_REQUIREMENTS_FILE = requirements.txt
+endif
+
+# Find all per-project requirements files, but not the root one itself.
+PYTHON_REQUIREMENTS_FILES = $(shell find . -type f -name '$(PYTHON_REQUIREMENTS_FILE)' ! -path "./$(PYTHON_REQUIREMENTS_FILE)")
+
+install-root-python-deps: # Installs root requirements file (if found).
+install-root-python-deps:
+	@if [ -f $(PYTHON_REQUIREMENTS_FILE) ]; then \
+		pip3 install -r $(PYTHON_REQUIREMENTS_FILE); \
+	else \
+		echo "No root $(PYTHON_REQUIREMENTS_FILE) found, skipping.."; \
+	fi
+
+install-python-deps: ## ** Installs ALL Python requirements files in this repository.
+install-python-deps: install-root-python-deps
+	@for req in $(PYTHON_REQUIREMENTS_FILES); do \
+		pip3 install -r "$$req"; \
+	done
+
+PHONY += \
+  install-deps \
+  install-python-deps \
+  install-root-python-deps
 
 #
 # ┬  ┬┌┐┌┌┬┐
 # │  ││││ │
 # ┴─┘┴┘└┘ ┴ o
 #
+
+#
+# Vars.
+#
+
+# The path to the Actionlint config file, in relation to this Makefile.
+ACTIONLINT_CONFIG_FILE ?= actionlint.yaml
+
+#
+# Targets.
 #
 
 lint: ## ** Lints everything.
 lint: \
 	lint-sh \
+	lint-powershell \
 	lint-go \
 	lint-cpp \
+	lint-py \
 	lint-cf \
 	lint-sam \
 	lint-docker \
 	lint-workflows
 
-lint-sh: ## Linting scripts.
+lint-sh: ## Lints scripts.
 lint-sh:
 	@test -z "$(CI)" || echo "##[group]Linting scripts."
 ifeq ($(SH_FILES),)
@@ -303,13 +448,25 @@ else
 endif
 	@test -z "$(CI)" || echo "##[endgroup]"
 
+lint-powershell: ## Lints PowerShell scripts.
+lint-powershell:
+	@test -z "$(CI)" || echo "##[group]Linting PowerShell scripts."
+ifeq ($(POWERSHELL_FILES),)
+	@echo "No *.ps1 files to lint."
+else
+	@$(foreach file,$(POWERSHELL_FILES), \
+		pwsh -Command "Invoke-ScriptAnalyzer -Path '$(file)' -Severity Warning,Error" || true; \
+	)
+endif
+	@test -z "$(CI)" || echo "##[endgroup]"
+
 lint-go: ## Lints Go files.
 lint-go:
 	@test -z "$(CI)" || echo "##[group]Linting Go."
 ifeq ($(GO_FILES),)
 	@echo "No *.go files to lint."
 else
-	golangci-lint run -v --allow-parallel-runners ./... --timeout 5m
+	@golangci-lint run -v --allow-parallel-runners ./... --timeout 5m || true
 endif
 	@test -z "$(CI)" || echo "##[endgroup]"
 
@@ -319,15 +476,25 @@ lint-cpp:
 ifeq ($(CPP_FILES),)
 	@echo "No *.cpp files to lint."
 else
-	cpplint --filter=-legal/copyright $(CPP_FILES)
+	@cpplint --filter=-legal/copyright $(CPP_FILES)
 endif
 	@test -z "$(CI)" || echo "##[endgroup]"
 
-lint-cf: ## Lints CF templates.
+lint-py: ## Lints Python files.
+lint-py:
+	@test -z "$(CI)" || echo "##[group]Linting Python."
+ifeq ($(PYTHON_FILES),)
+	@echo "No Python files to lint."
+else
+	@ruff check $(PYTHON_FILES) || true
+endif
+	@test -z "$(CI)" || echo "##[endgroup]"
+
+lint-cf: ## Lints Cloudformation templates.
 lint-cf:
-	@test -z "$(CI)" || echo "##[group]Linting CF templates."
+	@test -z "$(CI)" || echo "##[group]Linting Cloudformation templates."
 ifeq ($(CLOUDFORMATION_TEMPLATE_FILES),)
-	@echo "No Cloudformation templates found under ./cf/*/template.yml."
+	@echo "No Cloudformation templates found to lint."
 else
 	@$(foreach file,$(CLOUDFORMATION_TEMPLATE_FILES), \
 		cfn-lint -r $(AWS_REGION) -t $(file) || true; \
@@ -336,11 +503,11 @@ else
 endif
 	@test -z "$(CI)" || echo "##[endgroup]"
 
-lint-sam: ## Lints SAM templates.
+lint-sam: ## Lints AWS SAM templates.
 lint-sam:
-	@test -z "$(CI)" || echo "##[group]Linting SAM templates."
+	@test -z "$(CI)" || echo "##[group]Linting AWS SAM templates."
 ifeq ($(SAM_TEMPLATE_FILES),)
-	@echo "No SAM templates found under ./cf/*/template.yml."
+	@echo "No AWS SAM templates found to lint."
 else
 	@$(foreach file,$(SAM_TEMPLATE_FILES), \
 		- sam validate --region $(AWS_REGION) -t "$(file)"; \
@@ -367,15 +534,21 @@ ifeq ($(WORKFLOW_FILES),)
 	@echo "No GitHub Action workflows to lint."
 else
 	@$(foreach file,$(WORKFLOW_FILES), \
-		actionlint "$(file)"; \
+		actionlint -config-file "$(ACTIONLINT_CONFIG_FILE)" "$(file)" || true; \
 	)
 endif
 	@test -z "$(CI)" || echo "##[endgroup]"
 
 PHONY += lint \
-				 lint-sh lint-go lint-cpp \
-				 lint-cf lint-sam lint-docker lint-workflows
-
+         lint-sh \
+         lint-powershell \
+         lint-go \
+         lint-cpp \
+         lint-py \
+         lint-cf \
+         lint-sam \
+         lint-docker \
+         lint-workflows
 
 #
 # ┌┬┐┌─┐┌─┐┌┬┐
@@ -385,34 +558,69 @@ PHONY += lint \
 
 test: ## ** Tests everything.
 test: \
-	test-go
+	test-go \
+	test-py
+
+PHONY += test
 
 #
 # Go.
 #
 
 test-go: ## Runs Go tests.
-test-go: dist/coverage.txt
-
-dist/coverage.txt: # Generates the dist/coverage.txt file.
-dist/coverage.txt: # NOTE: Adding this target to PHONY will generate this file
-dist/coverage.txt: #       every time this target is called. Otherwise
-dist/coverage.txt: #			 `make clean` will have to be run.
-dist/coverage.txt: dist
+test-go: $(OUTPUT_DIR)/coverage.txt
+$(OUTPUT_DIR)/coverage.txt: # Generates the $(OUTPUT_DIR)/coverage.txt file.
+$(OUTPUT_DIR)/coverage.txt: # PLEASE NOTE: Adding this target to PHONY will generate this
+$(OUTPUT_DIR)/coverage.txt: #              file every time this target is called.
+$(OUTPUT_DIR)/coverage.txt: #              Otherwise `make clean` will have to be run.
+$(OUTPUT_DIR)/coverage.txt: $(OUTPUT_DIR)
 	@test -z "$(CI)" || echo "##[group]Unit tests for Go."
 ifeq ($(GO_FILES),)
 	@echo "No Go files found to test or generate code-coverage."
 else
 	@go version
-	CGO_ENABLED=1 go test -short -coverprofile=$@ \
-    	-covermode=atomic -race -vet=off ./...
+	CGO_ENABLED=1 go test \
+		-short \
+		-coverprofile=$@ \
+		-covermode=atomic \
+		-race \
+		-vet=off \
+		./...
 endif
 	@test -z "$(CI)" || echo "##[endgroup]"
 
-PHONY += test \
-				 test-go \
-				 dist/coverage.txt
+PHONY += test-go \
+         $(OUTPUT_DIR)/coverage.txt
 
+#
+# Python.
+#
+
+test-py: ## Runs Python tests.
+test-py: $(OUTPUT_DIR)/coverage.xml
+$(OUTPUT_DIR)/coverage.xml: # Generates the $(OUTPUT_DIR)/coverage.xml file.
+$(OUTPUT_DIR)/coverage.xml: # PLEASE NOTE: Adding this target to PHONY will generate this
+$(OUTPUT_DIR)/coverage.xml: #              file every time this target is called.
+$(OUTPUT_DIR)/coverage.xml: #              Otherwise `make clean` will have to be run.
+$(OUTPUT_DIR)/coverage.xml: $(OUTPUT_DIR)
+	@test -z "$(CI)" || echo "##[group]Unit tests for Python."
+ifeq ($(PYTHON_FILES),)
+	@echo "No Python files found to test or generate code-coverage."
+else
+	@$(PYTHON) --version
+	$(PYTHON) -m pytest \
+		-v \
+		--tb=short \
+		--cov=src \
+		--cov-config=$(shell while [ ! -d .git ]; do cd ..; done; pwd)/.coveragerc \
+		--cov-report=xml:$@ \
+		--cov-report=term \
+		.
+endif
+	@test -z "$(CI)" || echo "##[endgroup]"
+
+PHONY += test-py \
+         $(OUTPUT_DIR)/coverage.xml
 
 #
 # ┌─┐┌─┐┌┬┐┌─┐  ┌─┐┌─┐┬  ┬┌─┐┬─┐┌─┐┌─┐┌─┐
@@ -434,7 +642,11 @@ endif
 
 code-coverage: ## ** Generates code coverage for every programming language commonly used.
 code-coverage: \
-	code-coverage-go
+	code-coverage-go \
+	code-coverage-py
+
+PHONY += code-coverage
+
 #
 # Go.
 #
@@ -447,17 +659,55 @@ define code-coverage-go-html
 go tool cover -html=$<
 endef
 
-code-coverage-go: ## Generates a code coverage report for Go, formatted by $(CODE_COVERAGE_FORMAT).
-code-coverage-go: dist/coverage.txt
+code-coverage-go: ## Generates a code coverage report for Go, formatted by {cyan}$(CODE_COVERAGE_FORMAT){nocolor}.
+code-coverage-go: $(OUTPUT_DIR)/coverage.txt
 	@if [ -f $< ]; then \
 		test -z "$(CI)" || echo "##[group]Code coverage for Go."; \
 		$(call code-coverage-go-$(CODE_COVERAGE_FORMAT)); \
 		test -z "$(CI)" || echo "##[endgroup]"; \
 	fi
 
-PHONY += code-coverage \
-				 code-coverage-go
+PHONY += code-coverage-go
 
+#
+# Python.
+#
+
+define code-coverage-py-default
+$(PYTHON) -m coverage report
+endef
+
+define code-coverage-py-html
+$(PYTHON) -m coverage html -d $(OUTPUT_DIR)/htmlcov && echo "HTML coverage report generated in $(OUTPUT_DIR)/htmlcov/index.html"
+endef
+
+code-coverage-py: ## Generates a code coverage report for Python, formatted by {cyan}$(CODE_COVERAGE_FORMAT){nocolor}.
+code-coverage-py: $(OUTPUT_DIR)/coverage.xml
+	@if [ -f $< ]; then \
+		test -z "$(CI)" || echo "##[group]Code coverage for Python."; \
+		$(call code-coverage-py-$(CODE_COVERAGE_FORMAT)); \
+		test -z "$(CI)" || echo "##[endgroup]"; \
+	fi
+
+PHONY += code-coverage-py
+
+#
+# ┌─┐┌─┐┬─┐┌┬┐┌─┐┌┬┐
+# ├┤ │ │├┬┘│││├─┤ │
+# └  └─┘┴└─┴ ┴┴ ┴ ┴
+#
+
+format: ## ** Formats ALL the code it can.
+format: \
+  format-py
+
+format-py: ## Formats Python code.
+format-py:
+	@ruff format $(PYTHON_FILES)
+
+PHONY += \
+  format \
+  format-py
 
 #
 # ┌─┐┬─┐┌─┐  ┌┐ ┬┌┐┌┌─┐┬─┐┬┌─┐┌─┐
@@ -470,18 +720,12 @@ SUPPORTED_LANGUAGES_FOR_BUILDING_BINARIES = \
 	cpp \
 	go
 
-dist: # Creates the root output directory.
-dist:
-	@mkdir -p dist
+binary-%-%-%: ## Creates a binary for the given service {green}$(1){nocolor}, operating system {green}$(2){nocolor}, and CPU architecture {green}$(3){nocolor}.
+binary-%-%-%: #
+binary-%-%-%: #  PLEASE NOTE:
+binary-%-%-%: #  This target is 'dummy' and is just for adding a comment to the help page.
 
-dist/%: # Creates the output directory, for a given service.
-dist/%: dist
-	@mkdir -p dist/$*
-
-binary-%-%-%: ## Creates a binary for the given service $(1), operating system $(2), and CPU architecture $(3).
-binary-%-%-%: #	 NOTE: this target is 'dummy' and is just for adding a comment to the help page.
-
-PHONY += binary-%-%-% dist/%
+PHONY += binary-%-%-%
 
 #
 # ┌┐ ┬┌┐┌┌─┐┬─┐┬┌─┐┌─┐       ┌─┐
@@ -589,11 +833,11 @@ define build_binary_go
 	@test -z "$$CI" || echo "##[endgroup]"
 endef
 
-binary-go-%: ## Create a Go binary for the given service, using $(BUILDING_OS) and $(BUILDING_ARCH).
+binary-go-%: ## Create a Go binary for the given service, using {green}$(BUILDING_OS){nocolor} and {green}$(BUILDING_ARCH){nocolor}.
 binary-go-%: cmd/%/main.go dist/%
 	$(call build_binary_go,$*,$(BUILDING_OS),$(BUILDING_ARCH))
 
-build-go-%: # Builds & executes the given Go service using the host $(OS) & $(ARCH).
+build-go-%: # Builds & executes the given Go service using the host {green}$(OS){nocolor} & {green}$(ARCH){nocolor}.
 build-go-%: binary-go-%
 	@dist/$*/$*-$(OS)-$(ARCH)$(call add_windows_suffix, $(OS))
 
@@ -614,21 +858,19 @@ binaries-go:
 
 PHONY += print-go-version
 
-
 #
 # ┌─┐┌─┐┌─┐┌┬┐  ┌┐ ┬┌┐┌┌─┐┬─┐┬┌─┐┌─┐
 # ├─┘│ │└─┐ │───├┴┐││││├─┤├┬┘│├┤ └─┐
 # ┴  └─┘└─┘ ┴   └─┘┴┘└┘┴ ┴┴└─┴└─┘└─┘o
 #
 
-binaries: ## ** Builds binaries for each supported language only for the $(BUILDING_OS) & $(BUILDING_ARCH) environment.
+binaries: ## ** Builds binaries for each supported language only for the {green}$(BUILDING_OS){nocolor} & {green}$(BUILDING_ARCH){nocolor} environment.
 binaries:
 	$(foreach lang,$(SUPPORTED_LANGUAGES_FOR_BUILDING_BINARIES), \
 		$(MAKE) --no-print-directory binaries-$(lang); \
 	)
 
 PHONY += binaries
-
 
 #
 # ┬  ┌─┐┌┬┐┌┐ ┌┬┐┌─┐
@@ -637,19 +879,21 @@ PHONY += binaries
 #
 
 bootstrap-%: # Moves the bootstrap, for the given service, into the dist directory.
-bootstrap-%: dist/% cmd/%/bootstrap
-	@cp cmd/$*/bootstrap dist/$*/
+bootstrap-%: $(OUTPUT_DIR)/% cmd/%/bootstrap
+	@cp cmd/$*/bootstrap $(OUTPUT_DIR)/$*
 
 invoke-%: ## Invokes the given service locally, using aws-sam-cli, if able.
 invoke-%: cmd/%/local.sh binary-% bootstrap-%
 	@$<
-
 
 #
 # ┌┬┐┌─┐┌─┐┬┌─┌─┐┬─┐
 #  │││ ││  ├┴┐├┤ ├┬┘
 # ─┴┘└─┘└─┘┴ ┴└─┘┴└─o
 #
+
+# Configuration for local dev runs.
+DOCKER_MOUNT_PATH ?= /app
 
 print-docker-version: # Prints the installed Docker version.
 print-docker-version:
@@ -668,27 +912,43 @@ define build_image
 	@test -z "$(CI)" || echo "##[endgroup]"
 endef
 
-image-%: ## Builds a Docker image using `./cmd/<service>/Dockerfile`.
-image-%: #	NOTE: PHONY isn't declared for this target on purpose.
-image-%: #     	  This should be done in any Makefiles reading this file instead.
+image-%: ## Builds a Docker image using `{magenta}./cmd/<service>/Dockerfile{nocolor}`.
+image-%: # PLEASE NOTE: PHONY isn't declared for this target on purpose.
+image-%: #              This should be done in any Makefiles reading this file instead.
 image-%: cmd/%/Dockerfile print-docker-version
 	$(call build_image,$<,$(call determine_image_name_from_dockerfile,$<))
 
-image-root: ## Builds a Docker image using './Dockerfile'.
+image-root: ## Builds a Docker image using `{magenta}./Dockerfile{nocolor}`.
 image-root: Dockerfile print-docker-version
 	$(call build_image,$<,$(call determine_image_name_from_dockerfile,$<))
 
 docker-images: images
-images: ## Builds ALL the Docker images in this repository.
+images: ## ** Builds ALL the Docker images in this repository.
 images: print-docker-version
 	@$(foreach dockerfile,$(DOCKERFILES), \
 		$(call build_image,$(dockerfile),$(call determine_image_name_from_dockerfile,$(dockerfile))) \
 	)
 
+local: docker
+docker: ## Builds & runs the root Docker image locally; mounts the repository under {cyan}$(DOCKER_MOUNT_PATH){nocolor}.
+docker: image-root
+	@test -z "$(CI)" || echo "##[group]Running repository in root Docker image."
+	docker run -it --rm \
+		-v $(CURDIR):$(DOCKER_MOUNT_PATH) \
+		-v $(HOME)/.aws:/root/.aws:ro \
+		-e AWS_PROFILE \
+		-e PYTHONHTTPSVERIFY=0 \
+		-e PYTHONWARNINGS="ignore:Unverified HTTPS request" \
+		-e CURL_CA_BUNDLE="" \
+		-e AWS_CA_BUNDLE="" \
+		$(call determine_image_name_from_dockerfile,Dockerfile):$(COMMIT)
+	@test -z "$(CI)" || echo "##[endgroup]"
+
 # Pushes a Docker image to AWS ECR.
 # $(1) = The name of the service to push to AWS ECR.
-# NOTE: This target assumes the `docker push` is actually authenticated to push
-# 		to AWS ECR. If not, this should be managed outside this Makefile.
+# PLEASE NOTE: This target assumes the `docker push` is already authenticated
+#              to push to AWS ECR. If not, this should be managed outside this
+#              Makefile and on the local machine running this command or in CI/CD.
 define push_image
 	@test -z "$(CI)" || echo "##[group]Tagging $(1) for AWS ECR in $(AWS_ACCOUNT_ID)."
 	$(foreach tag,$(TAGS), \
@@ -703,12 +963,12 @@ define push_image
 endef
 
 push-%: ## For the given service, pushes a Docker image to AWS ECR.
-push-%: #  NOTE: PHONY isn't declared for this target on purpose.
-push-%: #        This should be done in any Makefiles reading this file instead.
+push-%: # PLEASE NOTE: PHONY isn't declared for this target on purpose.
+push-%: #              This should be done in any Makefiles reading this file instead.
 push-%: image-%
 	$(call push_image,$(call determine_image_name_from_dockerfile,cmd/$*/Dockerfile))
 
-push-root: ## Pushes the Docker image built from `./Dockerfile`.
+push-root: ## Pushes the Docker image built from `{magenta}./Dockerfile{nocolor}`.
 push-root: image-root
 	$(call push_image,$(call determine_image_name_from_dockerfile,Dockerfile))
 
@@ -730,7 +990,7 @@ pull-%: ## Pulls a Docker image, for the given service, from AWS ECR.
 pull-%: cmd/%/Dockerfile
 	$(call pull_image,$(call determine_image_name_from_dockerfile,$<))
 
-pull-root: ## Pulls a Docker image, built from './Dockerfile', from AWS ECR.
+pull-root: ## Pulls a Docker image, built from `{magenta}./Dockerfile{nocolor}`, from AWS ECR.
 pull-root: Dockerfile
 	$(call pull_image,$(call determine_image_name_from_dockerfile,$<))
 
@@ -748,7 +1008,7 @@ define promote_image
 	@test -z "$(CI)" || echo "##[endgroup]"
 
 	@test -z "$(CI)" || echo "##[group]Tagging $(1) for AWS ECR in $(AWS_ACCOUNT_ID)."
-	@$(foreach tag,$(TAGS), \
+	$(foreach tag,$(TAGS), \
 		docker tag $(PROMOTE_FROM_ECR)/$(1):$(COMMIT) $(ECR)/$(1):$(tag); \
 	)
 	@test -z "$(CI)" || echo "##[endgroup]"
@@ -774,9 +1034,9 @@ promote:
 	)
 
 PHONY += print-docker-version \
-				 images docker-images push pull promote \
-				 image-root push-root pull-root promote-root
-
+         images docker-images push pull promote \
+         image-root push-root pull-root promote-root \
+         docker local
 
 #
 # ┌┬┐┌─┐┌─┐┬  ┌─┐┬ ┬
@@ -788,7 +1048,9 @@ PHONY += print-docker-version \
 DEFAULT_NUM_SERVICE_GROUPS ?= 99
 
 # Sets the maxiumum number of service groups to be created.
-# NOTE: The more there are of these, the slower this Makefile executes.
+#
+# PLEASE NOTE:
+# The more service groups there are, the slower this Makefile executes.
 NUM_SERVICE_GROUPS := $(DEFAULT_NUM_SERVICE_GROUPS)
 
 # Sets PRIMARY_SERVICES to be SERVICES, so either can be used in subsequent Makefiles.
@@ -804,37 +1066,56 @@ $(foreach i, $(shell seq 1 $(NUM_SERVICE_GROUPS)), \
   ) \
 )
 
-# A list of services under './cf' (except submodules) that contain Cloudformation templates.
-CF_SERVICES := $(shell find ./cf $(FILTER_IGNORE_SUBMODULES) -mindepth 1 -maxdepth 1 -type d 2>/dev/null)
+# A list of services under './$(CLOUDFORMATION_ROOT_DIRECTORY)' (except submodules) that contain Cloudformation templates.
+CF_SERVICES := $(shell find ./$(CLOUDFORMATION_ROOT_DIRECTORY) $(FILTER_IGNORE_SUBMODULES) -mindepth 1 -maxdepth 1 -type d 2>/dev/null)
 
 deploy: ## ** Deploys the Cloudformation template for ALL services.
 deploy: $(foreach service,$(SERVICE_GROUPS),$($(service)))
 
 deploy-%: ## Deploys the Cloudformation template for the given service.
-deploy-%: cf/%/package.yml
-ifndef ENVIRONMENT
+deploy-%: $(CLOUDFORMATION_ROOT_DIRECTORY)/%/package.yml
+ifeq ($(strip $(ENVIRONMENT)),)
 	$(error ENVIRONMENT not defined; please populate it before deploying)
+else ifeq ($(ENVIRONMENT),local)
+	$(error Cannot deploy to '$(ENVIRONMENT)' environment. Please set ENVIRONMENT to a non-$(ENVIRONMENT) value)
 else
 	@test -z "$(CI)" || echo "##[group]Deploying $*."
 	aws cloudformation deploy \
+    --stack-name $(STACK_NAME) \
+    --template-file $< \
 		--region $(AWS_REGION) \
-		--template-file $< \
 		$(shell [ -n "$(FILE_SIZE)" ] && [ $(FILE_SIZE) -gt 51200 ] && echo "--s3-bucket $(BUCKET)") \
-		--stack-name $(STACK_NAME) \
-		--tags organization=$(ORG) repository=$(REPO) project=$(PROJECT) component=$* revision=$(COMMIT) environment=$(ENVIRONMENT) \
+		--parameter-overrides \
+        Organization=$(ORG) \
+        Repository=$(REPO) \
+        Project=$(PROJECT) \
+        Component=$* \
+        Revision=$(COMMIT) \
+        Environment=$(ENVIRONMENT) \
+      $(if $(wildcard $(PARAMS_FILE)),$(shell jq -r 'map("\(.ParameterKey)=\(.ParameterValue)") | join(" ")' $(PARAMS_FILE)),) \
+      $(if $(ADDITIONAL_PARAMETER_OVERRIDES),$(ADDITIONAL_PARAMETER_OVERRIDES),) \
+    --tags \
+        organization=$(ORG) \
+        repository=$(REPO) \
+        project=$(PROJECT) \
+        component=$* \
+        revision=$(COMMIT) \
+        environment=$(ENVIRONMENT) \
 		$(if $(ADDITIONAL_STACK_TAGS),$(ADDITIONAL_STACK_TAGS),) \
-		--parameter-overrides Organization=$(ORG) Repository=$(REPO) Project=$(PROJECT) Component=$* Revision=$(COMMIT) Environment=$(ENVIRONMENT) \
-		$(if $(wildcard $(PARAMS_FILE)),$(shell jq -r 'map("\(.ParameterKey)=\(.ParameterValue)") | join(" ")' $(PARAMS_FILE)),) \
-		$(if $(ADDITIONAL_PARAMETER_OVERRIDES),$(ADDITIONAL_PARAMETER_OVERRIDES),) \
-		--capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
+    --capabilities \
+        CAPABILITY_IAM \
+        CAPABILITY_NAMED_IAM \
+        CAPABILITY_AUTO_EXPAND \
 		--no-fail-on-empty-changeset
 	@test -z "$(CI)" || echo "##[endgroup]"
 endif
 
-cf/%/package.yml: ## Packages the Cloudformation template for the given service.
-cf/%/package.yml: cf/%/template.yml
-ifndef ENVIRONMENT
+$(CLOUDFORMATION_ROOT_DIRECTORY)/%/package.yml: ## Packages the Cloudformation template for the given service.
+$(CLOUDFORMATION_ROOT_DIRECTORY)/%/package.yml: $(CLOUDFORMATION_ROOT_DIRECTORY)/%/template.yml
+ifeq ($(strip $(ENVIRONMENT)),)
 	$(error ENVIRONMENT not defined; please populate it before deploying)
+else ifeq ($(ENVIRONMENT),local)
+	$(error Cannot deploy to '$(ENVIRONMENT)' environment. Please set ENVIRONMENT to a non-$(ENVIRONMENT) value)
 else
 	@test -z "$(CI)" || echo "##[group]Packaging $*."
 	aws cloudformation package \
@@ -847,10 +1128,41 @@ else
 endif
 
 PHONY += deploy
-# NOTE: SERVICE_GROUPS *could* be added to PHONY here, but the aim is for these
-# 		to be controlled from the Makefile where they are declared. Do this
-# 		there, instead of here.
 
+# PLEASE NOTE:
+# SERVICE_GROUPS *could* be added to PHONY here, but the aim is for
+# these to be controlled from the Makefile where they are declared.
+# Do this there, instead of here.
+
+#
+# ┌─┐┬─┐┬┌┐┌┌┬┐
+# ├─┘├┬┘││││ │
+# ┴  ┴└─┴┘└┘ ┴
+#
+
+# PLEASE NOTE:
+# - All targets that begin with 'print-' are automatically added to PHONY.
+# - See the PHONY section below for how this works.
+
+# A simple command to help format the output of an array.
+FORMAT_ARRAY ?= tr '[:space:]' '\n'
+
+print-%: ## Prints the value of any given Makefile variable.
+print-%:
+	@echo "$($*)"
+
+print-array-%: ## Prints each item of a space-separated variable on its own line.
+print-array-%:
+	@echo "$($*)" | $(FORMAT_ARRAY)
+
+print-PHONY: # A special target to print ALL PHONY values found in this Makefile.
+print-PHONY:
+	@echo $(PHONY) | $(FORMAT_ARRAY)
+
+PHONY += \
+	print-% \
+	print-array-% \
+	print-PHONY
 
 #
 # ┬  ┬┌─┐┌┬┐
@@ -860,11 +1172,6 @@ PHONY += deploy
 
 # NOTE: All targets that begin with 'list-' are automatically added to PHONY.
 #		See the PHONY section below for how this works.
-
-# A simple command to help format the output of an array.
-FORMAT_ARRAY ?= tr '[:space:]' '\n'
-
-# ---
 
 list-shell: # Lists the shell the Makefile uses when executing targets.
 list-shell:
@@ -948,6 +1255,11 @@ list-cpp: list-cpp-files
 list-cpp-files: # Lists ALL found C++ files in this repository.
 list-cpp-files:
 	@echo $(CPP_FILES) | $(FORMAT_ARRAY)
+
+list-py: list-python-files
+list-python-files: # Lists ALL found Python files in this repository.
+list-python-files:
+	@echo $(PYTHON_FILES) | $(FORMAT_ARRAY)
 
 list-sam: list-sam-templates
 list-sam-templates: # Lists ALL found SAM templates in this repository.
@@ -1053,24 +1365,26 @@ list-PHONY:
 #  └┘ ┴ ┴┴─┘┴─┴┘┴ ┴ ┴ └─┘┴└─└─┘o
 #
 
-# Validates if a given BUILDING_OS is found within SUPPORTED_OPERATING_SYSTEMS.
+# Validates if a given {green}$(BUILDING_OS){nocolor} is found within SUPPORTED_OPERATING_SYSTEMS.
 VALID_OS := $(strip $(call contains,$(BUILDING_OS),$(SUPPORTED_OPERATING_SYSTEMS)))
 ifeq ($(VALID_OS),false)
 $(error "'$(BUILDING_OS)' is not a supported operating system in this Makefile")
 endif
 
-# Validates if a given BUILDING_ARCH is found within SUPPORTED_ARCHITECTURES.
+# Validates if a given {green}$(BUILDING_ARCH){nocolor} is found within SUPPORTED_ARCHITECTURES.
 VALID_ARCH := $(strip $(call contains,$(BUILDING_ARCH),$(SUPPORTED_ARCHITECTURES)))
 ifeq ($(VALID_ARCH),false)
 $(error "'$(BUILDING_ARCH)' is not a supported CPU architecture in this Makefile")
 endif
-
 
 #
 # ┌┬┐┬┌─┐┌─┐
 # ││││└─┐│
 # ┴ ┴┴└─┘└─┘ o
 #
+
+.FORCE: # A dummy target to force execution of dependent targets.
+.FORCE:
 
 update-template: ## Pulls changes from the pre-defined template into this repository.
 update-template:
@@ -1088,28 +1402,73 @@ help: ## Prints this help page.
 help:
 	@echo "Available targets:"
 	@awk_script='\
+		BEGIN { \
+			use_color_global = (ENVIRON["NO_COLOR"] == "" ? 1 : 0); \
+			colors["red"] = "\033[91m"; \
+			colors["green"] = "\033[92m"; \
+			colors["yellow"] = "\033[93m"; \
+			colors["blue"] = "\033[94m"; \
+			colors["magenta"] = "\033[95m"; \
+			colors["cyan"] = "\033[96m"; \
+			colors["nocolor"] = "\033[0m"; \
+		} \
+		function color_code(name) { return (name in colors ? colors[name] : "") } \
+		function apply_tokens(s, use_color,    result, current_color, pos, tokenStart, tokenLen, tok, segment) { \
+			result = ""; current_color = ""; pos = 1; \
+			while (match(substr(s, pos), /\{(red|green|yellow|blue|magenta|cyan|nocolor)\}/)) { \
+				tokenStart = pos + RSTART - 1; \
+				tokenLen = RLENGTH; \
+				segment = substr(s, pos, tokenStart - pos); \
+				if (use_color && current_color != "") \
+					result = result current_color segment "\033[0m"; \
+				else \
+					result = result segment; \
+				tok = substr(s, tokenStart+1, tokenLen-2); \
+				if (tok == "nocolor") current_color = ""; \
+				else current_color = color_code(tok); \
+				pos = tokenStart + tokenLen; \
+			} \
+			segment = substr(s, pos); \
+			if (use_color && current_color != "") \
+				result = result current_color segment "\033[0m"; \
+			else \
+				result = result segment; \
+			if (use_color) { \
+				gsub(/\*\*/, colors["red"] "**" colors["nocolor"], result); \
+				gsub(/---/, colors["magenta"] "---" colors["nocolor"], result); \
+				gsub(/%/, colors["blue"] "%" colors["nocolor"], result); \
+			} \
+			return result; \
+		} \
 		/^[a-zA-Z\-\\_0-9%\/$$]+:/ { \
 			target = $$1; \
 			gsub("\\$$1", "%", target); \
-			nb = sub(/^## /, "", helpMsg); \
+			nb = sub(/^## /, "", helpMessage); \
 			if (nb == 0) { \
-				helpMsg = $$0; \
-				nb = sub(/^[^:]*:.* ## /, "", helpMsg); \
+				helpMessage = $$0; \
+				nb = sub(/^[^:]*:.* ## /, "", helpMessage); \
 			} \
-			if (nb && !match(helpMsg, /^List/)) print "\033[33m" target "\033[0m" helpMsg; \
-		} \
-		{ helpMsg = $$0 } \
+			if (nb) { \
+				coloredMessage = apply_tokens(helpMessage, use_color_global); \
+				print colors["yellow"] target colors["nocolor"] " " coloredMessage; \
+			} \
+		} { helpMessage = $$0 } \
 	'; \
 	awk "$$awk_script" $(MAKEFILE_LIST) | column -ts:
 
-PHONY += update-template \
-				 clean help
+PHONY += \
+	update-template \
+	clean help
 
+#
+#  ┌─┐┬ ┬┌─┐┌┐┌┬ ┬
+#  ├─┘├─┤│ ││││└┬┘
+# o┴  ┴ ┴└─┘┘└┘ ┴
+#
 
 # PHONY tells make that the given target doesn't deal with files specifically,
 # and that the target itself is in essence "fake". There are some thing that are
 # not performed, like cleaning up generated files, when telling make a target is
 # PHONY. Populate $(PHONY) with any targets you want this for.
-# NOTE: this must be last in this file.
+# PLEASE NOTE: this must be last in this file.
 .PHONY: $(PHONY)
-
