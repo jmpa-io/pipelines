@@ -26,13 +26,12 @@ on:
       AWS_RUNNER_ROLE_NAME:
         required: true
 
-permissions:
-  id-token: write
-  contents: read
-
 jobs:
   run:
     runs-on: homelab-runners
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - name: Checkout.
         uses: actions/checkout@v4
