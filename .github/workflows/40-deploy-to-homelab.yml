@@ -1,0 +1,61 @@
+---
+on:
+  workflow_call:
+    inputs:
+      playbook:
+        description: Path to the Ansible playbook to run.
+        type: string
+        required: true
+      requirements:
+        description: Path to pip requirements file.
+        type: string
+        default: inventory/requirements.txt
+      collections:
+        description: Path to Ansible Galaxy requirements file.
+        type: string
+        default: requirements.yml
+      inventory:
+        description: Path to the inventory script.
+        type: string
+        default: inventory/main.py
+    secrets:
+      AWS_REGION:
+        required: true
+      AWS_ACCOUNT_ID:
+        required: true
+      AWS_RUNNER_ROLE_NAME:
+        required: true
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  run:
+    runs-on: homelab-runners
+    steps:
+      - name: Checkout.
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Configure AWS.
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.AWS_RUNNER_ROLE_NAME }}
+          role-session-name: github-actions
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Install dependencies.
+        run: |
+          pip install -r ${{ inputs.requirements }}
+          ansible-galaxy collection install -r ${{ inputs.collections }}
+
+      - name: Generate inventory.
+        run: cd inventory && python3 main.py > ../inventory.json
+
+      - name: Deploy.
+        run: |
+          ansible-playbook ${{ inputs.playbook }} \
+            -i inventory.json \
+            --extra-vars "root_playbook_directory=$PWD"

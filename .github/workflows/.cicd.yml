@@ -36,6 +36,15 @@ jobs:
       AWS_RUNNER_ROLE_NAME: ${{ secrets.AWS_RUNNER_ROLE_NAME }}
       ADMIN_GITHUB_TOKEN: ${{ secrets.ADMIN_GITHUB_TOKEN }}
 
+  lint-ansible:
+    uses: ./.github/workflows/10-lint.yml
+    with:
+      ansible: true
+    secrets:
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+      AWS_RUNNER_ROLE_NAME: ${{ secrets.AWS_RUNNER_ROLE_NAME }}
+
   test:
     uses: ./.github/workflows/20-test.yml
     secrets:
@@ -52,7 +61,7 @@ jobs:
   #   secrets: inherit
 
   post-to-slack:
-    needs: [lint, test]
+    needs: [lint, lint-ansible, test]
     if: always()
     uses: ./.github/workflows/99-post-to-slack.yml
     secrets:

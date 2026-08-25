@@ -47,4 +47,8 @@ jobs:
             "$img" \
             sh -c "make binaries"
 
-      # TODO: output artifacts so they can be used in subsequent workflows.
+      - name: Upload artifacts.
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }}
+          path: dist/
