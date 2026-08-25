@@ -1,25 +1,36 @@
 ---
 on:
   workflow_call:
+    inputs:
+      ansible:
+        description: When true, uses the docker/ansible ECR image instead of docker/go.
+        type: boolean
+        default: false
+      requirements:
+        description: Path to pip requirements file, used when ansible is true.
+        type: string
+        default: inventory/requirements.txt
+      collections:
+        description: Path to Ansible Galaxy requirements file, used when ansible is true.
+        type: string
+        default: requirements.yml
     secrets:
       AWS_REGION:
-        required: true
+        required: false
       AWS_ACCOUNT_ID:
-        required: true
+        required: false
       AWS_RUNNER_ROLE_NAME:
-        required: true
+        required: false
       ADMIN_GITHUB_TOKEN:
-        required: true
+        required: false
 
 jobs:
-  run:
+  run-docker:
+    if: ${{ !inputs.ansible }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout.
         uses: actions/checkout@v4
-
-      # - name: Setup private Go dependencies.
-      #   run: git config --global url."https://${{ secrets.ADMIN_GITHUB_TOKEN }}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
 
       - name: Configure AWS.
         uses: aws-actions/configure-aws-credentials@v4
@@ -43,3 +54,33 @@ jobs:
             -e CI \
             "$img" \
             sh -c "make lint"
+
+  run-ansible:
+    if: ${{ inputs.ansible }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout.
+        uses: actions/checkout@v4
+
+      - name: Configure AWS.
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.AWS_RUNNER_ROLE_NAME }}
+          role-session-name: github-actions
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to AWS ECR.
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Lint.
+        run: |
+          img="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/docker/ansible"
+          echo "##[group]Pulling image."
+          docker pull "$img"
+          echo "##[endgroup]"
+          docker run \
+            -v "$PWD:/go/src/app" \
+            -w "/go/src/app" \
+            -e CI \
+            "$img" \
+            sh -c "pip install -r ${{ inputs.requirements }} && ansible-galaxy collection install -r ${{ inputs.collections }} && make lint"
