@@ -5,6 +5,39 @@
 die() { echo "$1" >&2; exit "${2:-1}"; }
 usage() { echo "usage: $0 <templates-to-deploy>"; exit 64; }
 
+# lookup_domain_params <repo> sets domain, hostedZoneId, cert in the caller's scope.
+lookup_domain_params() {
+  local _repo="$1"
+  local _data _domains _d
+
+  _data=$(aws route53domains list-domains --region us-east-1) \
+    || die "failed to list route53 domains"
+  _domains=$(<<< "$_data" jq -r '.Domains[].DomainName') \
+    || die "failed to parse response from listing route53 domains"
+
+  domain=""
+  for _d in $_domains; do
+    [[ $_repo == *$_d ]] && { domain=$_d; break; }
+  done
+  [[ -z "$domain" ]] \
+    && die "failed to determine which domain $_repo belongs to"
+
+  hostedZoneId=$(aws route53 list-hosted-zones-by-name \
+    --query "HostedZones[?Name=='$domain.'].Id" \
+    --output text) \
+    || die "failed to get hosted zone id for $domain"
+  hostedZoneId=${hostedZoneId/\/hostedzone\//}
+  [[ -z "$hostedZoneId" ]] \
+    && die "failed to determine a hostedZoneId for $domain"
+
+  cert=$(aws acm list-certificates --region us-east-1 \
+    --query "CertificateSummaryList[?DomainName=='$domain'].CertificateArn" \
+    --output text) \
+    || die "failed to determine a certificate arn for $domain"
+  [[ -z "$cert" ]] \
+    && die "failed to find a certificate for $domain"
+}
+
 # check pwd.
 [[ ! -d .git ]] \
   && die "must be run from repository root directory"
@@ -46,7 +79,8 @@ topics=$(curl -sf \
   || die "failed to list repository topics for $fullRepo"
 
 # validate given templates.
-templatesToDeploy=(); missing=()
+templatesToDeploy=()
+missing=()
 for t in $templates; do
 
   # extract template name, if given in a path format.
@@ -93,38 +127,7 @@ for t in "${templatesToDeploy[@]}"; do
 
   # add website parameters.
   if [[ $topics == *website* ]]; then
-
-    # list all domains.
-    data=$(aws route53domains list-domains --region us-east-1) \
-      || die "failed to list route53 domains"
-    domains=$(<<< "$data" jq -r '.Domains[].DomainName') \
-      || die "failed to parse response from listing route53 domains"
-
-    # determine which domain.
-    domain=""
-    for d in $domains; do
-      [[ $repo == *$d ]] && { domain=$d; break; }
-    done
-    [[ -z "$domain" ]] \
-      && die "failed to determine which domain $repo belongs to"
-
-    # determine hosted zone id from domain.
-    hostedZoneId=$(aws route53 list-hosted-zones-by-name \
-      --query "HostedZones[?Name=='$domain.'].Id" \
-      --output text) \
-      || die "failed to get hosted zone id for $domain"
-    hostedZoneId=${hostedZoneId/\/hostedzone\//} # remove prefix.
-    [[ -z "$hostedZoneId" ]] \
-      && die "failed to determine a hostedZoneId for $domain"
-
-    # determine certificate arn from domain.
-    certs=$(aws acm list-certificates --region us-east-1) \
-      || die "failed to list acm certificates"
-    cert=$(<<<"$certs" jq -r --arg domain "$domain" \
-      '.CertificateSummaryList[] | select(.DomainName==$domain) | .CertificateArn') \
-      || die "failed to parse acm certificates response"
-    [[ -z "$cert" ]] \
-      && die "failed to determine a cert for $domain"
+    lookup_domain_params "$repo"
 
     # update domain to be sub-domain, only after determining everything.
     [[ $repo == *$domain && $domain != "$repo" ]] \
@@ -163,7 +166,7 @@ for t in "${templatesToDeploy[@]}"; do
     # package template.
     echo "##[group]Packaging $name"
     aws cloudformation package \
-      --region "$AWS_DEFAULT_REGION" \
+      --region "${AWS_REGION:-$AWS_DEFAULT_REGION}" \
       --template-file "$template" \
       --output-template-file "$package" \
       --s3-prefix "$name" \
@@ -174,31 +177,8 @@ for t in "${templatesToDeploy[@]}"; do
     # alter path to template.
     template="$package"
 
-    # retrieve hosted zone id.
-    data=$(aws route53domains list-domains --region us-east-1) \
-      || die "failed to list route53 domains"
-    domains=$(<<< "$data" jq -r '.Domains[].DomainName') \
-      || die "failed to parse response from listing route53 domains"
-    domain=""
-    for d in $domains; do
-      [[ $repo == *$d ]] && { domain=$d; break; }
-    done
-    [[ -z "$domain" ]] \
-      && die "failed to determine which domain $repo belongs to"
-    hostedZoneId=$(aws route53 list-hosted-zones-by-name \
-      --query "HostedZones[?Name=='$domain.'].Id" --output text) \
-      || die "failed to determine a hostedZoneId for $domain"
-    [[ -z "$hostedZoneId" ]] \
-      && die "failed to find a hostedZoneId for $domain"
-    hostedZoneId=${hostedZoneId/\/hostedzone\//}
-
-    # determine certificate arn from domain.
-    cert=$(aws acm list-certificates --region us-east-1 \
-      --query "CertificateSummaryList[?DomainName=='$domain'].CertificateArn" \
-      --output text) \
-      || die "failed to determine a certificate arn for $domain"
-    [[ -z "$cert" ]] \
-      && die "failed to find a certificate for $domain"
+    # retrieve hosted zone id and cert.
+    lookup_domain_params "$repo"
 
     # add overrides.
     overrides+=("HostedZoneId=$hostedZoneId")
@@ -209,7 +189,7 @@ for t in "${templatesToDeploy[@]}"; do
   # deploy stack.
   echo "##[group]Deploying $name"
   aws cloudformation deploy \
-    --region "$AWS_DEFAULT_REGION" \
+    --region "${AWS_REGION:-$AWS_DEFAULT_REGION}" \
     --template-file "$template" \
     --stack-name "$stack" \
     --capabilities CAPABILITY_NAMED_IAM \
