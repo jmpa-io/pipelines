@@ -27,6 +27,13 @@ jobs:
       - name: Checkout.
         uses: actions/checkout@v4
 
+      - name: Checkout templates.
+        uses: actions/checkout@v4
+        with:
+          repository: jmpa-io/templates
+          path: .templates
+          token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
+
       - name: Configure AWS.
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -37,7 +44,7 @@ jobs:
       - name: Generate README.
         env:
           GITHUB_TOKEN: ${{ secrets.ADMIN_GITHUB_TOKEN }}
-        run: bash bin/README.sh ${{ inputs.org }}
+        run: bash .templates/bin/README.sh ${{ inputs.org }}
 
       - name: Commit & push README.
         run: |
