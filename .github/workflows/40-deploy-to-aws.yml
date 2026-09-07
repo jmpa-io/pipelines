@@ -10,6 +10,14 @@ on:
         description: A space separated list of templates to deploy.
         type: string
         default: deploy
+      deploy_region:
+        description: >
+          Override the AWS region for the deployment (make + CloudFormation).
+          The ECR image is always pulled from AWS_REGION. Only set this when
+          deploying to a different region than the ECR registry (e.g. us-east-1
+          for billing-alarm while ECR lives in ap-southeast-2).
+        type: string
+        default: ""
     secrets:
       AWS_REGION:
         required: true
@@ -38,6 +46,7 @@ jobs:
       - name: Deploy.
         run: |
           img="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/docker/go"
+          deploy_region="${{ inputs.deploy_region != '' && inputs.deploy_region || secrets.AWS_REGION }}"
           echo "##[group]Pulling image."
           docker pull "$img"
           echo "##[endgroup]"
@@ -47,7 +56,7 @@ jobs:
             -e CI \
             -e ENVIRONMENT=${{ inputs.environment }} \
             -e REPO=${{ github.event.repository.name }} \
-            -e AWS_REGION -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e AWS_SESSION_TOKEN \
+            -e AWS_REGION="$deploy_region" -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e AWS_SESSION_TOKEN \
             "$img" \
             sh -c "make ${{ inputs.templates }}"
 
