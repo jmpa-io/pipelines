@@ -15,9 +15,6 @@ on:
       - '.github/workflows/80-dispatch.yml'
       - '.github/workflows/99-post-to-slack.yml'
       - 'bin/*'
-      - 'cf/**'
-      - 'cmd/**'
-      - 'templates/**'
       - '**Dockerfile'
       - 'Makefile*'
   workflow_dispatch:
