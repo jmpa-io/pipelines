@@ -74,6 +74,10 @@ endef
 # The shell used when executing commands.
 SHELL = /bin/sh
 
+# Extend PATH so recipes can find language toolchains (cargo, node globals, etc.)
+# that are installed outside the default system PATH.
+export PATH := $(HOME)/.cargo/bin:$(HOME)/.npm-packages/bin:$(PATH)
+
 # The default command executed when `make` is run without arguments.
 .DEFAULT_GOAL := help
 
@@ -173,6 +177,24 @@ PYTHON_FILES := $(shell find . $(FILTER_IGNORE_SUBMODULES) -name "*.py" -type f 
 
 # All C++ files in the repository (excluding submodules).
 CPP_FILES := $(shell find . $(FILTER_IGNORE_SUBMODULES) -name "*.cpp" -type f 2>/dev/null)
+
+# All Rust files in the repository (excluding submodules).
+RUST_FILES := $(shell find . $(FILTER_IGNORE_SUBMODULES) -name "*.rs" -type f 2>/dev/null)
+
+# All TypeScript files in the repository (excluding submodules).
+TS_FILES := $(shell find . $(FILTER_IGNORE_SUBMODULES) -name "*.ts" -type f 2>/dev/null)
+
+# All JavaScript files in the repository (excluding submodules).
+JS_FILES := $(shell find . $(FILTER_IGNORE_SUBMODULES) -name "*.js" -type f 2>/dev/null)
+
+# Ansible configuration file in the repository (if one exists).
+ANSIBLE_CFG := $(shell find . $(FILTER_IGNORE_SUBMODULES) -name "ansible.cfg" -maxdepth 2 -type f 2>/dev/null | head -1)
+
+# All Terraform files in the repository (excluding submodules).
+TF_FILES := $(shell find . $(FILTER_IGNORE_SUBMODULES) -name "*.tf" -type f 2>/dev/null)
+
+# All C# files in the repository (excluding submodules).
+CS_FILES := $(shell find . $(FILTER_IGNORE_SUBMODULES) -name "*.cs" -type f 2>/dev/null)
 
 # All Cloudformation templates & SAM templates in the './cf' directory (excluding submodules).
 TEMPLATE_FILES := $(shell find ./cf $(FILTER_IGNORE_SUBMODULES) -name "template.yml" -type f 2>/dev/null)
@@ -319,12 +341,18 @@ DEPENDENCIES ?= \
 	zip
 
 # Below aggregates all language-specific dependencies required for this Makefile.
+# Language-specific deps are only required when that language is actually present.
 DEPENDENCIES += \
   $(BASH_DEPENDENCIES) \
   $(PYTHON_DEPENDENCIES) \
   $(GO_DEPENDENCIES) \
   $(DOCKER_DEPENDENCIES) \
-  $(AWS_DEPENDENCIES)
+  $(AWS_DEPENDENCIES) \
+  $(if $(RUST_FILES),$(RUST_DEPENDENCIES)) \
+  $(if $(TS_FILES)$(JS_FILES),$(TS_DEPENDENCIES)) \
+  $(if $(ANSIBLE_CFG),$(ANSIBLE_DEPENDENCIES)) \
+  $(if $(TF_FILES),$(TF_DEPENDENCIES)) \
+  $(if $(CS_FILES),$(CSHARP_DEPENDENCIES))
 
 # Bash-specific dependencies.
 BASH_DEPENDENCIES ?= \
@@ -352,16 +380,43 @@ AWS_DEPENDENCIES ?= \
   cfn-lint \
   sam
 
+# Rust-specific dependencies.
+RUST_DEPENDENCIES ?= \
+  cargo
+
+# TypeScript-specific dependencies.
+TS_DEPENDENCIES ?= \
+  node \
+  eslint \
+  prettier
+
+# Ansible-specific dependencies.
+ANSIBLE_DEPENDENCIES ?= \
+  ansible-lint
+
+# Terraform-specific dependencies.
+TF_DEPENDENCIES ?= \
+  terraform \
+  tflint
+
+# C#-specific dependencies.
+CSHARP_DEPENDENCIES ?= \
+  dotnet
+
 # Additional jmpa-io specific dependencies.
 DEPENDENCIES += \
   actionlint \
   cpplint
 
+# Extended PATH for dependency checks — covers rustup/cargo and npm globals
+# which live outside the default system PATH on many machines.
+CHECK_PATH := $(HOME)/.cargo/bin:$(HOME)/.npm-packages/bin:$(PATH)
+
 # Determines if there are any missing dependencies.
 MISSING := \
   $(strip \
     $(foreach binary,$(DEPENDENCIES), \
-      $(if $(shell command -v $(binary) 2>/dev/null),,$(binary)) \
+      $(if $(shell PATH="$(CHECK_PATH)" command -v $(binary) 2>/dev/null),,$(binary)) \
     ) \
   )
 
@@ -436,7 +491,12 @@ lint: \
 	lint-cf \
 	lint-sam \
 	lint-docker \
-	lint-workflows
+	lint-workflows \
+	lint-rust \
+	lint-ts \
+	lint-ansible \
+	lint-tf \
+	lint-csharp
 
 lint-sh: ## Lints scripts.
 lint-sh:
@@ -539,6 +599,57 @@ else
 endif
 	@test -z "$(CI)" || echo "##[endgroup]"
 
+lint-rust: ## Lints Rust files.
+lint-rust:
+	@test -z "$(CI)" || echo "##[group]Linting Rust."
+ifeq ($(RUST_FILES),)
+	@echo "No Rust files to lint."
+else
+	@cargo clippy --all-targets --all-features -- -D warnings || true
+endif
+	@test -z "$(CI)" || echo "##[endgroup]"
+
+lint-ts: ## Lints TypeScript files.
+lint-ts:
+	@test -z "$(CI)" || echo "##[group]Linting TypeScript."
+ifeq ($(TS_FILES),)
+	@echo "No TypeScript files to lint."
+else
+	@eslint $(TS_FILES) || true
+endif
+	@test -z "$(CI)" || echo "##[endgroup]"
+
+lint-ansible: ## Lints Ansible playbooks.
+lint-ansible:
+	@test -z "$(CI)" || echo "##[group]Linting Ansible."
+ifeq ($(ANSIBLE_CFG),)
+	@echo "No Ansible configuration found to lint."
+else
+	@ansible-lint || true
+endif
+	@test -z "$(CI)" || echo "##[endgroup]"
+
+lint-tf: ## Lints Terraform files.
+lint-tf:
+	@test -z "$(CI)" || echo "##[group]Linting Terraform."
+ifeq ($(TF_FILES),)
+	@echo "No Terraform files to lint."
+else
+	@terraform fmt -check -recursive || true
+	@tflint --recursive || true
+endif
+	@test -z "$(CI)" || echo "##[endgroup]"
+
+lint-csharp: ## Lints C# files.
+lint-csharp:
+	@test -z "$(CI)" || echo "##[group]Linting C#."
+ifeq ($(CS_FILES),)
+	@echo "No C# files to lint."
+else
+	@dotnet format --verify-no-changes || true
+endif
+	@test -z "$(CI)" || echo "##[endgroup]"
+
 PHONY += lint \
          lint-sh \
          lint-powershell \
@@ -548,7 +659,12 @@ PHONY += lint \
          lint-cf \
          lint-sam \
          lint-docker \
-         lint-workflows
+         lint-workflows \
+         lint-rust \
+         lint-ts \
+         lint-ansible \
+         lint-tf \
+         lint-csharp
 
 #
 # ┌┬┐┌─┐┌─┐┌┬┐
@@ -559,7 +675,10 @@ PHONY += lint \
 test: ## ** Tests everything.
 test: \
 	test-go \
-	test-py
+	test-py \
+	test-rust \
+	test-ts \
+	test-csharp
 
 PHONY += test
 
@@ -621,6 +740,63 @@ endif
 
 PHONY += test-py \
          $(OUTPUT_DIR)/coverage.xml
+
+#
+# Rust.
+#
+
+test-rust: ## Runs Rust tests.
+test-rust:
+	@test -z "$(CI)" || echo "##[group]Unit tests for Rust."
+ifeq ($(RUST_FILES),)
+	@echo "No Rust files found to test."
+else
+	@cargo --version
+	@$(foreach svc,$(CMD_SERVICES_RUST), \
+		cargo test --manifest-path cmd/$(svc)/Cargo.toml;)
+endif
+	@test -z "$(CI)" || echo "##[endgroup]"
+
+PHONY += test-rust
+
+#
+# TypeScript.
+#
+
+test-ts: ## Runs TypeScript tests.
+test-ts:
+	@test -z "$(CI)" || echo "##[group]Unit tests for TypeScript."
+ifeq ($(TS_FILES),)
+	@echo "No TypeScript files found to test."
+else
+	@node --version
+	@$(foreach svc,$(CMD_SERVICES_TS), \
+		echo "Testing $(svc)..." && \
+		cd cmd/$(svc) && npm ci --silent && npx jest && cd -;)
+endif
+	@test -z "$(CI)" || echo "##[endgroup]"
+
+PHONY += test-ts
+
+#
+# C#.
+#
+
+CMD_SERVICES_CSHARP := $(shell find cmd/* $(FILTER_IGNORE_SUBMODULES) -name "*.csproj" -maxdepth 1 -type f -exec dirname {} \; 2>/dev/null | awk -F/ '{$$1=""; sub(/^ /, ""); print $$0}')
+
+test-csharp: ## Runs C# tests.
+test-csharp:
+	@test -z "$(CI)" || echo "##[group]Unit tests for C#."
+ifeq ($(CS_FILES),)
+	@echo "No C# files found to test."
+else
+	@dotnet --version
+	@$(foreach svc,$(CMD_SERVICES_CSHARP), \
+		dotnet test cmd/$(svc)/;)
+endif
+	@test -z "$(CI)" || echo "##[endgroup]"
+
+PHONY += test-csharp
 
 #
 # ┌─┐┌─┐┌┬┐┌─┐  ┌─┐┌─┐┬  ┬┌─┐┬─┐┌─┐┌─┐┌─┐
@@ -699,15 +875,35 @@ PHONY += code-coverage-py
 
 format: ## ** Formats ALL the code it can.
 format: \
-  format-py
+  format-py \
+  format-rust \
+  format-ts
 
 format-py: ## Formats Python code.
 format-py:
 	@ruff format $(PYTHON_FILES)
 
+format-rust: ## Formats Rust code.
+format-rust:
+ifeq ($(RUST_FILES),)
+	@echo "No Rust files to format."
+else
+	@cargo fmt
+endif
+
+format-ts: ## Formats TypeScript/JavaScript code.
+format-ts:
+ifeq ($(TS_FILES)$(JS_FILES),)
+	@echo "No TypeScript or JavaScript files to format."
+else
+	@prettier --write $(TS_FILES) $(JS_FILES)
+endif
+
 PHONY += \
   format \
-  format-py
+  format-py \
+  format-rust \
+  format-ts
 
 #
 # ┌─┐┬─┐┌─┐  ┌┐ ┬┌┐┌┌─┐┬─┐┬┌─┐┌─┐
@@ -718,7 +914,9 @@ PHONY += \
 # A list of supported programming languages for building binaries in this Makefile.
 SUPPORTED_LANGUAGES_FOR_BUILDING_BINARIES = \
 	cpp \
-	go
+	go \
+	rust \
+	ts
 
 binary-%-%-%: ## Creates a binary for the given service {green}$(1){nocolor}, operating system {green}$(2){nocolor}, and CPU architecture {green}$(3){nocolor}.
 binary-%-%-%: #
@@ -857,6 +1055,87 @@ binaries-go:
 	)
 
 PHONY += print-go-version
+
+#
+# ┌┐ ┬┌┐┌┌─┐┬─┐┬┌─┐┌─┐       ┬─┐┬ ┬┌─┐┌┬┐
+# ├┴┐││││├─┤├┬┘│├┤ └─┐  ───  ├┬┘│ │└─┐ │
+# └─┘┴┘└┘┴ ┴┴└─┴└─┘└─┘       ┴└─└─┘└─┘ ┴  o
+#
+
+# A list of directories under './cmd/*' that contain a 'Cargo.toml' (excluding submodules).
+CMD_SERVICES_RUST := $(shell find cmd/* $(FILTER_IGNORE_SUBMODULES) -name Cargo.toml -maxdepth 1 -type f -exec dirname {} \; 2>/dev/null | awk -F/ '{$$1=""; sub(/^ /, ""); print $$0}')
+
+print-rust-version: # Prints the installed Rust / cargo version.
+print-rust-version:
+	@test -z "$(CI)" || echo "##[group]Rust version."
+	@cargo --version
+	@cargo rustc --version
+	@test -z "$(CI)" || echo "##[endgroup]"
+
+binary-rust-%: ## Create a Rust binary for the given service, using $(BUILDING_OS) and $(BUILDING_ARCH).
+binary-rust-%: cmd/%/Cargo.toml dist/% print-rust-version
+	@test -z "$(CI)" || echo "##[group]Building Rust binary $*-$(BUILDING_OS)-$(BUILDING_ARCH)."
+	@cargo build --release --manifest-path cmd/$*/Cargo.toml
+	@cp cmd/$*/target/release/$* dist/$*/$*-$(BUILDING_OS)-$(BUILDING_ARCH)$(call add_windows_suffix,$(BUILDING_OS))
+	@test -z "$(CI)" || echo "##[endgroup]"
+
+build-rust-%: # Builds & executes the given Rust service using the host $(OS) & $(ARCH).
+build-rust-%: binary-rust-%
+	@dist/$*/$*-$(OS)-$(ARCH)$(call add_windows_suffix, $(OS))
+
+binaries-rust-%: ## Creates a Rust binary for all supported OS and ARCH for the given service.
+binaries-rust-%:
+	@$(foreach os,$(SUPPORTED_OPERATING_SYSTEMS), \
+		$(foreach arch,$(SUPPORTED_ARCHITECTURES), \
+			BUILDING_OS=$(os) BUILDING_ARCH=$(arch) \
+			$(MAKE) --no-print-directory binary-rust-$*; \
+		) \
+	)
+
+binaries-rust: ## Builds Rust binaries for every Rust service.
+binaries-rust:
+	@$(foreach service,$(CMD_SERVICES_RUST), \
+		$(MAKE) --no-print-directory binaries-rust-$(service); \
+	)
+
+PHONY += print-rust-version
+
+#
+# ┌┐ ┬┌┐┌┌─┐┬─┐┬┌─┐┌─┐       ┌┬┐┌─┐
+# ├┴┐││││├─┤├┬┘│├┤ └─┐  ───   │ └─┐
+# └─┘┴┘└┘┴ ┴┴└─┴└─┘└─┘        ┴ └─┘o
+#
+
+# A list of directories under './cmd/*' that contain a 'package.json' (excluding submodules).
+CMD_SERVICES_TS := $(shell find cmd/* $(FILTER_IGNORE_SUBMODULES) -name package.json -maxdepth 1 -type f -exec dirname {} \; 2>/dev/null | awk -F/ '{$$1=""; sub(/^ /, ""); print $$0}')
+
+print-ts-version: # Prints the installed Node.js version.
+print-ts-version:
+	@test -z "$(CI)" || echo "##[group]Node.js version."
+	@$(shell command -v node 2>/dev/null) --version
+	@$(shell command -v npm 2>/dev/null) --version
+	@test -z "$(CI)" || echo "##[endgroup]"
+
+binary-ts-%: ## Builds the TypeScript/Node.js service for the given service.
+binary-ts-%: cmd/%/package.json dist/% print-ts-version
+	@test -z "$(CI)" || echo "##[group]Building TypeScript service $*."
+	@cd cmd/$* && npm ci && npm run build
+	@test -z "$(CI)" || echo "##[endgroup]"
+
+build-ts-%: # Builds & runs the given TypeScript service.
+build-ts-%: binary-ts-%
+	@node cmd/$*/dist/index.js
+
+binaries-ts-%: ## Builds the TypeScript service $* (no cross-compilation — Node.js is portable).
+binaries-ts-%: binary-ts-%
+
+binaries-ts: ## Builds TypeScript services for every TypeScript service.
+binaries-ts:
+	@$(foreach service,$(CMD_SERVICES_TS), \
+		$(MAKE) --no-print-directory binaries-ts-$(service); \
+	)
+
+PHONY += print-ts-version
 
 #
 # ┌─┐┌─┐┌─┐┌┬┐  ┌┐ ┬┌┐┌┌─┐┬─┐┬┌─┐┌─┐
