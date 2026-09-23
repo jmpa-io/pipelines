@@ -8,11 +8,9 @@ on:
       - '.github/workflows/20-test.yml'
       - '.github/workflows/30-build-binaries.yml'
       - '.github/workflows/35-build-and-push-docker-images-to-ecr.yml'
-      - '.github/workflows/35-build-and-push-docker-images-to-homelab-docker-registry.yml'
       - '.github/workflows/40-deploy-to-aws.yml'
       - '.github/workflows/40-deploy-to-homelab.yml'
       - '.github/workflows/50-upload-artifacts-to-s3.yml'
-      - '.github/workflows/80-dispatch.yml'
       - '.github/workflows/99-post-to-slack.yml'
       - 'bin/*'
       - '**Dockerfile'
@@ -52,12 +50,6 @@ jobs:
       AWS_RUNNER_ROLE_NAME: ${{ secrets.AWS_RUNNER_ROLE_NAME }}
       ADMIN_GITHUB_TOKEN: ${{ secrets.ADMIN_GITHUB_TOKEN }}
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-
-  # dispatch:
-  #   needs: [lint, test]
-  #   if: contains(github.event.head_commit.message, '[dispatch]')
-  #   uses: ./.github/workflows/80-dispatch.yml
-  #   secrets: inherit
 
   post-to-slack:
     needs: [lint, lint-ansible, test]
