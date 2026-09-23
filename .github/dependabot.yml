@@ -9,7 +9,6 @@ updates:
       interval: weekly
     open-pull-requests-limit: 10
     labels: ["dependencies", "github-actions"]
-    auto-merge: true
 
   # Update pip dependencies weekly.
   - package-ecosystem: pip
@@ -18,5 +17,4 @@ updates:
       interval: weekly
     open-pull-requests-limit: 10
     labels: ["dependencies", "python"]
-    auto-merge: true
 
