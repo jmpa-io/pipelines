@@ -46,7 +46,7 @@ jobs:
             -w "/go/src/app" \
             -e CI \
             -e ENVIRONMENT=${{ inputs.environment }} \
-            -e REPO=$(basename $(git rev-parse --show-toplevel)) \
+            -e REPO=${{ github.event.repository.name }} \
             -e AWS_REGION -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e AWS_SESSION_TOKEN \
             "$img" \
             sh -c "make ${{ inputs.templates }}"
