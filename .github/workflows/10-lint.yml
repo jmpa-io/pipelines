@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Configure AWS.
         uses: aws-actions/configure-aws-credentials@v4
@@ -60,7 +60,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Configure AWS.
         uses: aws-actions/configure-aws-credentials@v4
