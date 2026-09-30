@@ -27,10 +27,10 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
 
       # NOTE: This step should NOT run inside a docker container, since this
-        #     step is intented to build ocker images as artefacts (i.e these
-        #     images contain either compiled binaries, artifacts, or scripts and
-        #     whatever is needed for these "things" to run successfully). As of
-        #     writing, we want to avoid docker-in-docker because of the complexity.
+      #       step is intended to build docker images as artefacts (i.e these
+      #       images contain either compiled binaries, artifacts, or scripts and
+      #       whatever is needed for these "things" to run successfully). As of
+      #       writing, we want to avoid docker-in-docker because of the complexity.
       - name: Build images & push images to AWS ECR.
         run: make push
 

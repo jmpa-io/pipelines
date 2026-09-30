@@ -127,7 +127,7 @@ for repo in "${repos[@]}"; do
   resp=$(curl -s "https://api.github.com/repos/$org/$repo/dispatches" \
     -H 'Accept: application/vnd.github.everest-preview+json' \
     -H "Authorization: bearer $token" \
-    -d "{\"event_type\": \"trigger\", \"client_payload\": {\"user\": \"$user\", \"email\": \"$email\"} }") \
+    -d "{\"event_type\": \"update-cicd\", \"client_payload\": {\"user\": \"$user\", \"email\": \"$email\"} }") \
     || die "failed curl to post repository_dispatch event to $repo"
   [[ $(<<< "$resp" jq -r '.message') == "Not Found" ]] && \
     diejq "error returned when sending out repository_dispatch to $repo:" "$resp"
