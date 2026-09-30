@@ -1,0 +1,1 @@
+# stub — required for the ansible lint job in .cicd.yml to run without error.

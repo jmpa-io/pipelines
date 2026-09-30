@@ -4,6 +4,8 @@ on:
     secrets:
       WEBHOOK:
         required: true
+      GITHUB_TOKEN:
+        required: false
 
 jobs:
   determine-conclusion:
