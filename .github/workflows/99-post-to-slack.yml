@@ -1,6 +1,17 @@
 ---
 on:
   workflow_call:
+    inputs:
+      # Callers pass `${{ toJSON(needs) }}`. The overall conclusion is derived from the
+      # `result` of every job in the caller's `needs`, which is exact (it can't race jobs
+      # that are still running, unlike querying the API mid-run).
+      #
+      # Optional during migration: when omitted, falls back to the (deprecated)
+      # jmpa-io/determine-workflow-conclusion action.
+      needs:
+        type: string
+        required: false
+        default: ''
     secrets:
       WEBHOOK:
         required: false
@@ -21,9 +32,24 @@ jobs:
   determine-conclusion:
     runs-on: ubuntu-latest
     outputs:
-      conclusion: ${{ steps.determine.outputs.conclusion }}
+      conclusion: ${{ steps.needs.outputs.conclusion || steps.legacy.outputs.conclusion }}
     steps:
-      - id: determine
+      - id: needs
+        if: inputs.needs != ''
+        env:
+          NEEDS: ${{ inputs.needs }}
+        run: |
+          results=$(jq -r '[.[].result] | join(" ")' <<< "$NEEDS")
+          echo "needs results: $results"
+          [[ -n "$results" ]] || { echo "no jobs in needs" >&2; exit 1; }
+          if   [[ " $results " == *" failure "*   ]]; then c=failure
+          elif [[ " $results " == *" cancelled "* ]]; then c=cancelled
+          else c=success; fi
+          echo "conclusion=$c" >> "$GITHUB_OUTPUT"
+
+      # deprecated: remove once every caller passes `needs`.
+      - id: legacy
+        if: inputs.needs == ''
         uses: jmpa-io/determine-workflow-conclusion@main
         with:
           token: ${{ github.token }}
