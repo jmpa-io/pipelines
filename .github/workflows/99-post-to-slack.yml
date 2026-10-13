@@ -4,8 +4,6 @@ on:
     secrets:
       WEBHOOK:
         required: true
-      GITHUB_TOKEN:
-        required: false
 
 jobs:
   determine-conclusion:
@@ -16,7 +14,7 @@ jobs:
       - id: determine
         uses: jmpa-io/determine-workflow-conclusion@main
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ github.token }}
 
   post:
     needs: [determine-conclusion]
