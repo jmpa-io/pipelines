@@ -3,7 +3,19 @@ on:
   workflow_call:
     secrets:
       WEBHOOK:
-        required: true
+        required: false
+
+# Posts the conclusion of the calling workflow to Slack.
+#
+# Two ways to authenticate, tried in this order:
+#   1. the WEBHOOK secret, if the calling repo can see one;
+#   2. otherwise, a bot token + channel id read from AWS SSM:
+#        /tokens/slack/bot-oauth-token  (SecureString)
+#        /cicd/slack-channel-id         (String)
+#      using the AWS OIDC role, configured by these repository variables
+#      (set per repo; org secrets don't reach private repos on a free plan):
+#        AWS_ACCOUNT_ID, and optionally AWS_RUNNER_ROLE_NAME (default
+#        'github-actions') and AWS_REGION (default 'ap-southeast-2').
 
 jobs:
   determine-conclusion:
@@ -19,8 +31,31 @@ jobs:
   post:
     needs: [determine-conclusion]
     runs-on: ubuntu-latest
+    env:
+      WEBHOOK: ${{ secrets.WEBHOOK }}
     steps:
+      - name: Configure AWS credentials
+        if: ${{ env.WEBHOOK == '' }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/${{ vars.AWS_RUNNER_ROLE_NAME || 'github-actions' }}
+          aws-region: ${{ vars.AWS_REGION || 'ap-southeast-2' }}
+
+      - name: Read Slack bot token and channel from SSM
+        if: ${{ env.WEBHOOK == '' }}
+        run: |
+          set -euo pipefail
+          token=$(aws ssm get-parameter --name /tokens/slack/bot-oauth-token \
+            --with-decryption --query Parameter.Value --output text)
+          echo "::add-mask::$token"
+          channel=$(aws ssm get-parameter --name /cicd/slack-channel-id \
+            --query Parameter.Value --output text)
+          echo "SLACK_BOT_TOKEN=$token" >> "$GITHUB_ENV"
+          echo "SLACK_CHANNEL_ID=$channel" >> "$GITHUB_ENV"
+
       - uses: jmpa-io/post-to-slack@main
         with:
-          webhook: ${{ secrets.WEBHOOK }}
+          webhook: ${{ env.WEBHOOK }}
+          token: ${{ env.SLACK_BOT_TOKEN }}
+          channel: ${{ env.SLACK_CHANNEL_ID }}
           status: ${{ needs.determine-conclusion.outputs.conclusion }}
