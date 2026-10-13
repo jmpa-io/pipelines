@@ -42,6 +42,21 @@ jobs:
       - name: Login to AWS ECR.
         uses: aws-actions/amazon-ecr-login@v2
 
+      # Private jmpa-io Go modules need a token; read it from SSM (not from
+      # org secrets, which don't reach private repos on a free plan).
+      - name: Setup private Go dependencies.
+        run: |
+          set -euo pipefail
+          token=$(aws ssm get-parameter --name /tokens/github \
+            --with-decryption --query Parameter.Value --output text)
+          echo "::add-mask::$token"
+          {
+            echo "GOPRIVATE=github.com/jmpa-io/*"
+            echo "GIT_CONFIG_COUNT=1"
+            echo "GIT_CONFIG_KEY_0=url.https://x-access-token:${token}@github.com/.insteadOf"
+            echo "GIT_CONFIG_VALUE_0=https://github.com/"
+          } >> "$GITHUB_ENV"
+
       - name: Lint.
         run: |
           img="${{ secrets.AWS_ACCOUNT_ID || vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION || vars.AWS_REGION || 'ap-southeast-2' }}.amazonaws.com/docker/go"
@@ -52,6 +67,10 @@ jobs:
             -v "$PWD:/go/src/app" \
             -w "/go/src/app" \
             -e CI \
+            -e GOPRIVATE \
+            -e GIT_CONFIG_COUNT \
+            -e GIT_CONFIG_KEY_0 \
+            -e GIT_CONFIG_VALUE_0 \
             "$img" \
             sh -c "make lint"
 
