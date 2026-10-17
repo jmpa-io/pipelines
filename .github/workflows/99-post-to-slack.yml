@@ -19,6 +19,7 @@ on:
 #   2. otherwise, a bot token + channel id read from AWS SSM:
 #        /tokens/slack/bot-oauth-token  (SecureString)
 #        /cicd/slack-channel-id         (String)
+#        /cicd/slack-channel-id-<repo>  (String, optional per-repo override)
 #      using the AWS OIDC role, configured by these repository variables
 #      (set per repo; org secrets don't reach private repos on a free plan):
 #        AWS_ACCOUNT_ID, and optionally AWS_RUNNER_ROLE_NAME (default
@@ -62,8 +63,13 @@ jobs:
           token=$(aws ssm get-parameter --name /tokens/slack/bot-oauth-token \
             --with-decryption --query Parameter.Value --output text)
           echo "::add-mask::$token"
-          channel=$(aws ssm get-parameter --name /cicd/slack-channel-id \
-            --query Parameter.Value --output text)
+          # A repo can route to its own channel via /cicd/slack-channel-id-<repo>;
+          # otherwise the shared default is used.
+          repo="${GITHUB_REPOSITORY#*/}"
+          channel=$(aws ssm get-parameter --name "/cicd/slack-channel-id-${repo}" \
+            --query Parameter.Value --output text 2>/dev/null \
+            || aws ssm get-parameter --name /cicd/slack-channel-id \
+              --query Parameter.Value --output text)
           echo "SLACK_BOT_TOKEN=$token" >> "$GITHUB_ENV"
           echo "SLACK_CHANNEL_ID=$channel" >> "$GITHUB_ENV"
 
