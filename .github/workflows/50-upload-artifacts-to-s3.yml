@@ -13,6 +13,12 @@ on:
         description: The environment whose bucket (SSM /<env>.<repo>/bucket) the artifacts are uploaded to.
         type: string
         default: dev
+      account_id:
+        description: >
+          The AWS account to deploy into. Defaults to the AWS_ACCOUNT_ID secret / variable, then to the
+          prod account. Set it (e.g. to the dev account) to point a dev environment at a different account.
+        type: string
+        default: ""
     secrets:
       AWS_REGION:
         required: true
@@ -31,7 +37,7 @@ jobs:
       - name: Configure AWS.
         uses: aws-actions/configure-aws-credentials@v6
         with:
-          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID || vars.AWS_ACCOUNT_ID || '104132128521' }}:role/${{ secrets.AWS_RUNNER_ROLE_NAME || vars.AWS_RUNNER_ROLE_NAME || 'github-actions' }}
+          role-to-assume: arn:aws:iam::${{ inputs.account_id || secrets.AWS_ACCOUNT_ID || vars.AWS_ACCOUNT_ID || '104132128521' }}:role/${{ secrets.AWS_RUNNER_ROLE_NAME || vars.AWS_RUNNER_ROLE_NAME || 'github-actions' }}
           role-session-name: github-actions
           aws-region: ${{ secrets.AWS_REGION || vars.AWS_REGION || 'ap-southeast-2' }}
 
