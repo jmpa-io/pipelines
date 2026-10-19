@@ -38,9 +38,6 @@ jobs:
           role-session-name: github-actions
           aws-region: ${{ secrets.AWS_REGION || vars.AWS_REGION || 'ap-southeast-2' }}
 
-      - name: Login to AWS ECR.
-        uses: aws-actions/amazon-ecr-login@v2
-
       # Private jmpa-io Go modules need a token; read it from SSM (not from
       # org secrets, which don't reach private repos on a free plan).
       - name: Setup private Go dependencies.
@@ -58,7 +55,7 @@ jobs:
 
       - name: Test.
         run: |
-          img="${{ secrets.AWS_ACCOUNT_ID || vars.AWS_ACCOUNT_ID || '104132128521' }}.dkr.ecr.${{ secrets.AWS_REGION || vars.AWS_REGION || 'ap-southeast-2' }}.amazonaws.com/docker/go"
+          img="ghcr.io/jmpa-io/docker-go:latest"
           echo "##[group]Pulling image."
           docker pull "$img"
           echo "##[endgroup]"
