@@ -9,6 +9,10 @@ on:
           The repository name will be used for the path to the bucket in AWS S3.
         type: string
         required: true
+      environment:
+        description: The environment whose bucket (SSM /<env>.<repo>/bucket) the artifacts are uploaded to.
+        type: string
+        default: dev
     secrets:
       AWS_REGION:
         required: true
@@ -38,4 +42,6 @@ jobs:
           path: dist
 
       - name: Upload artifacts to S3.
+        env:
+          ENVIRONMENT: ${{ inputs.environment }}
         run: make sync
