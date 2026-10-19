@@ -13,9 +13,8 @@ on:
       deploy_region:
         description: >
           Override the AWS region for the deployment (make + CloudFormation).
-          The ECR image is always pulled from AWS_REGION. Only set this when
-          deploying to a different region than the ECR registry (e.g. us-east-1
-          for billing-alarm while ECR lives in ap-southeast-2).
+          The build image is pulled from ghcr.io, so this only sets the region the
+          deployment (make + CloudFormation) runs in, e.g. us-east-1 for billing-alarm.
         type: string
         default: ""
     secrets:
@@ -40,12 +39,9 @@ jobs:
           role-session-name: github-actions
           aws-region: ${{ secrets.AWS_REGION || vars.AWS_REGION || 'ap-southeast-2' }}
 
-      - name: Login to AWS ECR.
-        uses: aws-actions/amazon-ecr-login@v2
-
       - name: Deploy.
         run: |
-          img="${{ secrets.AWS_ACCOUNT_ID || vars.AWS_ACCOUNT_ID || '104132128521' }}.dkr.ecr.${{ secrets.AWS_REGION || vars.AWS_REGION || 'ap-southeast-2' }}.amazonaws.com/docker/go"
+          img="ghcr.io/jmpa-io/docker-go:latest"
           deploy_region="${{ inputs.deploy_region != '' && inputs.deploy_region || secrets.AWS_REGION || vars.AWS_REGION || 'ap-southeast-2' }}"
           echo "##[group]Pulling image."
           docker pull "$img"

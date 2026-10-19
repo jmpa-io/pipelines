@@ -3,7 +3,7 @@ on:
   workflow_call:
     inputs:
       ansible:
-        description: When true, uses the docker/python ECR image instead of docker/go.
+        description: When true, uses the docker-python image (ghcr.io) instead of docker-go.
         type: boolean
         default: false
       requirements:
@@ -39,9 +39,6 @@ jobs:
           role-session-name: github-actions
           aws-region: ${{ secrets.AWS_REGION || vars.AWS_REGION || 'ap-southeast-2' }}
 
-      - name: Login to AWS ECR.
-        uses: aws-actions/amazon-ecr-login@v2
-
       # Private jmpa-io Go modules need a token; read it from SSM (not from
       # org secrets, which don't reach private repos on a free plan).
       - name: Setup private Go dependencies.
@@ -59,7 +56,7 @@ jobs:
 
       - name: Lint.
         run: |
-          img="${{ secrets.AWS_ACCOUNT_ID || vars.AWS_ACCOUNT_ID || '104132128521' }}.dkr.ecr.${{ secrets.AWS_REGION || vars.AWS_REGION || 'ap-southeast-2' }}.amazonaws.com/docker/go"
+          img="ghcr.io/jmpa-io/docker-go:latest"
           echo "##[group]Pulling image."
           docker pull "$img"
           echo "##[endgroup]"
@@ -81,19 +78,9 @@ jobs:
       - name: Checkout.
         uses: actions/checkout@v4
 
-      - name: Configure AWS.
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID || vars.AWS_ACCOUNT_ID || '104132128521' }}:role/${{ secrets.AWS_RUNNER_ROLE_NAME || vars.AWS_RUNNER_ROLE_NAME || 'github-actions' }}
-          role-session-name: github-actions
-          aws-region: ${{ secrets.AWS_REGION || vars.AWS_REGION || 'ap-southeast-2' }}
-
-      - name: Login to AWS ECR.
-        uses: aws-actions/amazon-ecr-login@v2
-
       - name: Lint.
         run: |
-          img="${{ secrets.AWS_ACCOUNT_ID || vars.AWS_ACCOUNT_ID || '104132128521' }}.dkr.ecr.${{ secrets.AWS_REGION || vars.AWS_REGION || 'ap-southeast-2' }}.amazonaws.com/docker/python"
+          img="ghcr.io/jmpa-io/docker-python:latest"
           echo "##[group]Pulling image."
           docker pull "$img"
           echo "##[endgroup]"
