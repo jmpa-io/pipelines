@@ -1,0 +1,30 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "timezone": "Australia/Melbourne",
+  "schedule": [
+    "before 6am on monday"
+  ],
+  "labels": [
+    "dependencies",
+    "renovate"
+  ],
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 3,
+  "packageRules": [
+    {
+      "description": "Dependabot already covers these in this repo: avoid duplicate pull requests.",
+      "matchManagers": [
+        "github-actions",
+        "pep621",
+        "pip_requirements",
+        "pip_setup",
+        "pipenv",
+        "poetry"
+      ],
+      "enabled": false
+    }
+  ]
+}
