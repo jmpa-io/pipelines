@@ -14,6 +14,14 @@ on:
         description: Path to Ansible Galaxy requirements file, used when ansible is true.
         type: string
         default: requirements.yml
+      dotnet:
+        description: When true, lints a .NET repo on the runner (setup-dotnet) instead of in docker-go.
+        type: boolean
+        default: false
+      dotnet-version:
+        description: The .NET SDK version to install, used when dotnet is true.
+        type: string
+        default: 10.0.x
     secrets:
       AWS_REGION:
         required: false
@@ -26,7 +34,7 @@ on:
 
 jobs:
   run-docker:
-    if: ${{ !inputs.ansible }}
+    if: ${{ !inputs.ansible && !inputs.dotnet }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout.
@@ -90,3 +98,18 @@ jobs:
             -e CI \
             "$img" \
             sh -c "pip install -r ${{ inputs.requirements }} && ansible-galaxy collection install -r ${{ inputs.collections }} && make lint"
+
+  run-dotnet:
+    if: ${{ inputs.dotnet }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout.
+        uses: actions/checkout@v4
+
+      - name: Setup .NET.
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ inputs.dotnet-version }}
+
+      - name: Lint.
+        run: make lint-csharp
