@@ -4,7 +4,9 @@ on:
   push:
     paths:
       - '.github/workflows/.cicd.yml'
+      - '.github/workflows/00-README.yml'
       - '.github/workflows/10-lint.yml'
+      - '.github/workflows/15-lint-ansible.yml'
       - '.github/workflows/20-test.yml'
       - '.github/workflows/30-build-binaries.yml'
       - '.github/workflows/35-build-and-push-docker-images-to-ecr.yml'
