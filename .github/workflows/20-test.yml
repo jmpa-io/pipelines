@@ -10,6 +10,30 @@ on:
         description: Make targets to run, e.g. 'test-go test-py'. Defaults to every language ('test').
         type: string
         default: test
+      run-make-tests:
+        description: When false, skips the docker 'make' test job (e.g. for repos that only use the node tests below).
+        type: boolean
+        default: true
+      node-tests:
+        description: When true, also runs node tests (opt-in; independent of the make test job).
+        type: boolean
+        default: false
+      node-version:
+        description: Node.js version used when node-tests is true.
+        type: string
+        default: lts/*
+      node-working-directory:
+        description: Directory the node tests run from (and where package-lock.json is looked for), when node-tests is true.
+        type: string
+        default: .
+      node-test-command:
+        description: Command that runs the node tests, e.g. 'npm test' or 'npx playwright test'.
+        type: string
+        default: node --test
+      node-playwright:
+        description: When true (with node-tests), installs the Playwright browsers before running the tests and uploads the report on failure.
+        type: boolean
+        default: false
     secrets:
       AWS_REGION:
         required: false
@@ -23,6 +47,7 @@ on:
 
 jobs:
   run:
+    if: ${{ inputs.run-make-tests }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout.
@@ -75,3 +100,41 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+
+  run-node:
+    if: ${{ inputs.node-tests }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.node-working-directory }}
+    steps:
+      - name: Checkout.
+        uses: actions/checkout@v4
+
+      - name: Setup node.
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+
+      - name: Install dependencies.
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            echo "No package-lock.json, skipping install."
+          fi
+
+      - name: Install Playwright browsers.
+        if: inputs.node-playwright
+        run: npx playwright install --with-deps
+
+      - name: Test.
+        run: ${{ inputs.node-test-command }}
+
+      - name: Upload Playwright report.
+        if: failure() && inputs.node-playwright
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: ${{ inputs.node-working-directory }}/playwright-report
+          if-no-files-found: ignore
