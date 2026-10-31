@@ -10,6 +10,14 @@ on:
         description: Make targets to run, e.g. 'test-go test-py'. Defaults to every language ('test').
         type: string
         default: test
+      dotnet:
+        description: When true, tests a .NET repo on the runner (setup-dotnet) instead of in docker-go.
+        type: boolean
+        default: false
+      dotnet-version:
+        description: The .NET SDK version to install, used when dotnet is true.
+        type: string
+        default: 10.0.x
     secrets:
       AWS_REGION:
         required: false
@@ -23,6 +31,7 @@ on:
 
 jobs:
   run:
+    if: ${{ !inputs.dotnet }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout.
@@ -75,3 +84,18 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+
+  run-dotnet:
+    if: ${{ inputs.dotnet }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout.
+        uses: actions/checkout@v4
+
+      - name: Setup .NET.
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ inputs.dotnet-version }}
+
+      - name: Test.
+        run: make test-csharp
