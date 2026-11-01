@@ -34,12 +34,12 @@ jobs:
       contents: read
     steps:
       - name: Checkout.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           submodules: recursive
 
       - name: Configure AWS.
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID || vars.AWS_ACCOUNT_ID || '104132128521' }}:role/${{ secrets.AWS_RUNNER_ROLE_NAME || vars.AWS_RUNNER_ROLE_NAME || 'github-actions' }}
           role-session-name: github-actions
