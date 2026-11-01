@@ -1,4 +1,4 @@
-# Generated from github.com/jmpa-io/makefile-builder @ 5ed65e8
+# Generated from github.com/jmpa-io/makefile-builder @ b3d91bd
 
 #
 # This Makefile is designed to be generic across ALL repositories.
@@ -973,7 +973,7 @@ print-cpp-version:
 define build_binary_cpp
 	$(eval $(call set_cpp_compiler))
 	@test -z "$$CI" || echo "##[group]Building binary $(1)-$(2)-$(3)."
-	$(CPP_COMPILER) cmd/$*/*.cpp -Wall -Wextra -o dist/$(1)/$(1)-$(2)-$(3)$(call add_windows_suffix,$(2))
+	$(CPP_COMPILER) cmd/$*/*.cpp -Wall -Wextra $(if $(filter windows,$(2)),,-pthread) -o dist/$(1)/$(1)-$(2)-$(3)$(call add_windows_suffix,$(2))
 	@test -z "$$CI" || echo "##[endgroup]"
 endef
 
@@ -981,9 +981,12 @@ binary-cpp-%: ## Create a C++ binary for the given service, using $(BUILDING_OS)
 binary-cpp-%: cmd/%/main.cpp dist/% print-cpp-version
 	$(call build_binary_cpp,$*,$(BUILDING_OS),$(BUILDING_ARCH))
 
-build-cpp-%: # Builds & executes the given C++ service using the host $(OS) & $(ARCH).
-build-cpp-%: binary-cpp-%
-	@dist/$*/$*-$(OS)-$(ARCH)$(call add_windows_suffix, $(OS))
+build-cpp-%: # Builds & executes the given C++ service natively for local dev (no cross-compilation).
+build-cpp-%: cmd/%/main.cpp dist/%
+	@test -z "$$CI" || echo "##[group]Building native binary for $*."
+	$(CXX) cmd/$*/*.cpp -Wall -Wextra $(if $(filter windows,$(OS)),,-pthread) -o dist/$*/$*-$(OS)-$(ARCH)$(call add_windows_suffix, $(OS))
+	@test -z "$$CI" || echo "##[endgroup]"
+	dist/$*/$*-$(OS)-$(ARCH)$(call add_windows_suffix, $(OS))
 
 binaries-cpp-%: ## Creates a C++ binary for all supported OS and ARCH for the given service.
 binaries-cpp-%:
