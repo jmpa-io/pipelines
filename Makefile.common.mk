@@ -1,4 +1,4 @@
-# Generated from github.com/jmpa-io/makefile-builder @ bcd5d8d
+# Generated from github.com/jmpa-io/makefile-builder @ 6e3de3e
 
 #
 # This Makefile is designed to be generic across ALL repositories.
@@ -156,8 +156,12 @@ CLOUDFORMATION_ROOT_DIRECTORY ?= ./cf
 
 # ---
 
+# The root of this repository. Worktree-safe (a worktree has a '.git' file, not a
+# directory); outside git, walks up looking for '.git' and falls back to '/'.
+GIT_ROOT := $(shell git rev-parse --show-toplevel 2>/dev/null || { d=$$PWD; while [ ! -e "$$d/.git" ] && [ -n "$$d" ]; do d=$${d%/*}; done; echo "$${d:-/}"; })
+
 # The paths to any given Git submodules found in this repository.
-GIT_SUBMODULES := $(shell git config --file $(shell while [ ! -d .git ]; do cd ..; done; pwd)/.gitmodules --get-regexp path | awk '{ print $$2 }')
+GIT_SUBMODULES := $(shell git config --file $(GIT_ROOT)/.gitmodules --get-regexp path | awk '{ print $$2 }')
 
 # A filter for ignoring Git submodules when using 'find' commands in this Makefile.
 FILTER_IGNORE_SUBMODULES = $(foreach module,$(GIT_SUBMODULES),-not \( -path "./$(module)" -o -path "./$(module)/*" \))
@@ -551,18 +555,33 @@ else
 endif
 	@test -z "$(CI)" || echo "##[endgroup]"
 
-lint-cf: ## Lints Cloudformation templates.
+# When 'true', cfn-lint errors do NOT fail 'lint-cf' (the previous behaviour).
+LINT_CF_ALLOW_FAILURE ?= false
+
+# cfn-lint only exits non-zero for errors (not warnings or informational
+# findings), so warnings stay visible but non-fatal.
+lint-cf: ## Lints Cloudformation templates (cfn-lint errors fail; set LINT_CF_ALLOW_FAILURE=true to opt out).
 lint-cf:
 	@test -z "$(CI)" || echo "##[group]Linting Cloudformation templates."
 ifeq ($(CLOUDFORMATION_TEMPLATE_FILES),)
 	@echo "No Cloudformation templates found to lint."
-else
-	@$(foreach file,$(CLOUDFORMATION_TEMPLATE_FILES), \
-		cfn-lint -r $(AWS_REGION) -t $(file) || true; \
-		aws cloudformation validate-template --region $(AWS_REGION) --template-body file://$(file) || true; \
-	)
-endif
 	@test -z "$(CI)" || echo "##[endgroup]"
+else
+	@failed=0; \
+	$(foreach file,$(CLOUDFORMATION_TEMPLATE_FILES), \
+		cfn-lint -r $(AWS_REGION) --non-zero-exit-code error -t $(file) || failed=1; \
+		aws cloudformation validate-template --region $(AWS_REGION) --template-body file://$(file) || true; \
+	) \
+	test -z "$(CI)" || echo "##[endgroup]"; \
+	if [ "$$failed" -ne 0 ]; then \
+		if [ "$(LINT_CF_ALLOW_FAILURE)" = "true" ]; then \
+			echo "cfn-lint reported errors, ignored because LINT_CF_ALLOW_FAILURE=true." >&2; \
+		else \
+			echo "cfn-lint reported errors (set LINT_CF_ALLOW_FAILURE=true to ignore)." >&2; \
+			exit 1; \
+		fi; \
+	fi
+endif
 
 lint-sam: ## Lints AWS SAM templates.
 lint-sam:
@@ -732,7 +751,7 @@ else
 		-v \
 		--tb=short \
 		--cov=src \
-		--cov-config=$(shell while [ ! -d .git ]; do cd ..; done; pwd)/.coveragerc \
+		--cov-config=$(GIT_ROOT)/.coveragerc \
 		--cov-report=xml:$@ \
 		--cov-report=term \
 		. || [ $$? -eq 5 ] # exit code 5 = no tests collected, which isn't a failure.
