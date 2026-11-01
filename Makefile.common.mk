@@ -1,4 +1,4 @@
-# Generated from github.com/jmpa-io/makefile-builder @ b3d91bd
+# Generated from github.com/jmpa-io/makefile-builder @ bcd5d8d
 
 #
 # This Makefile is designed to be generic across ALL repositories.
@@ -735,7 +735,7 @@ else
 		--cov-config=$(shell while [ ! -d .git ]; do cd ..; done; pwd)/.coveragerc \
 		--cov-report=xml:$@ \
 		--cov-report=term \
-		.
+		. || [ $$? -eq 5 ] # exit code 5 = no tests collected, which isn't a failure.
 endif
 	@test -z "$(CI)" || echo "##[endgroup]"
 
